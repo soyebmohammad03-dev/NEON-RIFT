@@ -1,7 +1,9 @@
 {
     "name": "NeonRift.Vehicles",
     "rootNamespace": "NeonRift.Vehicles",
-    "references": [],
+    "references": [
+        "NeonRift.Core"
+    ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,

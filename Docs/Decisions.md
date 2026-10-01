@@ -29,5 +29,17 @@ Suspension and tyre forces need a small integration step; 0.01 s is the baseline
 ### D9 — Third-party isolation
 Vendor packs keep their own import root and are never edited in place. Changes go into `_NeonRift` (prefab variants, copied materials). Building and vehicle models are provided by the project owner; every other external resource must be free.
 
+### D11 — glTFast for GLB, nested source prefabs
+Sketchfab GLBs are imported with Unity's free glTFast package. Our prefabs nest the untouched source model and override only transforms and renderer enable states, so re-importing a source updates every prefab. Wheel geometry merged across corners is split into generated meshes owned by `_NeonRift`.
+
+### D12 — Clearcoat materials remapped
+glTFast's clearcoat Shader Graph produced NaN (flat cyan) output at runtime. Prefabs use project-owned copies on the plain glTF PBR graph. Car-paint clear coat returns via URP Complex Lit in look-dev.
+
+### D13 — Stop NaN on all cameras
+Some smooth/emissive surfaces still produce NaNs at runtime. URP *Stop NaN* is enabled on every scene camera as a safeguard. Finding the source is a lighting-phase task (see ThirdParty.md, known issues).
+
+### D14 — Licence metadata travels with content
+`VehicleDefinition` and `BuildingDefinition` carry an `AssetLicense`. Non-commercial assets may be used in development; the validator lists them so a release build can exclude them.
+
 ### D10 — Git + Git LFS
 Plain Git with LFS rules in `.gitattributes` for binary assets, and UnityYAMLMerge for scenes and prefabs. Unity's `collab-proxy` package stays installed for optional Unity Version Control but is not used as the source of truth.

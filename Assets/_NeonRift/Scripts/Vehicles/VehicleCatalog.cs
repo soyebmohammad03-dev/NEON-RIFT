@@ -41,6 +41,7 @@ namespace NeonRift.Vehicles
                 if (string.IsNullOrWhiteSpace(v.Id)) problems.Add($"'{v.name}' has no id.");
                 else if (!seen.Add(v.Id)) problems.Add($"Duplicate vehicle id '{v.Id}'.");
                 if (v.GameplayPrefab == null) problems.Add($"'{v.name}' has no gameplay prefab.");
+                else if (v.GameplayPrefab.GetComponent<VehicleRig>() == null) problems.Add($"'{v.name}' gameplay prefab has no VehicleRig.");
             }
             return problems;
         }

@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 63f2032f51a004ec889f55f819b7ed70, type: 3}
+  m_Name: Building_SingaporeOffice
+  m_EditorClassIdentifier: NeonRift.World::NeonRift.World.BuildingDefinition
+  id: singapore_office
+  displayName: Singapore Office Tower
+  prefab: {fileID: 1337875566385763040, guid: d23af68e76e6242c3afc460b1341d22c, type: 3}
+  tier: 0
+  size: {x: 59.282307, y: 105.80811, z: 56.43953}
+  hasCollider: 1
+  triangleCount: 26391
+  notes: Office tower with podium and interior floors behind glass. Roadside hero.
+  license:
+    LicenseId: CC-BY-4.0
+    Author: 99.Miles
+    SourceUrl: https://sketchfab.com/3d-models/singapore-office-skyscraper-free-2305f0fe03ba44229a1f768dcb48bd8f
+    CommercialUseAllowed: 1

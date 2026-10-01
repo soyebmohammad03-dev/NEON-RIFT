@@ -1,0 +1,6 @@
+Title:   ( FREE ) Lamborghini Terzo Millennio
+Author:  SDC PERFORMANCE (https://sketchfab.com/3Duae)
+Source:  https://sketchfab.com/3d-models/free-lamborghini-terzo-millennio-7ad3dffa9d344c3c978eafcc220cb709
+License: CC-BY-NC-4.0 (http://creativecommons.org/licenses/by-nc/4.0/) -- NON-COMMERCIAL ONLY
+Origin:  Downloaded from Sketchfab by the project owner. License read from the file's embedded glTF asset.extras or the Sketchfab model page (checked 2026-10-02).
+Changes: Source file unmodified. Neon Rift prefab scales x1.351 (0.70 m tyre diameter), disables the embedded animation, hides an animation helper mesh and two displaced animation-rigged panels (incl. rear wing), and splits wheel meshes per corner.

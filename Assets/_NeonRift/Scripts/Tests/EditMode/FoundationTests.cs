@@ -46,6 +46,7 @@ namespace NeonRift.Tests
         private GameObject Prefab()
         {
             var go = new GameObject("TestPrefab");
+            go.AddComponent<VehicleRig>();
             created.Add(go);
             return go;
         }

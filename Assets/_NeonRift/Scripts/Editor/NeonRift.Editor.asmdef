@@ -2,9 +2,11 @@
     "name": "NeonRift.Editor",
     "rootNamespace": "NeonRift.EditorTools",
     "references": [
+        "NeonRift.Core",
         "NeonRift.Game",
         "NeonRift.Vehicles",
-        "NeonRift.Missions"
+        "NeonRift.Missions",
+        "NeonRift.World"
     ],
     "includePlatforms": [
         "Editor"

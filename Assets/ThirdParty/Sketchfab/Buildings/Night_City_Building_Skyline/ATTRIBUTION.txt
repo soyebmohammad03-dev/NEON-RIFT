@@ -1,0 +1,6 @@
+Title:   Low Poly Night City Building Skyline
+Author:  99.Miles (https://sketchfab.com/99.Miles)
+Source:  https://sketchfab.com/3d-models/low-poly-night-city-building-skyline-b0035b8713b048bb8ddf311ee67c28c8
+License: CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/) per Sketchfab page
+Origin:  Downloaded from Sketchfab by the project owner. License read from the file's embedded glTF asset.extras or the Sketchfab model page (checked 2026-10-02).
+Changes: Only the FBX and textures were extracted from the original archive (.blend/.obj omitted). URP materials built in Assets/_NeonRift/Art/Buildings (roughness packed to smoothness). Prefab scaled x10: source is authored at 1/10 scale.

@@ -12,4 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 924547d8a9ef1497c81c0ff124745238, type: 3}
   m_Name: VehicleCatalog
   m_EditorClassIdentifier: NeonRift.Vehicles::NeonRift.Vehicles.VehicleCatalog
-  vehicles: []
+  vehicles:
+  - {fileID: 11400000, guid: a76b30ca5ee7a407f924dfeb4b4bc888, type: 2}
+  - {fileID: 11400000, guid: d56f48aab060d487e9e02512a8f64fdf, type: 2}
+  - {fileID: 11400000, guid: bf570ca4f558340c8a3c5983cb90d8be, type: 2}

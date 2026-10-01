@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: badef4ba0299d44a1a73f2b80bef4b8c, type: 3}
+  m_Name: Vehicle_MercedesAMGGT3
+  m_EditorClassIdentifier: NeonRift.Vehicles::NeonRift.Vehicles.VehicleDefinition
+  id: mercedes_amg_gt3
+  displayName: AMG GT3
+  manufacturer: Mercedes-AMG
+  description: Modern GT3 race car. Aero-heavy and precise; demands commitment.
+  gameplayPrefab: {fileID: 8511447577852993358, guid: d9a070481486042a2a9f99c81c33f0e8, type: 3}
+  showroomPrefab: {fileID: 0}
+  displayStats:
+    topSpeedKph: 290
+    zeroToHundredSeconds: 3.4
+    powerHp: 550
+    massKg: 1285
+    handlingRating: 9.5
+  displayStatsProvisional: 1
+  license:
+    LicenseId: CC-BY-NC-SA-4.0
+    Author: VTX
+    SourceUrl: https://sketchfab.com/3d-models/mercedes-amg-gt3-red-bull-racing-035f061cb6624effbc483d5f9b5ecaba
+    CommercialUseAllowed: 0

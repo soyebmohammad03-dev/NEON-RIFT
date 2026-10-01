@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 63f2032f51a004ec889f55f819b7ed70, type: 3}
+  m_Name: Building_LondonSkyscraper
+  m_EditorClassIdentifier: NeonRift.World::NeonRift.World.BuildingDefinition
+  id: london_skyscraper
+  displayName: London Skyscraper
+  prefab: {fileID: 802305859724165782, guid: cb74646befcec4b7db8e30168d76438a, type: 3}
+  tier: 0
+  size: {x: 37.23718, y: 166.35303, z: 50.92913}
+  hasCollider: 1
+  triangleCount: 142742
+  notes: 'Landmark tower with its own sidewalk and lit lobby interior. 143k tris: use once, near the route.'
+  license:
+    LicenseId: CC-BY-4.0
+    Author: 99.Miles
+    SourceUrl: https://sketchfab.com/3d-models/free-london-skyscraper-52b73f6ea18a440cb42734840d5edc72
+    CommercialUseAllowed: 1

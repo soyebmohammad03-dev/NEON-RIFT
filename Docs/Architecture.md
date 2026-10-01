@@ -11,15 +11,19 @@ NeonRift.Frontend   NeonRift.Gameplay         (scene-level features)
         /      |       \
 NeonRift.Input |  NeonRift.Missions           (player input bridge / mission data)
         \      |
-       NeonRift.Vehicles                      (vehicle data, DrivingInput contract)
+       NeonRift.Vehicles     NeonRift.World   (vehicle data + rig / building catalog)
+                 \             /
+                  NeonRift.Core               (shared primitives: AssetLicense)
 
-NeonRift.Editor           editor tooling (validator)
+NeonRift.Editor           editor tooling (validator, third-party intake, prefab builders)
 NeonRift.Tests.EditMode   unit tests
 ```
 
 | Assembly | Owns |
 |---|---|
-| Vehicles | `VehicleDefinition`, `VehicleCatalog`, `VehicleDisplayStats`, `DrivingInput`, `IVehicleInputSource`, `IVehicleInputReceiver` |
+| Core | `AssetLicense` |
+| Vehicles | `VehicleDefinition`, `VehicleCatalog`, `VehicleDisplayStats`, `VehicleRig`/`WheelRig`, `DrivingInput`, `IVehicleInputSource`, `IVehicleInputReceiver` |
+| World | `BuildingDefinition`, `BuildingCatalog`, `BuildingTier` (Hero / Midground / Skyline) |
 | Missions | `MissionDefinition`, `RunResult`, `MissionOutcome` |
 | Input | Generated `NeonRiftControls` (from `Settings/Input/NeonRiftControls.inputactions`), `PlayerDrivingInput` |
 | Game | `GameRoot`, `GameFlow`/`IGameFlow`, `GameContext`, `ISceneEntryPoint`, `RunSession`, `GameConfig`, `LoadingOverlay`, `BootstrapLoader` |
@@ -39,6 +43,24 @@ NeonRift.Tests.EditMode   unit tests
 `CarSelectScreen` → `RunSession.SelectVehicle` / `SelectMission` → `IGameFlow.StartMission()` → mission scene → `MissionSceneEntry.Enter` → `VehicleSpawnPoint.Spawn(selected definition)` → every `IVehicleInputReceiver` on the spawned prefab gets a `PlayerDrivingInput`.
 
 Results come back through `RunSession.RecordResult(RunResult)`.
+
+## Asset pipeline
+
+`ThirdPartyIntake` (menu: Neon Rift ▸ Assets ▸ Run Third-Party Intake) is the single, re-runnable recipe for supplied models:
+
+- **Vehicles.** A `VehicleModelSetup` asset per car (`Data/Vehicles/ImportSetups`) goes into `VehiclePrefabBuilder`, which produces:
+  - a `PF_Vehicle_*` prefab with the source model nested as `Body` (orientation and scale fixed, helper parts hidden);
+  - `Wheels/Wheel_XX/Spin` pivots with split meshes (in `Art/Vehicles/<prefab>/`);
+  - a `VehicleRig` component;
+  - a `VehicleDefinition` added to the `VehicleCatalog`.
+- **Buildings.** `BuildingPrefabBuilder` creates `PF_Bld_*` prefabs with:
+  - a ground-centre pivot;
+  - URP materials and packed textures (in `Art/Buildings/`);
+  - an optional box collider and the Environment layer;
+  - a `BuildingDefinition` added to the `BuildingCatalog`.
+- `GltfMaterialFixer` remaps glTFast clearcoat materials (see D12).
+
+To add a car: add a recipe in `ThirdPartyIntake.VehicleRecipes()` (keywords for wheels, lamps and hidden parts), then run the intake.
 
 ## Ready for the vehicle phase
 

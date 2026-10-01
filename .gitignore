@@ -60,3 +60,5 @@ Thumbs.db
 # Project-specific: reference material and stray folders kept out of the repo
 /Gameplay Recording*.mp4
 /My project/
+# Original downloaded archives; extracted, usable content lives under Assets/ThirdParty
+/SourceArchives/

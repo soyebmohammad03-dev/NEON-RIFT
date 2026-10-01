@@ -15,6 +15,25 @@ namespace NeonRift.EditorTools
             var problems = Validate();
             if (problems.Count == 0) Debug.Log("[Validator] Project OK.");
             else foreach (var p in problems) Debug.LogError("[Validator] " + p);
+            foreach (var w in Warnings()) Debug.LogWarning("[Validator] " + w);
+        }
+
+        /// <summary>Not errors, but must be resolved before a commercial release.</summary>
+        public static List<string> Warnings()
+        {
+            var warnings = new List<string>();
+            foreach (var guid in AssetDatabase.FindAssets("t:VehicleDefinition"))
+            {
+                var v = AssetDatabase.LoadAssetAtPath<NeonRift.Vehicles.VehicleDefinition>(AssetDatabase.GUIDToAssetPath(guid));
+                if (!v.License.CommercialUseAllowed) warnings.Add($"Vehicle '{v.Id}' is {v.License.LicenseId}: not cleared for commercial release.");
+                if (v.DisplayStatsProvisional) warnings.Add($"Vehicle '{v.Id}' display stats are provisional.");
+            }
+            foreach (var guid in AssetDatabase.FindAssets("t:BuildingDefinition"))
+            {
+                var b = AssetDatabase.LoadAssetAtPath<NeonRift.World.BuildingDefinition>(AssetDatabase.GUIDToAssetPath(guid));
+                if (!b.License.CommercialUseAllowed) warnings.Add($"Building '{b.Id}' is {b.License.LicenseId}: not cleared for commercial release.");
+            }
+            return warnings;
         }
 
         public static List<string> Validate()
@@ -49,6 +68,14 @@ namespace NeonRift.EditorTools
                 else if (!missionIds.Add(mission.Id)) problems.Add($"Duplicate mission id '{mission.Id}'.");
             }
             if (config.DefaultMission == null) problems.Add("GameConfig has no playable default mission.");
+
+            var buildingCatalogs = AssetDatabase.FindAssets("t:BuildingCatalog");
+            if (buildingCatalogs.Length != 1) problems.Add($"Expected exactly one BuildingCatalog, found {buildingCatalogs.Length}.");
+            else
+            {
+                var bc = AssetDatabase.LoadAssetAtPath<NeonRift.World.BuildingCatalog>(AssetDatabase.GUIDToAssetPath(buildingCatalogs[0]));
+                problems.AddRange(bc.Validate().Select(p => "BuildingCatalog: " + p));
+            }
 
             return problems;
         }

@@ -78,7 +78,7 @@ namespace NeonRift.Frontend
 
         private void CentreOnTurntable(Transform model)
         {
-            var renderers = model.GetComponentsInChildren<Renderer>();
+            var renderers = System.Array.FindAll(model.GetComponentsInChildren<Renderer>(), r => r.enabled);
             if (renderers.Length == 0) return;
             var bounds = renderers[0].bounds;
             for (int i = 1; i < renderers.Length; i++) bounds.Encapsulate(renderers[i].bounds);

@@ -1,0 +1,6 @@
+Title:   [FREE] London Skyscraper
+Author:  99.Miles (https://sketchfab.com/99.Miles)
+Source:  https://sketchfab.com/3d-models/free-london-skyscraper-52b73f6ea18a440cb42734840d5edc72
+License: CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+Origin:  Downloaded from Sketchfab by the project owner. License read from the file's embedded glTF asset.extras or the Sketchfab model page (checked 2026-10-02).
+Changes: Source file unmodified. Neon Rift prefab grounds the sidewalk top at y=0, adds a box collider, uses non-clearcoat copies of 3 materials.

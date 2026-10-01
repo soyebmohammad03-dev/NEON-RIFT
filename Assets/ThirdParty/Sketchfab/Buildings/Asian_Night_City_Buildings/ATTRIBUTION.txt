@@ -1,0 +1,6 @@
+Title:   Asian Themed Low Poly Night City Buildings
+Author:  99.Miles (https://sketchfab.com/99.Miles)
+Source:  https://sketchfab.com/3d-models/asian-themed-low-poly-night-city-buildings-9f0343aff4814b758dc6e905aba5b5e0
+License: CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/) per Sketchfab page
+Origin:  Downloaded from Sketchfab by the project owner. License read from the file's embedded glTF asset.extras or the Sketchfab model page (checked 2026-10-02).
+Changes: Only the FBX and textures were extracted from the original archive (.blend/.obj omitted). URP materials built in Assets/_NeonRift/Art/Buildings (roughness packed to smoothness, opacity packed to alpha). Each building is its own prefab; roof flares attached to their building.

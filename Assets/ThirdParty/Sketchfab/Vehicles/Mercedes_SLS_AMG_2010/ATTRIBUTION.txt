@@ -1,0 +1,6 @@
+Title:   2010 Mercedes SLS AMG
+Author:  Dave Love SketchFab (https://sketchfab.com/Tyler_Dave)
+Source:  https://sketchfab.com/3d-models/2010-mercedes-sls-amg-fa3fd5eeea674f37bb03283f2c53d563
+License: CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+Origin:  Downloaded from Sketchfab by the project owner. License read from the file's embedded glTF asset.extras or the Sketchfab model page (checked 2026-10-02).
+Changes: Source file unmodified. Neon Rift prefab hides DAMAGE_GLASS, splits wheel meshes per corner (generated meshes in Assets/_NeonRift/Art/Vehicles), and uses a non-clearcoat copy of the car-paint material.

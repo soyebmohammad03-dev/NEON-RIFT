@@ -1,3 +1,4 @@
+using NeonRift.Core;
 using UnityEngine;
 
 namespace NeonRift.Vehicles
@@ -20,8 +21,15 @@ namespace NeonRift.Vehicles
 
         [Header("Car Select")]
         [SerializeField] private VehicleDisplayStats displayStats = VehicleDisplayStats.Default;
+        [Tooltip("True until the figures are confirmed against the physics profile on the test track.")]
+        [SerializeField] private bool displayStatsProvisional = true;
+
+        [Header("Source asset")]
+        [SerializeField] private AssetLicense license;
 
         public string Id => id;
+        public bool DisplayStatsProvisional => displayStatsProvisional;
+        public AssetLicense License => license;
         public string DisplayName => string.IsNullOrWhiteSpace(displayName) ? name : displayName;
         public string Manufacturer => manufacturer;
         public string Description => description;

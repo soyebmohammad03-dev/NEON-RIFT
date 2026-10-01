@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: badef4ba0299d44a1a73f2b80bef4b8c, type: 3}
+  m_Name: Vehicle_MercedesSLSGT3
+  m_EditorClassIdentifier: NeonRift.Vehicles::NeonRift.Vehicles.VehicleDefinition
+  id: mercedes_sls_gt3
+  displayName: SLS AMG GT3
+  manufacturer: Mercedes-AMG
+  description: Customer GT3 race car on the SLS platform. Lighter, stiffer, big rear wing.
+  gameplayPrefab: {fileID: 840988206285905016, guid: 17c5bd1a8ffe749c0a1686492b35e9d4, type: 3}
+  showroomPrefab: {fileID: 0}
+  displayStats:
+    topSpeedKph: 290
+    zeroToHundredSeconds: 3.5
+    powerHp: 580
+    massKg: 1335
+    handlingRating: 9
+  displayStatsProvisional: 1
+  license:
+    LicenseId: CC-BY-4.0
+    Author: Dave Love SketchFab
+    SourceUrl: https://sketchfab.com/3d-models/mercedes-sls-gt3-5ec93bea4816494cbe3e7333bbfca5f6
+    CommercialUseAllowed: 1

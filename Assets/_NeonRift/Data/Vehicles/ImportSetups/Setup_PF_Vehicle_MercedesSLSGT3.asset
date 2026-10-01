@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2a0e87f88bf954a95b22aa95e846d4bb, type: 3}
+  m_Name: Setup_PF_Vehicle_MercedesSLSGT3
+  m_EditorClassIdentifier: NeonRift.Editor::NeonRift.EditorTools.Vehicles.VehicleModelSetup
+  sourceModel: {fileID: -6689036041284674117, guid: 59763343f75fb41eea770a3b8dd6e52f, type: 3}
+  prefabName: PF_Vehicle_MercedesSLSGT3
+  bodyRotation: {x: 0, y: 0, z: 0}
+  targetWheelDiameter: 0
+  wheelKeywords:
+  - EXT_Rim
+  - EXT_Tyre
+  - EXT_Brake
+  staticWheelKeywords:
+  - Caliper
+  motionBlurWheelKeywords:
+  - Rim_Blur
+  hiddenKeywords:
+  - DAMAGE_GLASS
+  lightKeywords:
+  - EXT_Lights_Front
+  - EXT_Lights_Rear
+  - Microluci

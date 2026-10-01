@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 63f2032f51a004ec889f55f819b7ed70, type: 3}
+  m_Name: Building_AsianNight_B1_001
+  m_EditorClassIdentifier: NeonRift.World::NeonRift.World.BuildingDefinition
+  id: asian_night_b1_001
+  displayName: Asian Night B1_001
+  prefab: {fileID: 8536151931939476381, guid: d0bf8b3dfea6c4a6c9c3e636ceaa3d4e, type: 3}
+  tier: 2
+  size: {x: 36.565, y: 163.25177, z: 27.396376}
+  hasCollider: 0
+  triangleCount: 182
+  notes: Low-poly with baked window light. Reads well beyond ~150 m; too flat for the road edge.
+  license:
+    LicenseId: CC-BY-4.0
+    Author: 99.Miles
+    SourceUrl: https://sketchfab.com/3d-models/asian-themed-low-poly-night-city-buildings-9f0343aff4814b758dc6e905aba5b5e0
+    CommercialUseAllowed: 1

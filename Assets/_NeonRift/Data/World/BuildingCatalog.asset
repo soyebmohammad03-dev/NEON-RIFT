@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eec63aec2e79c41709213c0f3730dd0a, type: 3}
+  m_Name: BuildingCatalog
+  m_EditorClassIdentifier: NeonRift.World::NeonRift.World.BuildingCatalog
+  buildings:
+  - {fileID: 11400000, guid: a0ff1b61ee73d4a6ebbef7d7cc150d5a, type: 2}
+  - {fileID: 11400000, guid: d7cbc1fb6e998414fba0736a6ad21fae, type: 2}
+  - {fileID: 11400000, guid: 353256efb41944db48baeaf27210957b, type: 2}
+  - {fileID: 11400000, guid: 1192ff83a39d74cb1b4cb5506cafa85a, type: 2}
+  - {fileID: 11400000, guid: 16e76923460ce438b9085793de4e390c, type: 2}
+  - {fileID: 11400000, guid: a4e62815c879b4fcca039871e09c09ef, type: 2}
+  - {fileID: 11400000, guid: 8f69bc7a5a85348b58fe57e3526559f7, type: 2}
+  - {fileID: 11400000, guid: 69ceec0e148ed4575a1714a2337d63d8, type: 2}
+  - {fileID: 11400000, guid: a7bc272fd277146cf9d54f13c42116d0, type: 2}
+  - {fileID: 11400000, guid: 76372ea15caa14694a20c0c2a78578c4, type: 2}
+  - {fileID: 11400000, guid: bdb0dea98ae004f899edaa57088b1495, type: 2}
+  - {fileID: 11400000, guid: 0cfe51705a22f44aba39a221a0224f4b, type: 2}
+  - {fileID: 11400000, guid: 7132f79d8c60048b28b4f1c2f79cf546, type: 2}
+  - {fileID: 11400000, guid: fe190d9151ce84f4fb6afc9c133acd21, type: 2}
+  - {fileID: 11400000, guid: f84b5b05156994e8cb60b4f0128a70a1, type: 2}
+  - {fileID: 11400000, guid: e2b0347e5d1934031a2802f2b645c59f, type: 2}
+  - {fileID: 11400000, guid: 2fd643ce5a851444e8dec14ae7cb5a59, type: 2}
+  - {fileID: 11400000, guid: 91769f099f0144038962bf361d07fb65, type: 2}
+  - {fileID: 11400000, guid: 1f975c11650c64a7a89c31628e3b2a78, type: 2}
+  - {fileID: 11400000, guid: da4292612167f4614b16d4225fa42892, type: 2}
+  - {fileID: 11400000, guid: 20c2f2c00275b4dd9b9aa504ea54bd06, type: 2}
+  - {fileID: 11400000, guid: 620238e06fc9f4b0e8c0aaed34f9e64e, type: 2}

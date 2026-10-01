@@ -1,0 +1,6 @@
+Title:   Mercedes-AMG GT3 Red Bull Racing
+Author:  VTX (https://sketchfab.com/VTX_car)
+Source:  https://sketchfab.com/3d-models/mercedes-amg-gt3-red-bull-racing-035f061cb6624effbc483d5f9b5ecaba
+License: CC-BY-NC-SA-4.0 (http://creativecommons.org/licenses/by-nc-sa/4.0/) -- NON-COMMERCIAL, SHARE-ALIKE
+Origin:  Downloaded from Sketchfab by the project owner. License read from the file's embedded glTF asset.extras or the Sketchfab model page (checked 2026-10-02).
+Changes: Source file unmodified. Neon Rift prefab rotates +90 deg Y to face +Z, splits wheel meshes, remaps clearcoat materials. NOT in the player catalog (material defects, see Docs/ThirdParty.md).

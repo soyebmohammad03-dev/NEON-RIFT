@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: badef4ba0299d44a1a73f2b80bef4b8c, type: 3}
+  m_Name: Vehicle_MercedesSLS
+  m_EditorClassIdentifier: NeonRift.Vehicles::NeonRift.Vehicles.VehicleDefinition
+  id: mercedes_sls_amg_2010
+  displayName: SLS AMG
+  manufacturer: Mercedes-Benz
+  description: Front-mid V8 gullwing grand tourer. Rear-wheel drive, long bonnet, planted at speed.
+  gameplayPrefab: {fileID: 4002668848151194684, guid: bb8d33c7ec280469a9fa5185eed5afd7, type: 3}
+  showroomPrefab: {fileID: 0}
+  displayStats:
+    topSpeedKph: 317
+    zeroToHundredSeconds: 3.8
+    powerHp: 571
+    massKg: 1620
+    handlingRating: 7
+  displayStatsProvisional: 1
+  license:
+    LicenseId: CC-BY-4.0
+    Author: Dave Love SketchFab
+    SourceUrl: https://sketchfab.com/3d-models/2010-mercedes-sls-amg-fa3fd5eeea674f37bb03283f2c53d563
+    CommercialUseAllowed: 1

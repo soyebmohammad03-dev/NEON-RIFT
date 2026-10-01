@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 63f2032f51a004ec889f55f819b7ed70, type: 3}
+  m_Name: Building_NightSkylineCluster
+  m_EditorClassIdentifier: NeonRift.World::NeonRift.World.BuildingDefinition
+  id: night_skyline_cluster
+  displayName: Night Skyline Cluster
+  prefab: {fileID: 6010093876994596896, guid: 02690576ab0324d3880976ac8eb43460, type: 3}
+  tier: 2
+  size: {x: 353.00687, y: 148.03008, z: 311.5558}
+  hasCollider: 0
+  triangleCount: 6078
+  notes: 12 towers merged into one mesh (cannot be separated without splitting). Distant skyline only.
+  license:
+    LicenseId: CC-BY-4.0
+    Author: 99.Miles
+    SourceUrl: https://sketchfab.com/3d-models/low-poly-night-city-building-skyline-b0035b8713b048bb8ddf311ee67c28c8
+    CommercialUseAllowed: 1
