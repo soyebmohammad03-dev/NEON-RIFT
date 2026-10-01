@@ -1,0 +1,222 @@
+:root {
+    --nr-bg: rgb(6, 5, 14);
+    --nr-panel: rgba(10, 9, 24, 0.82);
+    --nr-cyan: rgb(84, 232, 255);
+    --nr-magenta: rgb(236, 64, 210);
+    --nr-violet: rgb(140, 92, 255);
+    --nr-amber: rgb(255, 176, 64);
+    --nr-text: rgb(232, 236, 255);
+    --nr-text-dim: rgb(140, 146, 180);
+    --nr-line: rgba(84, 232, 255, 0.25);
+}
+
+.nr-screen {
+    flex-grow: 1;
+    color: var(--nr-text);
+    -unity-font-style: normal;
+}
+
+.nr-title {
+    font-size: 96px;
+    -unity-font-style: bold;
+    color: var(--nr-cyan);
+    letter-spacing: 12px;
+    -unity-text-align: middle-center;
+}
+
+.nr-subtitle {
+    font-size: 30px;
+    color: var(--nr-magenta);
+    letter-spacing: 18px;
+    -unity-text-align: middle-center;
+    margin-bottom: 72px;
+}
+
+.nr-heading {
+    font-size: 22px;
+    letter-spacing: 6px;
+    color: var(--nr-text-dim);
+}
+
+.nr-button {
+    min-width: 280px;
+    height: 56px;
+    margin: 8px;
+    font-size: 20px;
+    letter-spacing: 6px;
+    -unity-font-style: bold;
+    color: var(--nr-text);
+    background-color: rgba(84, 232, 255, 0.08);
+    border-width: 1px;
+    border-color: var(--nr-line);
+    border-radius: 2px;
+    transition-duration: 0.12s;
+}
+
+.nr-button:hover,
+.nr-button:focus {
+    background-color: rgba(84, 232, 255, 0.22);
+    border-color: var(--nr-cyan);
+}
+
+.nr-button:active {
+    background-color: rgba(84, 232, 255, 0.4);
+}
+
+.nr-button:disabled {
+    opacity: 0.35;
+}
+
+.nr-button--primary {
+    background-color: rgba(236, 64, 210, 0.35);
+    border-color: var(--nr-magenta);
+}
+
+.nr-button--primary:hover,
+.nr-button--primary:focus {
+    background-color: rgba(236, 64, 210, 0.6);
+    border-color: rgb(255, 140, 240);
+}
+
+.nr-button--icon {
+    min-width: 64px;
+    width: 64px;
+    font-size: 28px;
+    letter-spacing: 0;
+}
+
+/* Loading overlay */
+.nr-overlay {
+    position: absolute;
+    left: 0; top: 0; right: 0; bottom: 0;
+    background-color: var(--nr-bg);
+    justify-content: flex-end;
+    align-items: flex-end;
+    padding: 48px;
+    opacity: 1;
+}
+
+.nr-overlay__label {
+    font-size: 18px;
+    letter-spacing: 10px;
+    color: var(--nr-cyan);
+}
+
+/* Title */
+.nr-title-screen {
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(6, 5, 14, 0.55);
+}
+
+.nr-version {
+    position: absolute;
+    right: 24px;
+    bottom: 16px;
+    font-size: 14px;
+    color: var(--nr-text-dim);
+}
+
+/* Car select */
+.nr-carselect {
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.nr-drag-area {
+    flex-grow: 1;
+}
+
+.nr-carselect__panel {
+    width: 480px;
+    padding: 48px 40px;
+    background-color: var(--nr-panel);
+    border-left-width: 1px;
+    border-color: var(--nr-line);
+    justify-content: space-between;
+}
+
+.nr-vehicle-name {
+    font-size: 44px;
+    -unity-font-style: bold;
+    color: var(--nr-cyan);
+    white-space: normal;
+    margin-top: 12px;
+}
+
+.nr-vehicle-maker {
+    font-size: 18px;
+    letter-spacing: 6px;
+    color: var(--nr-magenta);
+}
+
+.nr-vehicle-desc {
+    font-size: 16px;
+    color: var(--nr-text-dim);
+    white-space: normal;
+    margin-top: 16px;
+    margin-bottom: 24px;
+}
+
+.nr-stat {
+    margin-bottom: 14px;
+}
+
+.nr-stat__header {
+    flex-direction: row;
+    justify-content: space-between;
+    font-size: 14px;
+    letter-spacing: 4px;
+    color: var(--nr-text-dim);
+    margin-bottom: 6px;
+}
+
+.nr-stat__value {
+    color: var(--nr-text);
+}
+
+.nr-stat__track {
+    height: 6px;
+    background-color: rgba(255, 255, 255, 0.08);
+}
+
+.nr-stat__fill {
+    height: 100%;
+    width: 0%;
+    background-color: var(--nr-cyan);
+    transition-property: width;
+    transition-duration: 0.25s;
+    transition-timing-function: ease-out-cubic;
+}
+
+.nr-carselect__nav {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+}
+
+.nr-counter {
+    font-size: 18px;
+    letter-spacing: 4px;
+    color: var(--nr-text-dim);
+}
+
+.nr-empty {
+    font-size: 18px;
+    color: var(--nr-amber);
+    white-space: normal;
+    margin-top: 16px;
+}
+
+.nr-hint {
+    font-size: 13px;
+    letter-spacing: 2px;
+    color: var(--nr-text-dim);
+    margin-top: 12px;
+    -unity-text-align: middle-center;
+}
+
+.nr-hidden {
+    display: none;
+}

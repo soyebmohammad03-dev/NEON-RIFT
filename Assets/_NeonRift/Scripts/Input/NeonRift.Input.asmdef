@@ -1,0 +1,17 @@
+{
+    "name": "NeonRift.Input",
+    "rootNamespace": "NeonRift.Input",
+    "references": [
+        "Unity.InputSystem",
+        "NeonRift.Vehicles"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

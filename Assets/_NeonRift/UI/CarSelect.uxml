@@ -1,0 +1,26 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <ui:VisualElement class="nr-screen nr-carselect">
+        <ui:VisualElement name="drag-area" class="nr-drag-area" />
+        <ui:VisualElement class="nr-carselect__panel">
+            <ui:VisualElement>
+                <ui:Label text="SELECT VEHICLE" class="nr-heading" />
+                <ui:Label name="vehicle-name" class="nr-vehicle-name" />
+                <ui:Label name="vehicle-maker" class="nr-vehicle-maker" />
+                <ui:Label name="vehicle-desc" class="nr-vehicle-desc" />
+                <ui:VisualElement name="stats" />
+                <ui:Label name="empty-label" class="nr-empty nr-hidden"
+                          text="No vehicles are registered in the Vehicle Catalog yet. Vehicle models are added after the asset audit." />
+            </ui:VisualElement>
+            <ui:VisualElement>
+                <ui:VisualElement class="nr-carselect__nav">
+                    <ui:Button name="prev-button" text="‹" class="nr-button nr-button--icon" />
+                    <ui:Label name="counter-label" class="nr-counter" />
+                    <ui:Button name="next-button" text="›" class="nr-button nr-button--icon" />
+                </ui:VisualElement>
+                <ui:Button name="confirm-button" text="CONFIRM" class="nr-button nr-button--primary" />
+                <ui:Button name="back-button" text="BACK" class="nr-button" />
+                <ui:Label text="DRAG TO ROTATE  ·  Q / E SWITCH  ·  ENTER CONFIRM" class="nr-hint" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

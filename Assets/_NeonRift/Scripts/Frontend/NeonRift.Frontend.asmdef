@@ -1,0 +1,20 @@
+{
+    "name": "NeonRift.Frontend",
+    "rootNamespace": "NeonRift.Frontend",
+    "references": [
+        "Unity.InputSystem",
+        "NeonRift.Game",
+        "NeonRift.Input",
+        "NeonRift.Vehicles",
+        "NeonRift.Missions"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

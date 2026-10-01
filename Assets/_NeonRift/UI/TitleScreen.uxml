@@ -1,0 +1,9 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <ui:VisualElement class="nr-screen nr-title-screen">
+        <ui:Label text="NEON RIFT" class="nr-title" />
+        <ui:Label text="NIGHT RUN" class="nr-subtitle" />
+        <ui:Button name="start-button" text="START" class="nr-button nr-button--primary" />
+        <ui:Button name="quit-button" text="QUIT" class="nr-button" />
+        <ui:Label name="version-label" class="nr-version" />
+    </ui:VisualElement>
+</ui:UXML>
