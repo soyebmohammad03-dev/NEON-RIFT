@@ -30,6 +30,15 @@ namespace NeonRift.EditorTools
         [MenuItem("Neon Rift/Assets/Run Third-Party Intake")]
         public static void RunFromMenu() => Debug.Log(Run());
 
+        [MenuItem("Neon Rift/Assets/Rebuild Vehicle Prefabs And Catalog")]
+        public static void RunVehiclesFromMenu()
+        {
+            var log = new System.Text.StringBuilder();
+            BuildVehicles(log);
+            AssetDatabase.SaveAssets();
+            Debug.Log(log.ToString());
+        }
+
         public static string Run()
         {
             var log = new System.Text.StringBuilder();
@@ -127,7 +136,8 @@ namespace NeonRift.EditorTools
 
                 var defPath = $"{VehicleData}Vehicle_{r.Prefab.Replace("PF_Vehicle_", "")}.asset";
                 var def = AssetDatabase.LoadAssetAtPath<VehicleDefinition>(defPath);
-                if (def == null) { def = ScriptableObject.CreateInstance<VehicleDefinition>(); AssetDatabase.CreateAsset(def, defPath); }
+                bool isNew = def == null;
+                if (isNew) { def = ScriptableObject.CreateInstance<VehicleDefinition>(); AssetDatabase.CreateAsset(def, defPath); }
                 var so = new SerializedObject(def);
                 so.FindProperty("id").stringValue = r.Id;
                 so.FindProperty("displayName").stringValue = r.Name;
@@ -135,8 +145,13 @@ namespace NeonRift.EditorTools
                 so.FindProperty("description").stringValue = r.Description;
                 so.FindProperty("gameplayPrefab").objectReferenceValue = AssetDatabase.LoadAssetAtPath<GameObject>(report.PrefabPath);
                 so.FindProperty("showroomPrefab").objectReferenceValue = null;
-                SetStats(so.FindProperty("displayStats"), r.Stats);
-                so.FindProperty("displayStatsProvisional").boolValue = true;
+                // Recipe stats only seed new definitions; afterwards Car Select stats are measured from physics
+                // (Neon Rift ▸ Vehicles ▸ Update Car Select Stats From Physics) and must not be overwritten.
+                if (isNew)
+                {
+                    SetStats(so.FindProperty("displayStats"), r.Stats);
+                    so.FindProperty("displayStatsProvisional").boolValue = true;
+                }
                 SetLicense(so.FindProperty("license"), r.License);
                 so.ApplyModifiedPropertiesWithoutUndo();
                 if (r.ExcludeReason == null) definitions.Add(def);

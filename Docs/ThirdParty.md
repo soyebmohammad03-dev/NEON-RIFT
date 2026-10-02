@@ -63,10 +63,10 @@ Sources: the GLB licences come from each file's embedded glTF `asset.extras`. Th
 | LODs | none | none (only "LodA") | none | none |
 | Materials | glTFast URP graphs; 1 clearcoat remapped | 1 clearcoat remapped | OK | 15 clearcoat slots remapped; livery speckle |
 | Defects | — | — | animation rig parts displaced (3 hidden incl. rear-wing panel); no official specs | glass + livery render errors at runtime |
-| Colliders | none yet (vehicle-physics phase) | none yet | none yet | none yet |
+| Colliders | two-box body hull (vehicle-physics phase) | two-box | two-box | two-box (prefab only) |
 | Verdict | **Hero car, ready for physics** | **Ready** | **Usable, non-commercial** | **Excluded** until materials rebuilt + LOD |
 
-Display stats are published real-world figures where known (SLS AMG). The rest are estimates. All are flagged provisional until the physics profiles are tuned on the test track. The Terzo Millennio is a concept car with no official performance figures.
+Car Select stats are measured from each car's physics profile on the vehicle bench (vehicle-physics phase), not quoted from manufacturers. The SLS AMG profile uses published mass, power, torque, gearing and weight split; the SLS GT3 profile is estimated for a typical BoP race car; the Terzo Millennio is a concept car with no official figures, so its profile is a fictional EV interpretation.
 
 ## Building audit
 

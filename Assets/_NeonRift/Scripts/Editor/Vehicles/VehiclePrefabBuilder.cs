@@ -17,6 +17,9 @@ namespace NeonRift.EditorTools.Vehicles
     {
         public const string PrefabFolder = "Assets/_NeonRift/Prefabs/Vehicles";
         public const string GeneratedFolder = "Assets/_NeonRift/Art/Vehicles";
+        public const string BodyMaterialPath = "Assets/_NeonRift/Data/Physics/PM_VehicleBody.asset";
+        /// <summary>Wheels must never hit their own car, triggers or showroom props.</summary>
+        private static readonly string[] NonGroundLayers = { "Vehicle", "Trigger", "Showroom", "Ignore Raycast" };
 
         [MenuItem("Neon Rift/Vehicles/Build All Vehicle Prefabs")]
         public static void BuildAllFromMenu()
@@ -36,8 +39,9 @@ namespace NeonRift.EditorTools.Vehicles
             public float Scale;
             public readonly List<string> Wheels = new();
             public int Headlights, Taillights, Hidden, Triangles, RemappedMaterials;
+            public string Colliders;
             public string Summary =>
-                $"{Path.GetFileNameWithoutExtension(PrefabPath)} size={Size:F2} scale={Scale:F3} tris={Triangles} head={Headlights} tail={Taillights} hidden={Hidden} clearcoatRemapped={RemappedMaterials}\n  " +
+                $"{Path.GetFileNameWithoutExtension(PrefabPath)} size={Size:F2} scale={Scale:F3} tris={Triangles} head={Headlights} tail={Taillights} hidden={Hidden} clearcoatRemapped={RemappedMaterials}\n  colliders: {Colliders}\n  " +
                 string.Join("\n  ", Wheels);
         }
 
@@ -139,6 +143,7 @@ namespace NeonRift.EditorTools.Vehicles
                 report.Taillights = tail.Length;
 
                 root.AddComponent<VehicleRig>().EditorConfigure(body.transform, rigs.ToArray(), head, tail, all.size);
+                report.Colliders = AddPhysics(root, visible.Where(r => !wheelRenderers.Contains(r)).ToList(), all);
 
                 string meshFolder = $"{GeneratedFolder}/{setup.prefabName}";
                 EnsureFolder(meshFolder);
@@ -154,6 +159,93 @@ namespace NeonRift.EditorTools.Vehicles
             {
                 UnityEngine.Object.DestroyImmediate(root);
             }
+        }
+
+        /// <summary>
+        /// Adds the rigidbody (kinematic until <see cref="VehicleController.Configure"/>), the controller and a
+        /// two-box body collider fitted to the body mesh: a lower hull from the sill line to the belt line and a cabin.
+        /// </summary>
+        private static string AddPhysics(GameObject root, List<MeshRenderer> bodyRenderers, Bounds overall)
+        {
+            int vehicleLayer = LayerMask.NameToLayer("Vehicle");
+            if (vehicleLayer < 0) throw new InvalidOperationException("Layer 'Vehicle' is missing.");
+
+            var points = new List<Vector3>();
+            foreach (var r in bodyRenderers)
+            {
+                var mesh = r.GetComponent<MeshFilter>()?.sharedMesh;
+                if (mesh == null) continue;
+                var m = r.transform.localToWorldMatrix;
+                foreach (var v in mesh.vertices) points.Add(m.MultiplyPoint3x4(v));
+            }
+            if (points.Count == 0) throw new InvalidOperationException("No body vertices for the collider.");
+
+            float height = overall.size.y;
+            float belt = overall.min.y + height * 0.55f;
+            float sill = Mathf.Max(0.12f, Percentile(points.Select(p => p.y), 0.02f));
+            var lower = Box(points, p => true, 0.01f, 0.99f, 0.005f, 0.995f);
+            var upper = points.Where(p => p.y > belt).ToList();
+            var cabin = upper.Count > 0 ? Box(upper, p => true, 0.05f, 0.95f, 0.05f, 0.95f) : default;
+            float roof = upper.Count > 0 ? Percentile(upper.Select(p => p.y), 0.995f) : belt + 0.3f;
+
+            var collision = new GameObject("Collision");
+            collision.transform.SetParent(root.transform, false);
+            var material = BodyMaterial();
+            var hull = collision.AddComponent<BoxCollider>();
+            hull.center = new Vector3(0f, (sill + belt) * 0.5f, lower.center);
+            hull.size = new Vector3(lower.width, belt - sill, lower.length);
+            hull.sharedMaterial = material;
+            var cab = collision.AddComponent<BoxCollider>();
+            cab.center = new Vector3(0f, (belt + roof) * 0.5f, cabin.center);
+            cab.size = new Vector3(cabin.width, roof - belt, cabin.length);
+            cab.sharedMaterial = material;
+
+            var body = root.AddComponent<Rigidbody>();
+            body.isKinematic = true;
+            body.interpolation = RigidbodyInterpolation.Interpolate;
+            body.mass = 1500f;
+
+            var controller = root.AddComponent<VehicleController>();
+            var so = new SerializedObject(controller);
+            so.FindProperty("groundLayers").intValue = ~LayerMask.GetMask(NonGroundLayers);
+            so.ApplyModifiedPropertiesWithoutUndo();
+
+            foreach (var t in root.GetComponentsInChildren<Transform>(true)) t.gameObject.layer = vehicleLayer;
+            return $"hull {hull.size:F2}@{hull.center:F2}, cabin {cab.size:F2}@{cab.center:F2}";
+        }
+
+        private struct Span1D { public float center, width, length; }
+
+        private static Span1D Box(List<Vector3> points, Func<Vector3, bool> filter, float xLo, float xHi, float zLo, float zHi)
+        {
+            var sel = points.Where(filter).ToList();
+            float x0 = Percentile(sel.Select(p => p.x), xLo), x1 = Percentile(sel.Select(p => p.x), xHi);
+            float z0 = Percentile(sel.Select(p => p.z), zLo), z1 = Percentile(sel.Select(p => p.z), zHi);
+            return new Span1D { center = (z0 + z1) * 0.5f, width = Mathf.Max(Mathf.Abs(x0), Mathf.Abs(x1)) * 2f, length = z1 - z0 };
+        }
+
+        private static float Percentile(IEnumerable<float> values, float q)
+        {
+            var sorted = values.OrderBy(v => v).ToList();
+            return sorted[Mathf.Clamp(Mathf.RoundToInt(q * (sorted.Count - 1)), 0, sorted.Count - 1)];
+        }
+
+        private static PhysicsMaterial BodyMaterial()
+        {
+            var material = AssetDatabase.LoadAssetAtPath<PhysicsMaterial>(BodyMaterialPath);
+            if (material != null) return material;
+            EnsureFolder(Path.GetDirectoryName(BodyMaterialPath).Replace('\\', '/'));
+            // Low friction so scraping a wall slides the car along it instead of snagging; no bounce.
+            material = new PhysicsMaterial("PM_VehicleBody")
+            {
+                dynamicFriction = 0.2f,
+                staticFriction = 0.25f,
+                bounciness = 0f,
+                frictionCombine = PhysicsMaterialCombine.Minimum,
+                bounceCombine = PhysicsMaterialCombine.Minimum
+            };
+            AssetDatabase.CreateAsset(material, BodyMaterialPath);
+            return material;
         }
 
         private static bool Matches(Renderer r, string[] keywords)

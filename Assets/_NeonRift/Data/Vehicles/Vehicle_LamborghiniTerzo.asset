@@ -18,13 +18,14 @@ MonoBehaviour:
   description: Electric hypercar concept. No official performance figures exist; stats are estimates.
   gameplayPrefab: {fileID: 4257704880082270300, guid: d0134a37468e54ea2aafad879f21cfbd, type: 3}
   showroomPrefab: {fileID: 0}
+  physicsProfile: {fileID: 11400000, guid: d8f5518aea671414792ba70d8d55ee5e, type: 2}
   displayStats:
-    topSpeedKph: 320
-    zeroToHundredSeconds: 2.8
-    powerHp: 800
-    massKg: 1600
+    topSpeedKph: 314
+    zeroToHundredSeconds: 3
+    powerHp: 780
+    massKg: 1650
     handlingRating: 8
-  displayStatsProvisional: 1
+  displayStatsProvisional: 0
   license:
     LicenseId: CC-BY-NC-4.0
     Author: SDC PERFORMANCE

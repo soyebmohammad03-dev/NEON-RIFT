@@ -18,13 +18,14 @@ MonoBehaviour:
   description: Front-mid V8 gullwing grand tourer. Rear-wheel drive, long bonnet, planted at speed.
   gameplayPrefab: {fileID: 4002668848151194684, guid: bb8d33c7ec280469a9fa5185eed5afd7, type: 3}
   showroomPrefab: {fileID: 0}
+  physicsProfile: {fileID: 11400000, guid: 5ccd56845319845ebbed33973c2d2db8, type: 2}
   displayStats:
-    topSpeedKph: 317
-    zeroToHundredSeconds: 3.8
-    powerHp: 571
+    topSpeedKph: 312
+    zeroToHundredSeconds: 4.5
+    powerHp: 560
     massKg: 1620
     handlingRating: 7
-  displayStatsProvisional: 1
+  displayStatsProvisional: 0
   license:
     LicenseId: CC-BY-4.0
     Author: Dave Love SketchFab

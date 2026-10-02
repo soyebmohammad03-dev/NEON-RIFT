@@ -43,3 +43,15 @@ Some smooth/emissive surfaces still produce NaNs at runtime. URP *Stop NaN* is e
 
 ### D10 — Git + Git LFS
 Plain Git with LFS rules in `.gitattributes` for binary assets, and UnityYAMLMerge for scenes and prefabs. Unity's `collab-proxy` package stays installed for optional Unity Version Control but is not used as the source of truth.
+
+### D15 — Raycast vehicle with implicit wheel spin
+Suspension uses rays along the suspension axis; 5 rays per wheel sample the tyre's rolling profile so sharp edges are rolled onto. Wheel spin is integrated implicitly against tyre stiffness (secant or local slope, whichever is larger), which removes the classic low-speed slip oscillation and keeps braking/traction stable at 100 Hz without sub-stepping. Brake-held wheels use static friction shared across held wheels, so cars park on slopes without creep. No Unity `WheelCollider`: its tyre model can't be made to match the profile data and it hides state that audio and AI need.
+
+### D16 — Physical units in vehicle data
+Profiles use real units (kg, Nm, Hz, damping ratio, friction coefficients, C·A). Spring rates derive from natural frequency and corner mass, so changing mass does not detune the ride. Static ride height always equals the modelled ride height (springs are preloaded to match).
+
+### D17 — Deterministic vehicle bench
+Vehicle behaviour is verified in an isolated editor physics scene stepped manually (`VehicleTestBench`). Tests run every catalog car through launch, braking, top speed, grip, keyboard step-steer, bumps, wall impact and slope hold in seconds, without entering Play Mode.
+
+### D18 — Chase camera drives a Cinemachine camera directly
+`VehicleChaseCamera` computes the pose itself (heading swing toward travel direction, look-ahead, speed FOV, acceleration lag, sphere-cast collision) and writes it to a `CinemachineCamera` before the brain updates. Cinemachine stays the blending layer for future cinematic cameras. The camera never damps body roll or pitch.

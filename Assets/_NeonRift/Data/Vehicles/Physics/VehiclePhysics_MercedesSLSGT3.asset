@@ -1,0 +1,181 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6f60dbed149334a85b5110ac04290f47, type: 3}
+  m_Name: VehiclePhysics_MercedesSLSGT3
+  m_EditorClassIdentifier: NeonRift.Vehicles::NeonRift.Vehicles.VehiclePhysicsProfile
+  chassis:
+    mass: 1380
+    frontWeightDistribution: 0.48
+    centreOfMassHeight: 0.42
+    inertiaScale: {x: 0.78, y: 0.78, z: 0.78}
+    angularDamping: 0.02
+  frontAxle:
+    springFrequency: 2.6
+    bumpDamping: 0.4
+    reboundDamping: 0.65
+    damperKneeSpeed: 0.1
+    highSpeedDamping: 0.4
+    bumpTravel: 0.075
+    droopTravel: 0.08
+    bumpStopScale: 12
+    antiRollStiffness: 60000
+    wheelMass: 22
+    tyre:
+      longitudinalGrip: 1.45
+      lateralGrip: 1.4
+      peakSlipRatio: 0.09
+      peakSlipAngle: 5
+      slidingGripRatio: 0.76
+      breakawaySharpness: 0.8
+      loadSensitivity: 0.15
+      rollingResistance: 0.012
+      verticalStiffness: 320000
+  rearAxle:
+    springFrequency: 2.8
+    bumpDamping: 0.4
+    reboundDamping: 0.65
+    damperKneeSpeed: 0.1
+    highSpeedDamping: 0.4
+    bumpTravel: 0.075
+    droopTravel: 0.08
+    bumpStopScale: 12
+    antiRollStiffness: 40000
+    wheelMass: 24
+    tyre:
+      longitudinalGrip: 1.48
+      lateralGrip: 1.45
+      peakSlipRatio: 0.09
+      peakSlipAngle: 4.5
+      slidingGripRatio: 0.76
+      breakawaySharpness: 0.8
+      loadSensitivity: 0.15
+      rollingResistance: 0.012
+      verticalStiffness: 320000
+  engine:
+    idleRpm: 1100
+    maxRpm: 7500
+    launchRpm: 4000
+    peakTorque: 640
+    torqueCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0.5
+        inSlope: 0.6666668
+        outSlope: 0.6666668
+        tangentMode: 35
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 0.15
+        value: 0.6
+        inSlope: 0.8933333
+        outSlope: 0.8933333
+        tangentMode: 35
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 0.4
+        value: 0.88
+        inSlope: 0.8599999
+        outSlope: 0.8599999
+        tangentMode: 35
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 0.6
+        value: 1
+        inSlope: 0.25000003
+        outSlope: 0.25000003
+        tangentMode: 35
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 0.8
+        value: 0.98
+        inSlope: -0.2807692
+        outSlope: -0.2807692
+        tangentMode: 35
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 0.93
+        value: 0.92
+        inSlope: -0.7307693
+        outSlope: -0.7307693
+        tangentMode: 35
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 1
+        value: 0.85
+        inSlope: -1
+        outSlope: -1
+        tangentMode: 35
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    engineBrakeTorque: 130
+    inertia: 0.18
+  transmission:
+    driveType: 0
+    frontTorqueShare: 0
+    gearRatios:
+    - 2.9
+    - 2.17
+    - 1.74
+    - 1.44
+    - 1.22
+    - 1.05
+    reverseRatio: 2.8
+    finalDrive: 3.36
+    efficiency: 0.9
+    shiftUpRpm: 7200
+    shiftDownRpm: 4500
+    shiftTime: 0.05
+    clutchEngageTime: 0.04
+    differentialLock: 0.55
+  brakes:
+    maxBrakeTorque: 9500
+    frontBias: 0.6
+    handbrakeTorque: 2500
+    antiLock: 1
+    antiLockTarget: 0.97
+  steering:
+    maxSteerAngle: 28
+    speedSensitivity: 1
+    slipAngleAllowance: 0.9
+    steerRate: 4.5
+    returnRate: 6
+    highSpeedRateScale: 0.55
+    highSpeedReferenceKph: 200
+    ackermann: 0.4
+  aero:
+    dragArea: 0.86
+    frontDownforceArea: 0.55
+    rearDownforceArea: 1.05
+    airDensity: 1.225
+  assists:
+    tractionControl: 1
+    tractionControlTarget: 1.05
+    speedLimiterKph: 0
+  tuningNotes: 'Estimates for an SLS GT3 under typical BoP: ~1350 kg dry + driver, ~580 hp, 6-speed sequential (ratios estimated for ~285 km/h at the limiter), racing slicks, splitter + wing (~3.5 kN at 250 km/h). Race ABS and TC fitted.'

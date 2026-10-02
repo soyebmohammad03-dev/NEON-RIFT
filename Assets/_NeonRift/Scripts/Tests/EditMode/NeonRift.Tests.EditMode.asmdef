@@ -7,7 +7,9 @@
         "NeonRift.Game",
         "NeonRift.Vehicles",
         "NeonRift.Missions",
-        "NeonRift.Editor"
+        "NeonRift.Editor",
+        "NeonRift.Gameplay",
+        "NeonRift.Core"
     ],
     "includePlatforms": [
         "Editor"

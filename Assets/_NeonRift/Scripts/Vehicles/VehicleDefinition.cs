@@ -19,6 +19,10 @@ namespace NeonRift.Vehicles
         [Tooltip("Optional presentation-only prefab for Car Select. Falls back to the gameplay prefab.")]
         [SerializeField] private GameObject showroomPrefab;
 
+        [Header("Driving")]
+        [Tooltip("Physics tuning applied to the gameplay prefab when it is spawned.")]
+        [SerializeField] private VehiclePhysicsProfile physicsProfile;
+
         [Header("Car Select")]
         [SerializeField] private VehicleDisplayStats displayStats = VehicleDisplayStats.Default;
         [Tooltip("True until the figures are confirmed against the physics profile on the test track.")]
@@ -34,6 +38,7 @@ namespace NeonRift.Vehicles
         public string Manufacturer => manufacturer;
         public string Description => description;
         public GameObject GameplayPrefab => gameplayPrefab;
+        public VehiclePhysicsProfile PhysicsProfile => physicsProfile;
         public GameObject ShowroomPrefab => showroomPrefab != null ? showroomPrefab : gameplayPrefab;
         public VehicleDisplayStats DisplayStats => displayStats;
     }

@@ -6,7 +6,11 @@
         "NeonRift.Game",
         "NeonRift.Vehicles",
         "NeonRift.Missions",
-        "NeonRift.World"
+        "NeonRift.World",
+        "NeonRift.Gameplay",
+        "Unity.Cinemachine",
+        "UnityEditor.TestRunner",
+        "UnityEngine.TestRunner"
     ],
     "includePlatforms": [
         "Editor"

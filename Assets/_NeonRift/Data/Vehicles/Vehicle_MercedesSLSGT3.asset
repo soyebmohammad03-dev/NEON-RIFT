@@ -18,13 +18,14 @@ MonoBehaviour:
   description: Customer GT3 race car on the SLS platform. Lighter, stiffer, big rear wing.
   gameplayPrefab: {fileID: 840988206285905016, guid: 17c5bd1a8ffe749c0a1686492b35e9d4, type: 3}
   showroomPrefab: {fileID: 0}
+  physicsProfile: {fileID: 11400000, guid: 28521c6e7d20b4736be970ab5a7414e6, type: 2}
   displayStats:
-    topSpeedKph: 290
-    zeroToHundredSeconds: 3.5
+    topSpeedKph: 278
+    zeroToHundredSeconds: 3.7
     powerHp: 580
-    massKg: 1335
+    massKg: 1380
     handlingRating: 9
-  displayStatsProvisional: 1
+  displayStatsProvisional: 0
   license:
     LicenseId: CC-BY-4.0
     Author: Dave Love SketchFab

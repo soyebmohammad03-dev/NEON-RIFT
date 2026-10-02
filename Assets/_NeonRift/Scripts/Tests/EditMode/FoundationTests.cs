@@ -27,6 +27,9 @@ namespace NeonRift.Tests
             var so = new SerializedObject(v);
             so.FindProperty("id").stringValue = id;
             so.FindProperty("gameplayPrefab").objectReferenceValue = prefab;
+            var profile = ScriptableObject.CreateInstance<VehiclePhysicsProfile>();
+            created.Add(profile);
+            so.FindProperty("physicsProfile").objectReferenceValue = profile;
             so.ApplyModifiedPropertiesWithoutUndo();
             return v;
         }
@@ -47,6 +50,7 @@ namespace NeonRift.Tests
         {
             var go = new GameObject("TestPrefab");
             go.AddComponent<VehicleRig>();
+            go.AddComponent<VehicleController>();
             created.Add(go);
             return go;
         }
@@ -101,8 +105,6 @@ namespace NeonRift.Tests
         public void ProjectWiring_IsValid()
         {
             var problems = ProjectValidator.Validate();
-            // An empty vehicle catalog is expected until vehicle models are provided.
-            problems.RemoveAll(p => p.StartsWith("VehicleCatalog:"));
             Assert.That(problems, Is.Empty, string.Join("\n", problems));
         }
     }

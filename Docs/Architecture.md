@@ -15,20 +15,20 @@ NeonRift.Input |  NeonRift.Missions           (player input bridge / mission dat
                  \             /
                   NeonRift.Core               (shared primitives: AssetLicense)
 
-NeonRift.Editor           editor tooling (validator, third-party intake, prefab builders)
+NeonRift.Editor           editor tooling (validator, third-party intake, prefab builders, vehicle bench, route builder)
 NeonRift.Tests.EditMode   unit tests
 ```
 
 | Assembly | Owns |
 |---|---|
 | Core | `AssetLicense` |
-| Vehicles | `VehicleDefinition`, `VehicleCatalog`, `VehicleDisplayStats`, `VehicleRig`/`WheelRig`, `DrivingInput`, `IVehicleInputSource`, `IVehicleInputReceiver` |
+| Vehicles | `VehicleDefinition`, `VehicleCatalog`, `VehicleDisplayStats`, `VehicleRig`/`WheelRig`, `DrivingInput`, `IVehicleInputSource`, `IVehicleInputReceiver`; driving model: `VehicleController`, `VehiclePhysicsProfile` (+ settings structs), `VehicleWheel`, `TyreModel`, `Drivetrain`, `Gearbox`, `SteeringSystem`, `VehicleTelemetry`, `DrivingSurface`, `ScriptedDrivingInput` |
 | World | `BuildingDefinition`, `BuildingCatalog`, `BuildingTier` (Hero / Midground / Skyline) |
 | Missions | `MissionDefinition`, `RunResult`, `MissionOutcome` |
 | Input | Generated `NeonRiftControls` (from `Settings/Input/NeonRiftControls.inputactions`), `PlayerDrivingInput` |
 | Game | `GameRoot`, `GameFlow`/`IGameFlow`, `GameContext`, `ISceneEntryPoint`, `RunSession`, `GameConfig`, `LoadingOverlay`, `BootstrapLoader` |
 | Frontend | `TitleScreen`, `CarSelectScreen`, `VehicleShowroom` |
-| Gameplay | `MissionSceneEntry`, `VehicleSpawnPoint` |
+| Gameplay | `MissionSceneEntry`, `VehicleSpawnPoint`, `VehicleChaseCamera`, `DrivingRoute`, `RouteAutopilot`; dev tools `VehicleDebugHud`, `VehicleTelemetryLog` |
 
 ## Scene model
 
@@ -40,7 +40,7 @@ NeonRift.Tests.EditMode   unit tests
 
 ## Data flow for a run
 
-`CarSelectScreen` → `RunSession.SelectVehicle` / `SelectMission` → `IGameFlow.StartMission()` → mission scene → `MissionSceneEntry.Enter` → `VehicleSpawnPoint.Spawn(selected definition)` → every `IVehicleInputReceiver` on the spawned prefab gets a `PlayerDrivingInput`.
+`CarSelectScreen` → `RunSession.SelectVehicle` / `SelectMission` → `IGameFlow.StartMission()` → mission scene → `MissionSceneEntry.Enter` → `VehicleSpawnPoint.Spawn(selected definition)` (instantiates the gameplay prefab and calls `VehicleController.Configure(definition.PhysicsProfile)`) → every `IVehicleInputReceiver` on the spawned prefab gets a `PlayerDrivingInput` → `VehicleChaseCamera.SetTarget`. Input action `ResetVehicle` calls `VehicleController.Recover()`.
 
 Results come back through `RunSession.RecordResult(RunResult)`.
 
@@ -62,10 +62,14 @@ Results come back through `RunSession.RecordResult(RunResult)`.
 
 To add a car: add a recipe in `ThirdPartyIntake.VehicleRecipes()` (keywords for wheels, lamps and hidden parts), then run the intake.
 
-## Ready for the vehicle phase
+## Vehicles
 
-- The vehicle controller lives in `NeonRift.Vehicles`. It implements `IVehicleInputReceiver` and reads `DrivingInput` from whatever `IVehicleInputSource` it is given, so player, AI and replay drivers are interchangeable.
-- The physics profile and audio profile become additional ScriptableObjects referenced from `VehicleDefinition`.
+See [VehiclePhysics.md](VehiclePhysics.md) for the model, telemetry, tuning workflow and validation route.
+
+- `VehicleController` (one per car, no other controllers) implements `IVehicleInputReceiver` and reads `DrivingInput` from whatever `IVehicleInputSource` it is given, so player, AI (`RouteAutopilot` is the first) and replay drivers are interchangeable.
+- `VehicleDefinition.PhysicsProfile` is the single source of tuning; geometry comes from the prefab's `VehicleRig`. Gameplay prefabs ship with a kinematic `Rigidbody` that becomes dynamic on `Configure`, so a prefab dropped in a scene without a profile stays inert, and Car Select can reuse it as a static model.
+- `VehiclePrefabBuilder` adds the Rigidbody, a two-box body collider (`PM_VehicleBody`), the controller and the `Vehicle` layer; re-run with **Neon Rift ▸ Assets ▸ Rebuild Vehicle Prefabs And Catalog**.
+- `ExternalStepping` lets tools step a car deterministically (`VehicleTestBench` uses an isolated preview physics scene).
 - Physics runs at 100 Hz (`Time.fixedDeltaTime = 0.01`).
-- Layers: `Vehicle`(6), `Drivable`(7), `Environment`(8), `Trigger`(9), `Showroom`(10). `Trigger` collides only with `Vehicle`; `Showroom` collides with nothing.
-- `Scenes/Dev/TestTrack` provides measured surfaces: 1 km straight with 100 m markers, r40 skidpad, 18 m slalom, 10 cm speed bumps, a 15° banked R80 U-turn, a 6° hill and a 12° jump, and side and head-on crash walls.
+- Layers: `Vehicle`(6), `Drivable`(7), `Environment`(8), `Trigger`(9), `Showroom`(10). `Trigger` collides only with `Vehicle`; `Showroom` collides with nothing. Wheel rays ignore `Vehicle`, `Trigger`, `Showroom` and `Ignore Raycast`.
+- `Scenes/Dev/TestTrack` provides measured surfaces (1 km straight with 100 m markers, r40 skidpad, 18 m slalom, 10 cm speed bumps, a 15° banked R80 U-turn, a 6° hill and a 12° jump, side and head-on crash walls) and the connected validation route the player spawns on.

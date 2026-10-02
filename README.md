@@ -10,7 +10,21 @@
    - from `Bootstrap` → Title → Car Select → mission
    - from a mission scene (e.g. `Scenes/Dev/TestTrack`) → that mission starts directly with the first catalog vehicle
 4. `Neon Rift ▸ Validate Project` checks config, catalogs and build scenes.
-5. Tests: `Window ▸ General ▸ Test Runner ▸ EditMode`.
+5. Tests: `Window ▸ General ▸ Test Runner ▸ EditMode`, or `Neon Rift ▸ Tests ▸ Run EditMode Tests` (writes `Logs/TestResults-EditMode.txt`).
+
+## Driving
+
+| Action | Keyboard | Gamepad |
+|---|---|---|
+| Throttle | W / ↑ | Right trigger |
+| Brake (hold at a stop to reverse) | S / ↓ | Left trigger |
+| Steer | A D / ← → | Left stick |
+| Handbrake | Space | A / Cross |
+| Recover (right the car) | R | Select |
+| Back to title | Esc | Start |
+| Telemetry overlay (dev builds) | F3 | — |
+
+Vehicle physics, tuning and the test-track validation route: [Docs/VehiclePhysics.md](Docs/VehiclePhysics.md).
 
 ## Layout
 
