@@ -18,4 +18,5 @@ MonoBehaviour:
   missions:
   - {fileID: 11400000, guid: 9d569398464724e2a917b49e0477a0de, type: 2}
   defaultMission: {fileID: 11400000, guid: 9d569398464724e2a917b49e0477a0de, type: 2}
+  audioMixer: {fileID: 11400000, guid: 7a1ea81aef9664ef19faf3a26a7180fa, type: 2}
   fadeSeconds: 0.35

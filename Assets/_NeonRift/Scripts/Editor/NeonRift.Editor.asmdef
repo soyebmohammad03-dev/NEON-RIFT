@@ -10,7 +10,8 @@
         "NeonRift.Gameplay",
         "Unity.Cinemachine",
         "UnityEditor.TestRunner",
-        "UnityEngine.TestRunner"
+        "UnityEngine.TestRunner",
+        "NeonRift.Audio"
     ],
     "includePlatforms": [
         "Editor"

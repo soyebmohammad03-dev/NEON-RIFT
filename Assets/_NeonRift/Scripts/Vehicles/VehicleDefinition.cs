@@ -22,6 +22,8 @@ namespace NeonRift.Vehicles
         [Header("Driving")]
         [Tooltip("Physics tuning applied to the gameplay prefab when it is spawned.")]
         [SerializeField] private VehiclePhysicsProfile physicsProfile;
+        [Tooltip("Engine, tyre and impact sounds played from the vehicle's telemetry.")]
+        [SerializeField] private VehicleAudioProfile audioProfile;
 
         [Header("Car Select")]
         [SerializeField] private VehicleDisplayStats displayStats = VehicleDisplayStats.Default;
@@ -39,6 +41,7 @@ namespace NeonRift.Vehicles
         public string Description => description;
         public GameObject GameplayPrefab => gameplayPrefab;
         public VehiclePhysicsProfile PhysicsProfile => physicsProfile;
+        public VehicleAudioProfile AudioProfile => audioProfile;
         public GameObject ShowroomPrefab => showroomPrefab != null ? showroomPrefab : gameplayPrefab;
         public VehicleDisplayStats DisplayStats => displayStats;
     }

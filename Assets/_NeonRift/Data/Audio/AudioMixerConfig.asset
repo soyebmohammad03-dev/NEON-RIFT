@@ -1,0 +1,41 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6906c39dc28b046088e35c91dabcf233, type: 3}
+  m_Name: AudioMixerConfig
+  m_EditorClassIdentifier: NeonRift.Audio::NeonRift.Audio.AudioMixerConfig
+  mixer: {fileID: 24100000, guid: 9c92b941f881f4705a4462362d30e04e, type: 2}
+  engine: {fileID: -2731399680043655459, guid: 9c92b941f881f4705a4462362d30e04e, type: 2}
+  tires: {fileID: -3379026340819925179, guid: 9c92b941f881f4705a4462362d30e04e, type: 2}
+  sfx: {fileID: -81560470155829854, guid: 9c92b941f881f4705a4462362d30e04e, type: 2}
+  ambience: {fileID: 3431039440805460387, guid: 9c92b941f881f4705a4462362d30e04e, type: 2}
+  music: {fileID: 6166534296811518601, guid: 9c92b941f881f4705a4462362d30e04e, type: 2}
+  ui: {fileID: 6491725518807521899, guid: 9c92b941f881f4705a4462362d30e04e, type: 2}
+  snapshots:
+  - state: 0
+    snapshot: Gameplay
+  - state: 1
+    snapshot: Menu
+  - state: 2
+    snapshot: Results
+  - state: 3
+    snapshot: Lockdown
+  - state: 4
+    snapshot: Ducked
+  volumeParameters:
+  - channel: 0
+    parameter: MasterVolume
+  - channel: 1
+    parameter: EffectsVolume
+  - channel: 2
+    parameter: MusicVolume
+  - channel: 3
+    parameter: UIVolume

@@ -144,6 +144,7 @@ namespace NeonRift.EditorTools.Vehicles
 
                 root.AddComponent<VehicleRig>().EditorConfigure(body.transform, rigs.ToArray(), head, tail, all.size);
                 report.Colliders = AddPhysics(root, visible.Where(r => !wheelRenderers.Contains(r)).ToList(), all);
+                Audio.VehicleAudioPrefabs.AddAudio(root);
 
                 string meshFolder = $"{GeneratedFolder}/{setup.prefabName}";
                 EnsureFolder(meshFolder);

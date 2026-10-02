@@ -55,3 +55,9 @@ Vehicle behaviour is verified in an isolated editor physics scene stepped manual
 
 ### D18 — Chase camera drives a Cinemachine camera directly
 `VehicleChaseCamera` computes the pose itself (heading swing toward travel direction, look-ahead, speed FOV, acceleration lag, sphere-cast collision) and writes it to a `CinemachineCamera` before the brain updates. Cinemachine stays the blending layer for future cinematic cameras. The camera never damps body roll or pitch.
+
+### D19 — Layered engine loops driven by telemetry, synthesised in-house
+Engine sound is a set of seamless loops at five rpm points × on/off load per engine, crossfaded with equal-power laws and pitched by rpm (`EngineSoundModel`). Every loop is started once; only volume and pitch change afterwards (`VehicleAudio.PlayCalls` proves it). Clips are synthesised by `VehicleAudioGenerator` from a physical model (firing angles, exhaust banks, pipe resonances), so there are no licence questions and recorded loops can replace them later by data only.
+
+### D20 — Mixer authored by tool; snapshots below user volumes
+The mixer is built by `AudioMixerBuilder` (reflection on Unity's internal mixer controller, editor only). User volumes are exposed on parent groups; state snapshots (Menu, Results, Lockdown, Ducked) act on leaf groups so the two never conflict.

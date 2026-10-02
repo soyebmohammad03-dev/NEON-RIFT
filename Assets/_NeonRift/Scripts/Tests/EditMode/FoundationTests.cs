@@ -30,8 +30,27 @@ namespace NeonRift.Tests
             var profile = ScriptableObject.CreateInstance<VehiclePhysicsProfile>();
             created.Add(profile);
             so.FindProperty("physicsProfile").objectReferenceValue = profile;
+            so.FindProperty("audioProfile").objectReferenceValue = AudioProfile();
             so.ApplyModifiedPropertiesWithoutUndo();
             return v;
+        }
+
+        private VehicleAudioProfile AudioProfile()
+        {
+            var clip = AudioClip.Create("test", 441, 1, 44100, false);
+            created.Add(clip);
+            var audio = ScriptableObject.CreateInstance<VehicleAudioProfile>();
+            created.Add(audio);
+            audio.EditorConfigure(new EngineAudioSettings
+            {
+                layers = new[]
+                {
+                    new EngineSoundLayer { clip = clip, recordedRpm = 1000f, onLoad = true, volume = 1f },
+                    new EngineSoundLayer { clip = clip, recordedRpm = 1000f, onLoad = false, volume = 1f }
+                },
+                minPitch = 0.5f, maxPitch = 2f
+            }, new ChassisAudioSettings { skidLoop = clip }, "test");
+            return audio;
         }
 
         private VehicleCatalog Catalog(params VehicleDefinition[] vehicles)

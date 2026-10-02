@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using NeonRift.Audio;
 using NeonRift.Missions;
 using NeonRift.Vehicles;
 using UnityEngine;
@@ -19,6 +20,9 @@ namespace NeonRift.Game
         [Tooltip("Mission launched from Car Select until a mission-select screen exists.")]
         [SerializeField] private MissionDefinition defaultMission;
 
+        [Header("Audio")]
+        [SerializeField] private AudioMixerConfig audioMixer;
+
         [Header("Transitions")]
         [SerializeField, Min(0f)] private float fadeSeconds = 0.35f;
 
@@ -28,6 +32,7 @@ namespace NeonRift.Game
         public IReadOnlyList<MissionDefinition> Missions => missions;
         public MissionDefinition DefaultMission => IsPlayable(defaultMission) ? defaultMission : null;
         public float FadeSeconds => fadeSeconds;
+        public AudioMixerConfig AudioMixer => audioMixer;
 
         public static bool IsPlayable(MissionDefinition mission)
         {

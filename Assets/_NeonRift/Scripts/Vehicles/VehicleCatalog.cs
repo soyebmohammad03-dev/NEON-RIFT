@@ -48,6 +48,8 @@ namespace NeonRift.Vehicles
                 }
                 if (v.PhysicsProfile == null) problems.Add($"'{v.name}' has no physics profile.");
                 else foreach (var p in v.PhysicsProfile.Validate()) problems.Add($"'{v.name}' physics: {p}");
+                if (v.AudioProfile == null) problems.Add($"'{v.name}' has no audio profile.");
+                else foreach (var p in v.AudioProfile.Validate()) problems.Add($"'{v.name}' audio: {p}");
             }
             return problems;
         }

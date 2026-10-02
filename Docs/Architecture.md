@@ -10,6 +10,7 @@ NeonRift.Frontend   NeonRift.Gameplay         (scene-level features)
          NeonRift.Game                        (composition root, flow, session, config)
         /      |       \
 NeonRift.Input |  NeonRift.Missions           (player input bridge / mission data)
+               NeonRift.Audio                 (vehicle audio, mixer service; refs Vehicles)
         \      |
        NeonRift.Vehicles     NeonRift.World   (vehicle data + rig / building catalog)
                  \             /
@@ -26,9 +27,10 @@ NeonRift.Tests.EditMode   unit tests
 | World | `BuildingDefinition`, `BuildingCatalog`, `BuildingTier` (Hero / Midground / Skyline) |
 | Missions | `MissionDefinition`, `RunResult`, `MissionOutcome` |
 | Input | Generated `NeonRiftControls` (from `Settings/Input/NeonRiftControls.inputactions`), `PlayerDrivingInput` |
-| Game | `GameRoot`, `GameFlow`/`IGameFlow`, `GameContext`, `ISceneEntryPoint`, `RunSession`, `GameConfig`, `LoadingOverlay`, `BootstrapLoader` |
+| Game | `GameRoot` (also owns `AudioMixerService`, switches Menu/Gameplay snapshots on state change), `GameFlow`/`IGameFlow`, `GameContext` (+ `Audio`), `ISceneEntryPoint`, `RunSession`, `GameConfig` (+ `AudioMixer`), `LoadingOverlay`, `BootstrapLoader` |
 | Frontend | `TitleScreen`, `CarSelectScreen`, `VehicleShowroom` |
-| Gameplay | `MissionSceneEntry`, `VehicleSpawnPoint`, `VehicleChaseCamera`, `DrivingRoute`, `RouteAutopilot`; dev tools `VehicleDebugHud`, `VehicleTelemetryLog` |
+| Audio | `VehicleAudio`, `EngineSoundModel`, `TyreSoundModel`, `AudioMixerConfig`, `AudioMixerService`, `MixerState`, `AudioChannel`; dev `AudioOutputRecorder`, `AudioSignalAnalysis` (see [Audio.md](Audio.md)) |
+| Gameplay | `MissionSceneEntry`, `VehicleSpawnPoint`, `VehicleChaseCamera`, `DrivingRoute`, `RouteAutopilot`; dev tools `VehicleDebugHud`, `VehicleTelemetryLog`, `VehicleAudioValidator` |
 
 ## Scene model
 
@@ -40,7 +42,7 @@ NeonRift.Tests.EditMode   unit tests
 
 ## Data flow for a run
 
-`CarSelectScreen` → `RunSession.SelectVehicle` / `SelectMission` → `IGameFlow.StartMission()` → mission scene → `MissionSceneEntry.Enter` → `VehicleSpawnPoint.Spawn(selected definition)` (instantiates the gameplay prefab and calls `VehicleController.Configure(definition.PhysicsProfile)`) → every `IVehicleInputReceiver` on the spawned prefab gets a `PlayerDrivingInput` → `VehicleChaseCamera.SetTarget`. Input action `ResetVehicle` calls `VehicleController.Recover()`.
+`CarSelectScreen` → `RunSession.SelectVehicle` / `SelectMission` → `IGameFlow.StartMission()` → mission scene → `MissionSceneEntry.Enter` → `VehicleSpawnPoint.Spawn(selected definition)` (instantiates the gameplay prefab, calls `VehicleController.Configure(definition.PhysicsProfile)` and `VehicleAudio.Configure(definition.AudioProfile)`) → every `IVehicleInputReceiver` on the spawned prefab gets a `PlayerDrivingInput` → `VehicleChaseCamera.SetTarget`. Input action `ResetVehicle` calls `VehicleController.Recover()`.
 
 Results come back through `RunSession.RecordResult(RunResult)`.
 

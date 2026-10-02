@@ -24,7 +24,7 @@
 | Back to title | Esc | Start |
 | Telemetry overlay (dev builds) | F3 | — |
 
-Vehicle physics, tuning and the test-track validation route: [Docs/VehiclePhysics.md](Docs/VehiclePhysics.md).
+Vehicle physics, tuning and the test-track validation route: [Docs/VehiclePhysics.md](Docs/VehiclePhysics.md). Vehicle audio and the mixer: [Docs/Audio.md](Docs/Audio.md).
 
 ## Layout
 

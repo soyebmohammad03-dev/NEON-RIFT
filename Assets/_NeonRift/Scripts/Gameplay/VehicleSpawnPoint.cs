@@ -1,3 +1,4 @@
+using NeonRift.Audio;
 using NeonRift.Vehicles;
 using UnityEngine;
 
@@ -34,6 +35,8 @@ namespace NeonRift.Gameplay
                 return null;
             }
             controller.Configure(definition.PhysicsProfile);
+            if (definition.AudioProfile != null && instance.TryGetComponent(out VehicleAudio audio))
+                audio.Configure(definition.AudioProfile, controller);
             return controller;
         }
 

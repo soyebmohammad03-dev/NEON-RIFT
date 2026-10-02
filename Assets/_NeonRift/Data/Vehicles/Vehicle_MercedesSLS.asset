@@ -19,6 +19,7 @@ MonoBehaviour:
   gameplayPrefab: {fileID: 4002668848151194684, guid: bb8d33c7ec280469a9fa5185eed5afd7, type: 3}
   showroomPrefab: {fileID: 0}
   physicsProfile: {fileID: 11400000, guid: 5ccd56845319845ebbed33973c2d2db8, type: 2}
+  audioProfile: {fileID: 11400000, guid: 59c83183270b44fc09891b1ea18a16d6, type: 2}
   displayStats:
     topSpeedKph: 312
     zeroToHundredSeconds: 4.5

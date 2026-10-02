@@ -983,6 +983,7 @@ GameObject:
   - component: {fileID: 8466384370325078565}
   - component: {fileID: 4428570225788761172}
   - component: {fileID: 3873915387521376737}
+  - component: {fileID: 1850123473132582626}
   m_Layer: 6
   m_Name: PF_Vehicle_MercedesSLS
   m_TagString: Untagged
@@ -1102,7 +1103,28 @@ MonoBehaviour:
   groundLayers:
     serializedVersion: 2
     m_Bits: 4294965691
+  contactSamples: 5
   externalStepping: 0
+--- !u!114 &1850123473132582626
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4002668848151194684}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a73949124c6bc439390c45405c2d9d67, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: NeonRift.Audio::NeonRift.Audio.VehicleAudio
+  engineGroup: {fileID: -2731399680043655459, guid: 9c92b941f881f4705a4462362d30e04e, type: 2}
+  tiresGroup: {fileID: -3379026340819925179, guid: 9c92b941f881f4705a4462362d30e04e, type: 2}
+  sfxGroup: {fileID: -81560470155829854, guid: 9c92b941f881f4705a4462362d30e04e, type: 2}
+  ambienceGroup: {fileID: 3431039440805460387, guid: 9c92b941f881f4705a4462362d30e04e, type: 2}
+  spatialBlend: 1
+  playerSpatialBlend: 0.25
+  minDistance: 5
+  maxDistance: 250
 --- !u!1 &4237588120987719988
 GameObject:
   m_ObjectHideFlags: 0

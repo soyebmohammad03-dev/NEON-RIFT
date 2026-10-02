@@ -18,6 +18,8 @@ MonoBehaviour:
   description: Modern GT3 race car. Aero-heavy and precise; demands commitment.
   gameplayPrefab: {fileID: 8511447577852993358, guid: d9a070481486042a2a9f99c81c33f0e8, type: 3}
   showroomPrefab: {fileID: 0}
+  physicsProfile: {fileID: 0}
+  audioProfile: {fileID: 11400000, guid: ad9523dffe78f4c7b92b88024da2082f, type: 2}
   displayStats:
     topSpeedKph: 290
     zeroToHundredSeconds: 3.4

@@ -1687,6 +1687,7 @@ GameObject:
   - component: {fileID: 3827096719446263831}
   - component: {fileID: 8681432257606006569}
   - component: {fileID: 6727637426237774369}
+  - component: {fileID: 7698121320138309370}
   m_Layer: 6
   m_Name: PF_Vehicle_LamborghiniTerzo
   m_TagString: Untagged
@@ -1807,7 +1808,28 @@ MonoBehaviour:
   groundLayers:
     serializedVersion: 2
     m_Bits: 4294965691
+  contactSamples: 5
   externalStepping: 0
+--- !u!114 &7698121320138309370
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4257704880082270300}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a73949124c6bc439390c45405c2d9d67, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: NeonRift.Audio::NeonRift.Audio.VehicleAudio
+  engineGroup: {fileID: -2731399680043655459, guid: 9c92b941f881f4705a4462362d30e04e, type: 2}
+  tiresGroup: {fileID: -3379026340819925179, guid: 9c92b941f881f4705a4462362d30e04e, type: 2}
+  sfxGroup: {fileID: -81560470155829854, guid: 9c92b941f881f4705a4462362d30e04e, type: 2}
+  ambienceGroup: {fileID: 3431039440805460387, guid: 9c92b941f881f4705a4462362d30e04e, type: 2}
+  spatialBlend: 1
+  playerSpatialBlend: 0.25
+  minDistance: 5
+  maxDistance: 250
 --- !u!1 &4328982130584012573
 GameObject:
   m_ObjectHideFlags: 0

@@ -1,0 +1,104 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f2126815e3d144dc18937e795f796ca2, type: 3}
+  m_Name: VehicleAudio_LamborghiniTerzo
+  m_EditorClassIdentifier: NeonRift.Vehicles::NeonRift.Vehicles.VehicleAudioProfile
+  engine:
+    layers:
+    - clip: {fileID: 8300000, guid: da43b2b88dbcb4040bf7dff662b4e334, type: 3}
+      recordedRpm: 800
+      onLoad: 1
+      volume: 1
+    - clip: {fileID: 8300000, guid: 7488a635f95714ee5b3886fede145b05, type: 3}
+      recordedRpm: 2499.9924
+      onLoad: 1
+      volume: 1
+    - clip: {fileID: 8300000, guid: 5f38f14bb46f44bf294145a9784b24b1, type: 3}
+      recordedRpm: 6000
+      onLoad: 1
+      volume: 1
+    - clip: {fileID: 8300000, guid: 69e47f62c9d834e50bb03b1f1261ab18, type: 3}
+      recordedRpm: 11000
+      onLoad: 1
+      volume: 1
+    - clip: {fileID: 8300000, guid: 5151fb42e9b4342ae9436636f49316eb, type: 3}
+      recordedRpm: 16000
+      onLoad: 1
+      volume: 1
+    - clip: {fileID: 8300000, guid: 8f34b2312d8e14bc49f98bc15d76aa38, type: 3}
+      recordedRpm: 800
+      onLoad: 0
+      volume: 0.9
+    - clip: {fileID: 8300000, guid: 86d6289043e154ec4bc26839f243fdb3, type: 3}
+      recordedRpm: 2499.9924
+      onLoad: 0
+      volume: 0.9
+    - clip: {fileID: 8300000, guid: ea3eb6e79f4724df49e0d549c05a43aa, type: 3}
+      recordedRpm: 6000
+      onLoad: 0
+      volume: 0.9
+    - clip: {fileID: 8300000, guid: 2fb55c04e9f044d4ea815c4fa17bdb49, type: 3}
+      recordedRpm: 11000
+      onLoad: 0
+      volume: 0.9
+    - clip: {fileID: 8300000, guid: c37023b21580f4c3cad5818bf27b8646, type: 3}
+      recordedRpm: 16000
+      onLoad: 0
+      volume: 0.9
+    volume: 0.75
+    idleVolume: 0.15
+    offLoadVolume: 0.6
+    rpmSmoothing: 0.05
+    loadAttack: 0.1
+    loadRelease: 0.2
+    shiftLoad: 1
+    minPitch: 0.3
+    maxPitch: 2
+    shiftClips:
+    - {fileID: 8300000, guid: 37c334151fce14aea86e93ebf7d5779e, type: 3}
+    shiftVolume: 0.15
+    overrunPops: []
+    popRate: 0
+    popMinRpm: 0
+    popVolume: 0
+  chassis:
+    skidLoop: {fileID: 8300000, guid: 48e50c9775b6f4a6bbcc084028b2bb0a, type: 3}
+    skidVolume: 0.6
+    skidSlipRange: {x: 1.05, y: 1.7}
+    scrubLoop: {fileID: 8300000, guid: b45c6bb8445b14cc79437fc9933eeee8, type: 3}
+    scrubVolume: 0.45
+    scrubSlipRange: {x: 0.6, y: 1.05}
+    looseSurfaceGrip: 0.8
+    looseSurfaceLoop: {fileID: 8300000, guid: 2c223ac9fd0c7411a8ae5c4c653163fa, type: 3}
+    looseSurfaceVolume: 0.7
+    roadLoop: {fileID: 8300000, guid: 2b789ecd4079f4961bf1ab4c07aa6cad, type: 3}
+    roadVolume: 0.5
+    windLoop: {fileID: 8300000, guid: 84973085390de48a78e81fb6345c3415, type: 3}
+    windVolume: 0.45
+    fullSpeedKph: 250
+    suspensionThumps:
+    - {fileID: 8300000, guid: bfbebc600980c42bc8eb37d0afdc7dfb, type: 3}
+    - {fileID: 8300000, guid: 8b9a4997fc67a4bad961804e90a5503c, type: 3}
+    thumpSpeed: 0.7
+    thumpVolume: 0.6
+    lightImpacts:
+    - {fileID: 8300000, guid: 48c5f82aeeb7348fba5be18143e47b2a, type: 3}
+    - {fileID: 8300000, guid: 69d2805331c004f8fbaf8fcf641f4e6d, type: 3}
+    mediumImpacts:
+    - {fileID: 8300000, guid: 0c156bdadf3d44a298283e92bd0e865d, type: 3}
+    - {fileID: 8300000, guid: 34b0fa802c37f4b1286000ccff787c05, type: 3}
+    heavyImpacts:
+    - {fileID: 8300000, guid: 657421375d3a34d6c8482cf3f1e14587, type: 3}
+    - {fileID: 8300000, guid: 65f6d116f78c4415aa3c9063d96815f6, type: 3}
+    impactThresholds: {x: 40, y: 1500, z: 6000}
+    impactVolume: 1
+  sourceNotes: "Electric drive: motor and reduction-gear whine with inverter noise (fictional EV interpretation). Procedurally synthesised in-house by VehicleAudioGenerator (Neon Rift \u25B8 Audio \u25B8 Generate Vehicle Audio). Project-owned, no third-party samples."

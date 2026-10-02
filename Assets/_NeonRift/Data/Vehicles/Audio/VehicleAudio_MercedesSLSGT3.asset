@@ -1,0 +1,109 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f2126815e3d144dc18937e795f796ca2, type: 3}
+  m_Name: VehicleAudio_MercedesSLSGT3
+  m_EditorClassIdentifier: NeonRift.Vehicles::NeonRift.Vehicles.VehicleAudioProfile
+  engine:
+    layers:
+    - clip: {fileID: 8300000, guid: eb4154a1b0d5d4e17a6cbeb545f96579, type: 3}
+      recordedRpm: 1099.9945
+      onLoad: 1
+      volume: 1
+    - clip: {fileID: 8300000, guid: 203c26b1401624e49b21810e854a2af6, type: 3}
+      recordedRpm: 2200.0056
+      onLoad: 1
+      volume: 1
+    - clip: {fileID: 8300000, guid: daef547a0a07f4ed889584d133acc511, type: 3}
+      recordedRpm: 3700.013
+      onLoad: 1
+      volume: 1
+    - clip: {fileID: 8300000, guid: 7a94aea48bbe1459893b449a37d731da, type: 3}
+      recordedRpm: 5500.0215
+      onLoad: 1
+      volume: 1
+    - clip: {fileID: 8300000, guid: af894390802f14252aba3440046ea971, type: 3}
+      recordedRpm: 7500
+      onLoad: 1
+      volume: 1
+    - clip: {fileID: 8300000, guid: 6c908283a6c6d46cabed4d2060a1fb5b, type: 3}
+      recordedRpm: 1099.9945
+      onLoad: 0
+      volume: 0.9
+    - clip: {fileID: 8300000, guid: d8e2e238741f2444c8b02cd08f8784e3, type: 3}
+      recordedRpm: 2200.0056
+      onLoad: 0
+      volume: 0.9
+    - clip: {fileID: 8300000, guid: 3e3e8fb2deb804d988f2b5faaed79a62, type: 3}
+      recordedRpm: 3700.013
+      onLoad: 0
+      volume: 0.9
+    - clip: {fileID: 8300000, guid: 7589d489666264484b4b2a9f746a716a, type: 3}
+      recordedRpm: 5500.0215
+      onLoad: 0
+      volume: 0.9
+    - clip: {fileID: 8300000, guid: 02ee55be5b19b4ec28822148d7ebbe99, type: 3}
+      recordedRpm: 7500
+      onLoad: 0
+      volume: 0.9
+    volume: 1
+    idleVolume: 0.3
+    offLoadVolume: 0.5
+    rpmSmoothing: 0.03
+    loadAttack: 0.04
+    loadRelease: 0.1
+    shiftLoad: 0.15
+    minPitch: 0.5
+    maxPitch: 1.8
+    shiftClips:
+    - {fileID: 8300000, guid: 36be1015d49b64413afb724c3738ae3d, type: 3}
+    - {fileID: 8300000, guid: 06fea5d453093429583386bc8d0ddfe6, type: 3}
+    shiftVolume: 0.5
+    overrunPops:
+    - {fileID: 8300000, guid: 43677f24b26ed4e54afe6b9a104e4549, type: 3}
+    - {fileID: 8300000, guid: 2ade94468f2a84e519771dd37eaff7b7, type: 3}
+    - {fileID: 8300000, guid: a21124e6cf4d5481499075bac3bd9369, type: 3}
+    - {fileID: 8300000, guid: 96e16512729f242c3a62224a9f7a2682, type: 3}
+    popRate: 6
+    popMinRpm: 4000
+    popVolume: 0.7
+  chassis:
+    skidLoop: {fileID: 8300000, guid: 48e50c9775b6f4a6bbcc084028b2bb0a, type: 3}
+    skidVolume: 0.7
+    skidSlipRange: {x: 1.05, y: 1.7}
+    scrubLoop: {fileID: 8300000, guid: b45c6bb8445b14cc79437fc9933eeee8, type: 3}
+    scrubVolume: 0.45
+    scrubSlipRange: {x: 0.6, y: 1.05}
+    looseSurfaceGrip: 0.8
+    looseSurfaceLoop: {fileID: 8300000, guid: 2c223ac9fd0c7411a8ae5c4c653163fa, type: 3}
+    looseSurfaceVolume: 0.7
+    roadLoop: {fileID: 8300000, guid: 2b789ecd4079f4961bf1ab4c07aa6cad, type: 3}
+    roadVolume: 0.55
+    windLoop: {fileID: 8300000, guid: 84973085390de48a78e81fb6345c3415, type: 3}
+    windVolume: 0.45
+    fullSpeedKph: 250
+    suspensionThumps:
+    - {fileID: 8300000, guid: bfbebc600980c42bc8eb37d0afdc7dfb, type: 3}
+    - {fileID: 8300000, guid: 8b9a4997fc67a4bad961804e90a5503c, type: 3}
+    thumpSpeed: 0.7
+    thumpVolume: 0.6
+    lightImpacts:
+    - {fileID: 8300000, guid: 48c5f82aeeb7348fba5be18143e47b2a, type: 3}
+    - {fileID: 8300000, guid: 69d2805331c004f8fbaf8fcf641f4e6d, type: 3}
+    mediumImpacts:
+    - {fileID: 8300000, guid: 0c156bdadf3d44a298283e92bd0e865d, type: 3}
+    - {fileID: 8300000, guid: 34b0fa802c37f4b1286000ccff787c05, type: 3}
+    heavyImpacts:
+    - {fileID: 8300000, guid: 657421375d3a34d6c8482cf3f1e14587, type: 3}
+    - {fileID: 8300000, guid: 65f6d116f78c4415aa3c9063d96815f6, type: 3}
+    impactThresholds: {x: 40, y: 1500, z: 6000}
+    impactVolume: 1
+  sourceNotes: "Cross-plane V8 with race exhaust: brighter, rawer, louder overrun. Procedurally synthesised in-house by VehicleAudioGenerator (Neon Rift \u25B8 Audio \u25B8 Generate Vehicle Audio). Project-owned, no third-party samples."

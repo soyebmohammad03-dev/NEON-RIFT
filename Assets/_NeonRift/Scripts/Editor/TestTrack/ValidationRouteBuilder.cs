@@ -523,6 +523,16 @@ namespace NeonRift.EditorTools.TestTrack
                 log.AppendLine("skidpad: capsule collider replaced with a mesh collider");
             }
 
+            // The head-on crash wall was placed beyond the end of the 1 km straight (z 900) and the ground (z 600),
+            // i.e. over empty space. Stand it on the end of the straight's surface.
+            var headOn = FindInScene(scene, "CrashBarriers/HeadOnWall");
+            if (headOn != null && headOn.transform.position.z > 899f)
+            {
+                var p = headOn.transform.position;
+                headOn.transform.position = new Vector3(p.x, p.y, 898f);
+                log.AppendLine("head-on wall moved onto the end of the straight (z 898)");
+            }
+
             // Grass everywhere off the tarmac: lower grip, more drag. The recovery area.
             var ground = FindInScene(scene, "Ground");
             if (ground != null)

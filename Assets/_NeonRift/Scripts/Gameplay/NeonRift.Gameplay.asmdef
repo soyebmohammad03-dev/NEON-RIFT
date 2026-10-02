@@ -7,7 +7,8 @@
         "NeonRift.Game",
         "NeonRift.Input",
         "NeonRift.Vehicles",
-        "NeonRift.Missions"
+        "NeonRift.Missions",
+        "NeonRift.Audio"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

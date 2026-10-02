@@ -1,3 +1,4 @@
+using NeonRift.Audio;
 using NeonRift.Game;
 using NeonRift.Input;
 using NeonRift.Vehicles;
@@ -41,6 +42,7 @@ namespace NeonRift.Gameplay
                 foreach (var receiver in PlayerVehicle.GetComponentsInChildren<IVehicleInputReceiver>())
                     receiver.SetInputSource(playerInput);
                 if (chaseCamera != null) chaseCamera.SetTarget(PlayerVehicle);
+                if (PlayerVehicle.TryGetComponent(out VehicleAudio audio)) audio.SetPlayerView(true);
                 if (debugHud != null) debugHud.SetTarget(PlayerVehicle);
             }
 

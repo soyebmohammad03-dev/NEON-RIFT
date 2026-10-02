@@ -1,4 +1,5 @@
 using System;
+using NeonRift.Audio;
 using NeonRift.Input;
 using UnityEngine;
 
@@ -16,6 +17,7 @@ namespace NeonRift.Game
 
         private NeonRiftControls controls;
         private GameFlow flow;
+        private AudioMixerService audio;
 
         private void Awake()
         {
@@ -28,9 +30,15 @@ namespace NeonRift.Game
 
             controls = new NeonRiftControls();
             var session = new RunSession();
+            audio = new AudioMixerService(config.AudioMixer);
             flow = new GameFlow(config, session, loadingOverlay);
-            flow.Initialize(new GameContext(config, session, flow, controls));
+            flow.Initialize(new GameContext(config, session, flow, controls, audio));
+            flow.StateChanged += OnStateChanged;
         }
+
+        // Menus get the menu mix; missions the gameplay mix. Results/lockdown/ducking are driven by mission code.
+        private void OnStateChanged(GameState state) =>
+            audio.TransitionTo(state == GameState.Mission ? MixerState.Gameplay : MixerState.Menu, config.FadeSeconds);
 
         private async void Start()
         {
@@ -50,6 +58,7 @@ namespace NeonRift.Game
 
         private void OnDestroy()
         {
+            if (flow != null) flow.StateChanged -= OnStateChanged;
             controls?.Dispose();
         }
     }

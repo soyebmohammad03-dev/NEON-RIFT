@@ -44,6 +44,10 @@ Sources: the GLB licences come from each file's embedded glTF `asset.extras`. Th
 
 **Non-commercial assets.** The Terzo Millennio and the AMG GT3 must not ship in a commercial build. `ProjectValidator.Warnings()` lists them.
 
+## Audio
+
+All game audio is generated in-house by `VehicleAudioGenerator` (procedural synthesis, deterministic). No third-party sound files are used and none were downloaded. See [Audio.md](Audio.md) for free, clearly licensed sources if recorded sounds are wanted later.
+
 ## Vehicle audit
 
 | | SLS AMG 2010 | SLS GT3 | Terzo Millennio | AMG GT3 (Red Bull) |

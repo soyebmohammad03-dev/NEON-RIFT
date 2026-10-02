@@ -1,3 +1,4 @@
+using NeonRift.Audio;
 using NeonRift.Input;
 
 namespace NeonRift.Game
@@ -12,13 +13,16 @@ namespace NeonRift.Game
         public RunSession Session { get; }
         public IGameFlow Flow { get; }
         public NeonRiftControls Controls { get; }
+        /// <summary>Mixer snapshots and user volumes.</summary>
+        public AudioMixerService Audio { get; }
 
-        public GameContext(GameConfig config, RunSession session, IGameFlow flow, NeonRiftControls controls)
+        public GameContext(GameConfig config, RunSession session, IGameFlow flow, NeonRiftControls controls, AudioMixerService audio)
         {
             Config = config;
             Session = session;
             Flow = flow;
             Controls = controls;
+            Audio = audio;
         }
     }
 

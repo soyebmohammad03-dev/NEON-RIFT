@@ -9,7 +9,8 @@
         "NeonRift.Missions",
         "NeonRift.Editor",
         "NeonRift.Gameplay",
-        "NeonRift.Core"
+        "NeonRift.Core",
+        "NeonRift.Audio"
     ],
     "includePlatforms": [
         "Editor"

@@ -5,7 +5,8 @@
         "Unity.InputSystem",
         "NeonRift.Vehicles",
         "NeonRift.Missions",
-        "NeonRift.Input"
+        "NeonRift.Input",
+        "NeonRift.Audio"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
