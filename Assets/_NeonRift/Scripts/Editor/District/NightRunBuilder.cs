@@ -41,6 +41,10 @@ namespace NeonRift.EditorTools.District
         public const string EventBreached = "core.breached";
         public const string EventAlleyOpen = "alley.gate.open";
         public const string EventStart = "mission.start";
+        public const string EventEscape = "escape.start";
+        public const string RivalStagingId = "core_staging";
+        public const string RivalExtractionId = "extraction";
+        public const string NetworkPath = "Assets/_NeonRift/Data/World/RoadNetwork_NightRun.asset";
 
         public static readonly Vector3 CorePosition = new(160f, 0f, 127.5f);
         public static readonly Vector3 SpawnPosition = new(3.5f, 0f, -292f);
@@ -92,26 +96,42 @@ namespace NeonRift.EditorTools.District
             c.District.Build(environment.transform);
 
             var core = BuildCompound(c, uplink, out var coreUplink);
-            BuildAlleyGate(c, hackGate);
-            BuildBarrier(c, "CompoundGate", "COMPOUND GATE", new Vector3(160f, 0f, 194.4f), 0f, 12f, 2, closedAtStart: false,
+            var alleyGate = BuildAlleyGate(c, hackGate);
+            var compoundGate = BuildBarrier(c, "CompoundGate", "COMPOUND GATE", new Vector3(160f, 0f, 194.4f), 0f, 12f, 2, closedAtStart: false,
                          closeOn: new[] { EventLockdown }, openOn: null, delay: 12f, heatPenalty: 4f, minDelay: 7f, warning: 1.5f, travel: 2f);
-            BuildBarrier(c, "ExpresswayCheckpoint", "EXPRESSWAY CHECKPOINT", new Vector3(320f, 0f, 170f), 0f, 18f, 2, closedAtStart: false,
+            var checkpoint = BuildBarrier(c, "ExpresswayCheckpoint", "EXPRESSWAY CHECKPOINT", new Vector3(320f, 0f, 170f), 0f, 18f, 2, closedAtStart: false,
                          closeOn: new[] { EventLockdown }, openOn: null, delay: 30f, heatPenalty: 12f, minDelay: 12f, warning: 2.5f, travel: 3f);
+            // The wider city: the harbor checkpoint seals Market Street east of the expressway; the crew's hacker opens
+            // the skyway maintenance gate once the escape starts (an alternate route that only exists in a lockdown).
+            var harborCheckpoint = BuildBarrier(c, "HarborCheckpoint", "HARBOR CHECKPOINT", new Vector3(440f, 0f, -100f), 90f, 12f, 2, closedAtStart: false,
+                         closeOn: new[] { EventLockdown }, openOn: null, delay: 22f, heatPenalty: 8f, minDelay: 10f, warning: 2f, travel: 2.5f);
+            var skywayGate = BuildBarrier(c, "SkywayGate", "SKYWAY GATE", CityLandmarks.SkywayGate, 90f, 9f, 1, closedAtStart: true,
+                         closeOn: null, openOn: new[] { EventEscape }, delay: 0f, heatPenalty: 0f, minDelay: 0f, warning: 1f, travel: 2.5f);
             BuildExtraction(c);
             BuildSecurityGroups(c);
             BuildCityAlarm(c, core);
             var volumes = BuildLighting(c);
+            var navigation = BuildNavigation(c, new[]
+            {
+                (CityLayout.AlleyGateId, alleyGate), (CityLayout.CompoundGateId, compoundGate), (CityLayout.CheckpointId, checkpoint),
+                (CityLayout.HarborCheckpointId, harborCheckpoint), (CityLayout.SkywayGateId, skywayGate)
+            });
+            BuildSecurityCameras(c);
 
-            var (entry, director, camera, chase) = BuildMissionRig(c, core, volumes);
+            var (entry, director, camera, chase) = BuildMissionRig(c, core, volumes, navigation);
+            BuildCitySystems(c, camera);
             BuildDevTools(c, entry);
+            ConfigurePipeline(c);
 
             Lightmapping.lightingSettings = LightingSettingsAsset();
             EditorSceneManager.SaveScene(c.Scene, ScenePath);
             if (bakeProbes) BakeProbes(c);
             EditorSceneManager.SaveScene(c.Scene, ScenePath);
             RegisterInProject(mission, c);
+            RemoveStaleMeshes(c);
 
-            c.Log.AppendLine($"  podiums {c.District.Podiums}, street lights (real-time) {c.District.RealtimeLights}, mission lights {c.MissionLights.Count}");
+            c.Log.AppendLine($"  podiums {c.District.Podiums}, towers {c.District.Towers}, lamps {c.District.RealtimeLights} (budgeted), signals {c.District.Props.Signals}, " +
+                             $"screens {c.District.Screens.Count}, mission lights {c.MissionLights.Count}");
             c.Log.AppendLine($"  scene saved: {ScenePath}");
             return c.Log.ToString();
         }
@@ -144,13 +164,14 @@ namespace NeonRift.EditorTools.District
                 new List<ObjectiveDefinition>
                 {
                     new("reach_core", ObjectiveKind.Reach, CoreZoneId, "REACH THE DATA CORE",
-                        "Boulevard: long and clean.  Service alley: short, but its gate logs intrusions."),
+                        "Boulevard: long and clean.  Service alley: short, but its gate logs intrusions.",
+                        rivalGoalId: RivalStagingId, rivalStartDelay: 0.6f),
                     new("hack_core", ObjectiveKind.Interact, CoreUplinkId, "BREACH THE DATA CORE",
                         "Stop on the uplink ring and hold E to extract the core.", SecurityLevel.Calm, 0f, null,
                         null, new[] { EventBreached, EventLockdown }),
                     new("escape", ObjectiveKind.Reach, ExtractionId, "ESCAPE TO THE RIFT GATE",
-                        "The district is sealing. Beat the checkpoints or hack your way out.", SecurityLevel.Lockdown, 80f,
-                        "TRACE COMPLETE — YOU WERE FOUND", new[] { "escape.start" })
+                        "The district is sealing. Beat the checkpoints, take the skyway, or hack your way out.", SecurityLevel.Lockdown, 80f,
+                        "TRACE COMPLETE — YOU WERE FOUND", new[] { EventEscape }, rivalGoalId: RivalExtractionId, rivalStartDelay: 1.2f)
                 },
                 new[] { EventStart }, new[] { "mission.complete" }, new[] { "mission.failed" },
                 new List<MissionAnnouncement>
@@ -160,6 +181,9 @@ namespace NeonRift.EditorTools.District
                     new(EventBreached, "THEFT DETECTED|SECTOR 7 LOCKDOWN INITIATED", MessageTone.Danger, 0.15f, banner: true),
                     new("escape.start", "EXTRACTION: RIFT GATE, SOUTH-EAST TUNNEL", MessageTone.Info, 4f),
                     new("escape.start", "ALLEY GATE CAN BE RE-HACKED  ·  COSTS HEAT", MessageTone.Warning, 7f),
+                    new("escape.start", "CREW: SKYWAY GATE OPEN  ·  HARBOR ROUTE CLEAR", MessageTone.Success, 2.5f),
+                    new(EventStart, "RIVAL CREWS ON THE GRID  ·  BEAT THEM OUT OF SECTOR 7", MessageTone.Warning, 9f),
+                    new(EventBreached, "CAMERAS ARMED  ·  STAY OUT OF SIGHT", MessageTone.Warning, 5.5f),
                 },
                 timePenalty: 25f, minimumTime: 30f);
             EditorUtility.SetDirty(mission);
@@ -344,7 +368,7 @@ namespace NeonRift.EditorTools.District
 
         // ---------------- Gates ----------------
 
-        private static void BuildAlleyGate(Context c, InteractionDefinition hackGate)
+        private static SecurityBarrier BuildAlleyGate(Context c, InteractionDefinition hackGate)
         {
             var barrier = BuildBarrier(c, "AlleyGate", "ALLEY GATE", new Vector3(160f, 0f, -20f), 0f, 10f, 1, closedAtStart: true,
                                        closeOn: new[] { EventLockdown }, openOn: new[] { EventAlleyOpen }, delay: 0f, heatPenalty: 0f, minDelay: 0f,
@@ -375,6 +399,7 @@ namespace NeonRift.EditorTools.District
             var interactable = zoneGo.AddComponent<Interactable>();
             interactable.EditorConfigure(GateTerminalId, hackGate, "ALLEY GATE", 3f, true, new[] { EventAlleyOpen }, null, null, new[] { EventLockdown },
                                          new[] { screenGo.GetComponent<Renderer>() }, null);
+            return barrier;
         }
 
         private const float KerbY = NightRunDistrict.KerbHeight;
@@ -542,10 +567,7 @@ namespace NeonRift.EditorTools.District
             {
                 var go = new GameObject($"Group_{pair.Key}");
                 go.transform.SetParent(parent, false);
-                var block = NightRunDistrict.Blocks.FirstOrDefault(b => b.Name == pair.Key);
-                Vector3 centre = block.Name == null ? CorePosition
-                    : block.Clip.width > 0f ? new Vector3(block.Clip.center.x, 0f, block.Clip.center.y) : block.Centre;
-                go.transform.position = centre;
+                go.transform.position = c.District.BlockCentres.TryGetValue(pair.Key, out var centre) ? centre : CorePosition;
                 go.AddComponent<SecurityLightGroup>().EditorConfigure(new[] { pair.Value }, null);
             }
         }
@@ -556,7 +578,8 @@ namespace NeonRift.EditorTools.District
             root.SetParent(c.Security, false);
             var sirens = new List<AudioSource>();
             foreach (var p in new[] { CorePosition + Vector3.up * 26f, new Vector3(320f, 18f, 170f), new Vector3(160f, 14f, -20f), new Vector3(0f, 22f, -100f),
-                                      new Vector3(320f, 14f, -400f), new Vector3(160f, 30f, 300f) })
+                                      new Vector3(320f, 14f, -400f), new Vector3(160f, 30f, 300f), new Vector3(440f, 16f, -100f), new Vector3(-200f, 18f, 0f),
+                                      new Vector3(80f, 40f, 550f), new Vector3(560f, 18f, 60f) })
             {
                 var go = new GameObject("Siren");
                 go.transform.SetParent(root, false);
@@ -577,7 +600,7 @@ namespace NeonRift.EditorTools.District
             var heads = new List<Transform>();
             var lights = new List<Light>();
             foreach (var p in new[] { new Vector3(309f, 7.3f, 170f), new Vector3(331f, 7.3f, 170f), new Vector3(308f, 13.6f, -403f), new Vector3(332f, 13.6f, -403f),
-                                      new Vector3(153f, 6.9f, 194.4f), new Vector3(167f, 6.9f, 194.4f) })
+                                      new Vector3(153f, 6.9f, 194.4f), new Vector3(167f, 6.9f, 194.4f), new Vector3(440f, 6.9f, -107.4f), new Vector3(440f, 6.9f, -92.6f) })
             {
                 var b = DistrictKit.Place(c.Kit.Beacon, root, p, Quaternion.identity);
                 heads.Add(b.transform.Find("Head"));
@@ -592,52 +615,72 @@ namespace NeonRift.EditorTools.District
 
         private static (Volume alert, Volume lockdown) BuildLighting(Context c)
         {
+            // Night grade: the darkness does the work. Low, cool ambient (moonlit sky above, almost nothing from the
+            // ground), a sodium-and-magenta light-pollution band on the horizon and overcast lit from below, so neon,
+            // windows and street lamps carry the image against it. Fog adds depth without washing the streets out.
+            var moonRotation = Quaternion.Euler(34f, -35f, 0f);
             RenderSettings.skybox = c.Kit.NightSky;
-            c.Kit.NightSky.SetColor("_HorizonColor", new Color(0.12f, 0.045f, 0.16f));
-            c.Kit.NightSky.SetColor("_GlowColor", new Color(0.3f, 0.08f, 0.28f));
-            c.Kit.NightSky.SetColor("_ZenithColor", new Color(0.008f, 0.01f, 0.03f));
+            c.Kit.NightSky.SetColor("_HorizonColor", new Color(0.075f, 0.04f, 0.075f));
+            c.Kit.NightSky.SetColor("_GlowColor", new Color(0.26f, 0.1f, 0.12f));
+            c.Kit.NightSky.SetColor("_ZenithColor", new Color(0.005f, 0.007f, 0.018f));
+            c.Kit.NightSky.SetFloat("_GlowHeight", 0.14f);
+            c.Kit.NightSky.SetVector("_MoonDirection", -(moonRotation * Vector3.forward));
+            c.Kit.NightSky.SetColor("_CloudColor", new Color(0.07f, 0.05f, 0.06f));
+            c.Kit.NightSky.SetFloat("_CloudCover", 0.58f);
+            c.Kit.NightSky.SetFloat("_StarDensity", 0.25f);
             RenderSettings.ambientMode = AmbientMode.Trilight;
-            RenderSettings.ambientSkyColor = new Color(0.11f, 0.09f, 0.2f);
-            RenderSettings.ambientEquatorColor = new Color(0.12f, 0.06f, 0.14f);
-            RenderSettings.ambientGroundColor = new Color(0.03f, 0.03f, 0.05f);
+            RenderSettings.ambientSkyColor = new Color(0.03f, 0.034f, 0.06f);
+            RenderSettings.ambientEquatorColor = new Color(0.035f, 0.026f, 0.032f);
+            RenderSettings.ambientGroundColor = new Color(0.012f, 0.011f, 0.014f);
             RenderSettings.fog = true;
             RenderSettings.fogMode = FogMode.ExponentialSquared;
-            RenderSettings.fogDensity = 0.0021f;
-            RenderSettings.fogColor = new Color(0.085f, 0.05f, 0.13f);
+            RenderSettings.fogDensity = 0.0019f;
+            RenderSettings.fogColor = new Color(0.055f, 0.04f, 0.055f);
             RenderSettings.defaultReflectionMode = DefaultReflectionMode.Skybox;
-            RenderSettings.reflectionIntensity = 0.8f;
+            RenderSettings.reflectionIntensity = 0.45f;
 
             var moonGo = new GameObject("Moonlight");
             moonGo.transform.SetParent(c.Lighting, false);
-            moonGo.transform.rotation = Quaternion.Euler(38f, -35f, 0f);
+            moonGo.transform.rotation = moonRotation;
             var moon = moonGo.AddComponent<Light>();
             moon.type = LightType.Directional;
-            moon.color = new Color(0.55f, 0.62f, 0.95f);
-            moon.intensity = 0.28f;
+            moon.color = new Color(0.62f, 0.7f, 1f);
+            moon.intensity = 0.09f;
             moon.shadows = LightShadows.Soft;
-            moon.shadowStrength = 0.75f;
+            moon.shadowStrength = 0.85f;
             RenderSettings.sun = moon;
 
             var baseProfile = Profile("NightRun_Base", p =>
             {
+                // Restrained bloom: only genuinely bright sources (neon, lamp heads, signals) bloom.
                 var bloom = p.Add<Bloom>(true);
-                bloom.threshold.Override(0.95f);
-                bloom.intensity.Override(0.85f);
-                bloom.scatter.Override(0.72f);
+                bloom.threshold.Override(1.05f);
+                bloom.intensity.Override(0.55f);
+                bloom.scatter.Override(0.68f);
                 bloom.highQualityFiltering.Override(true);
                 p.Add<Tonemapping>(true).mode.Override(TonemappingMode.ACES);
                 var colour = p.Add<ColorAdjustments>(true);
-                colour.postExposure.Override(0.45f);
-                colour.contrast.Override(14f);
-                colour.saturation.Override(12f);
+                colour.postExposure.Override(0.55f);
+                colour.contrast.Override(16f);
+                colour.saturation.Override(4f);
+                // Cool shadows, warm highlights: sodium and shop light read warm against a blue-black night.
+                var split = p.Add<SplitToning>(true);
+                split.shadows.Override(new Color(0.36f, 0.44f, 0.55f));
+                split.highlights.Override(new Color(0.62f, 0.52f, 0.42f));
+                split.balance.Override(-15f);
+                var lgg = p.Add<LiftGammaGain>(true);
+                lgg.lift.Override(new Vector4(0.98f, 0.99f, 1.02f, -0.02f));
+                lgg.gamma.Override(new Vector4(1f, 1f, 1f, 0.02f));
                 var vignette = p.Add<Vignette>(true);
-                vignette.intensity.Override(0.3f);
+                vignette.intensity.Override(0.26f);
                 vignette.smoothness.Override(0.45f);
-                p.Add<ChromaticAberration>(true).intensity.Override(0.06f);
+                p.Add<ChromaticAberration>(true).intensity.Override(0.035f);
                 var grain = p.Add<FilmGrain>(true);
                 grain.type.Override(FilmGrainLookup.Thin1);
-                grain.intensity.Override(0.12f);
-                p.Add<WhiteBalance>(true).temperature.Override(-8f);
+                grain.intensity.Override(0.1f);
+                var wb = p.Add<WhiteBalance>(true);
+                wb.temperature.Override(-5f);
+                wb.tint.Override(3f);
             });
             var alertProfile = Profile("NightRun_Alert", p =>
             {
@@ -731,7 +774,7 @@ namespace NeonRift.EditorTools.District
         // ---------------- Mission rig ----------------
 
         private static (MissionSceneEntry entry, MissionDirector director, Camera camera, VehicleChaseCamera chase) BuildMissionRig(
-            Context c, Transform core, (Volume alert, Volume lockdown) volumes)
+            Context c, Transform core, (Volume alert, Volume lockdown) volumes, CityNavigation navigation)
         {
             var rig = Root(c, "NightRun");
             var entry = rig.AddComponent<MissionSceneEntry>();
@@ -754,7 +797,7 @@ namespace NeonRift.EditorTools.District
             var data = camGo.AddComponent<UniversalAdditionalCameraData>();
             data.renderPostProcessing = true;
             data.antialiasing = AntialiasingMode.SubpixelMorphologicalAntiAliasing;
-            data.antialiasingQuality = AntialiasingQuality.High;
+            data.antialiasingQuality = AntialiasingQuality.Medium;
             data.stopNaN = true;
             data.dithering = true;
 
@@ -804,14 +847,196 @@ namespace NeonRift.EditorTools.District
                 so.FindProperty("missionAudio").objectReferenceValue = missionAudio;
                 so.FindProperty("alertOrigin").objectReferenceValue = core;
             });
+            var rivals = BuildRivals(c, rig.transform, navigation);
+            Configure(director, so =>
+            {
+                so.FindProperty("rivals").objectReferenceValue = rivals;
+                so.FindProperty("navigation").objectReferenceValue = navigation;
+                so.FindProperty("chaseCamera").objectReferenceValue = chase;
+            });
             Configure(entry, so =>
             {
+                so.FindProperty("rivals").objectReferenceValue = rivals;
                 so.FindProperty("spawnPoint").objectReferenceValue = spawn;
                 so.FindProperty("chaseCamera").objectReferenceValue = chase;
                 so.FindProperty("director").objectReferenceValue = director;
                 so.FindProperty("viewCamera").objectReferenceValue = camera;
             });
             return (entry, director, camera, chase);
+        }
+
+        // ---------------- Navigation, rivals and city systems ----------------
+
+        private static CityNavigation BuildNavigation(Context c, (string id, SecurityBarrier barrier)[] gates)
+        {
+            VehiclePrefabBuilder.EnsureFolder("Assets/_NeonRift/Data/World");
+            var network = Asset<RoadNetwork>(NetworkPath);
+            CityLayout.BuildNetwork(network);
+            EditorUtility.SetDirty(network);
+            AssetDatabase.SaveAssets();
+            foreach (var problem in network.Validate()) c.Log.AppendLine($"  ROAD NETWORK: {problem}");
+            c.Log.AppendLine($"  road network: {network.Nodes.Count} nodes, {network.Edges.Count} edges");
+            var go = new GameObject("CityNavigation");
+            go.transform.SetParent(c.Gameplay, false);
+            var nav = go.AddComponent<CityNavigation>();
+            nav.EditorConfigure(network, gates.Select(g => new CityNavigation.Blocker { id = g.id, barrier = g.barrier }).ToArray());
+            return nav;
+        }
+
+        /// <summary>Two rival crews: spawn slots behind the player, driver profiles, and the race markers mission data names.</summary>
+        private static RivalDirector BuildRivals(Context c, Transform rig, CityNavigation navigation)
+        {
+            VehiclePrefabBuilder.EnsureFolder("Assets/_NeonRift/Data/Racing");
+            var vex = Asset<RacerProfile>("Assets/_NeonRift/Data/Racing/Racer_Vex.asset");
+            vex.EditorConfigure("VEX", 1.0f, 8.5f, 1.3f, 0.85f, 0.05f, 0.06f);
+            var kade = Asset<RacerProfile>("Assets/_NeonRift/Data/Racing/Racer_Kade.asset");
+            kade.EditorConfigure("KADE", 0.92f, 7.5f, 1.2f, 0.55f, 0.05f, 0.06f);
+            EditorUtility.SetDirty(vex);
+            EditorUtility.SetDirty(kade);
+            var root = new GameObject("Rivals").transform;
+            root.SetParent(rig, false);
+            VehicleSpawnPoint Spawn(string name, Vector3 p)
+            {
+                var go = new GameObject(name);
+                go.transform.SetParent(root, false);
+                go.transform.SetPositionAndRotation(p, Quaternion.identity);
+                return go.AddComponent<VehicleSpawnPoint>();
+            }
+            var slots = new[]
+            {
+                new RivalDirector.Slot { spawn = Spawn("RivalSpawn_A", new Vector3(1.9f, 0f, -301f)), profile = vex },
+                new RivalDirector.Slot { spawn = Spawn("RivalSpawn_B", new Vector3(5.3f, 0f, -309f)), profile = kade },
+            };
+            RaceMarker Marker(string id, Vector3[] points)
+            {
+                var go = new GameObject($"RaceMarker_{id}");
+                go.transform.SetParent(root, false);
+                go.transform.position = points[0];
+                foreach (var p in points)
+                {
+                    var slot = new GameObject("Slot");
+                    slot.transform.SetParent(go.transform, false);
+                    slot.transform.position = p;
+                }
+                var m = go.AddComponent<RaceMarker>();
+                m.EditorConfigure(id);
+                return m;
+            }
+            var markers = new[]
+            {
+                Marker(RivalStagingId, CityLandmarks.CarParkSlots),
+                Marker(RivalExtractionId, new[] { new Vector3(315.5f, 0f, -463f), new Vector3(324.5f, 0f, -463f) }),
+            };
+            var director = root.gameObject.AddComponent<RivalDirector>();
+            director.EditorConfigure(slots, navigation, markers);
+            return director;
+        }
+
+        /// <summary>Lamp light budget, the traffic-signal grid and the lockdown screens.</summary>
+        private static void BuildCitySystems(Context c, Camera camera)
+        {
+            var root = Root(c, "CitySystems").transform;
+            root.gameObject.AddComponent<LightBudget>().EditorConfigure(c.District.Lamps.ToArray(), camera.transform, 56);
+            root.gameObject.AddComponent<TrafficSignalNetwork>().EditorConfigure(c.District.Props.SignalRenderers);
+            root.gameObject.AddComponent<LockdownScreens>().EditorConfigure(c.District.Screens.ToArray(), c.Kit.WarningScreen);
+        }
+
+        /// <summary>Security cameras on poles at the risky spots: they log heat once security is raised.</summary>
+        private static void BuildSecurityCameras(Context c)
+        {
+            var root = new GameObject("SecurityCameras").transform;
+            root.SetParent(c.Security, false);
+            int mask = 1 << c.Environment;
+            // (mount position on the pavement, direction the camera watches)
+            var spots = new (Vector3 at, Vector3 look)[]
+            {
+                (new Vector3(154f, 0f, -45f), Vector3.forward), (new Vector3(166f, 0f, 5f), Vector3.back),          // service alley
+                (new Vector3(152f, 0f, 205f), Vector3.back), (new Vector3(168f, 0f, 205f), Vector3.forward),       // compound gate
+                (new Vector3(108f, 0f, 70f), new Vector3(1f, 0f, 1f)), (new Vector3(212f, 0f, 185f), new Vector3(-1f, 0f, -1f)),
+                (new Vector3(331f, 0f, 190f), Vector3.back), (new Vector3(309f, 0f, -380f), Vector3.back),          // expressway, tunnel
+                (new Vector3(430f, 0f, -108f), Vector3.right), (new Vector3(342f, 0f, 51f), Vector3.right),          // harbor checkpoint, skyway
+                (new Vector3(8f, 0f, -108f), new Vector3(1f, 0f, 0.4f)), (new Vector3(312f, 0f, -92f), Vector3.left),
+            };
+            var pole = new MeshBuilder();
+            pole.Cylinder(Vector3.zero, 0.1f, 5.6f, 8, true);
+            pole.OrientedBox(new Vector3(0f, 5.5f, 0.35f), new Vector3(0.12f, 0.12f, 0.8f), Quaternion.identity, 1f);
+            var poleMesh = DistrictKit.SaveMesh(pole, "Prop_SecurityCamera_Pole");
+            var head = new MeshBuilder();
+            head.OrientedBox(new Vector3(0f, 0f, 0.15f), new Vector3(0.3f, 0.26f, 0.6f), Quaternion.identity, 1f);
+            head.OrientedBox(new Vector3(0f, 0.17f, 0.18f), new Vector3(0.38f, 0.04f, 0.72f), Quaternion.identity, 1f);
+            var headMesh = DistrictKit.SaveMesh(head, "Prop_SecurityCamera_Head");
+            var led = new MeshBuilder();
+            led.OrientedBox(new Vector3(0f, 0f, 0.46f), new Vector3(0.12f, 0.12f, 0.02f), Quaternion.identity, 1f);
+            var ledMesh = DistrictKit.SaveMesh(led, "Prop_SecurityCamera_Led");
+            int n = 0;
+            foreach (var (at, look) in spots)
+            {
+                var go = new GameObject($"SecurityCamera_{n++:00}");
+                go.transform.SetParent(root, false);
+                go.transform.SetPositionAndRotation(at + Vector3.up * CityLayout.KerbHeight, Quaternion.LookRotation(look.normalized));
+                DistrictKit.Renderer("Pole", go.transform, poleMesh, c.Kit.Metal, c.Environment);
+                var pivot = new GameObject("Head").transform;
+                pivot.SetParent(go.transform, false);
+                pivot.localPosition = new Vector3(0f, 5.25f, 0.75f);
+                pivot.localRotation = Quaternion.Euler(18f, 0f, 0f);
+                var h = DistrictKit.Renderer("Body", pivot, headMesh, c.Kit.DarkPlastic, c.Environment);
+                var l = DistrictKit.Renderer("Led", pivot, ledMesh, c.Kit.CameraLed, c.Environment, shadows: false);
+                GameObjectUtility.SetStaticEditorFlags(h, 0);
+                GameObjectUtility.SetStaticEditorFlags(l, 0);
+                var col = go.AddComponent<CapsuleCollider>();
+                col.radius = 0.15f;
+                col.height = 5.6f;
+                col.center = new Vector3(0f, 2.8f, 0f);
+                go.layer = c.Environment;
+                go.AddComponent<SecurityCamera>().EditorConfigure(pivot, l.GetComponent<Renderer>(), mask, 0.08f);
+            }
+        }
+
+        /// <summary>Pipeline settings the night look depends on: HDR grading, 4× MSAA, moon shadows to 90 m.</summary>
+        private static void ConfigurePipeline(Context c)
+        {
+            if (GraphicsSettings.currentRenderPipeline is not UniversalRenderPipelineAsset rp) return;
+            rp.colorGradingMode = ColorGradingMode.HighDynamicRange;
+            rp.msaaSampleCount = 4;
+            rp.shadowDistance = 90f;
+            EditorUtility.SetDirty(rp);
+            var so = new SerializedObject(rp);
+            var list = so.FindProperty("m_RendererDataList");
+            for (int i = 0; i < list.arraySize; i++)
+                if (list.GetArrayElementAtIndex(i).objectReferenceValue is ScriptableRendererData data)
+                    foreach (var feature in data.rendererFeatures)
+                        if (feature is ScreenSpaceAmbientOcclusion ssao)
+                        {
+                            var f = new SerializedObject(ssao);
+                            f.FindProperty("m_Settings.Intensity").floatValue = 1.4f;
+                            f.FindProperty("m_Settings.Radius").floatValue = 0.4f;
+                            f.FindProperty("m_Settings.DirectLightingStrength").floatValue = 0.3f;
+                            f.FindProperty("m_Settings.Falloff").floatValue = 60f;
+                            f.ApplyModifiedPropertiesWithoutUndo();
+                        }
+            AssetDatabase.SaveAssets();
+            c.Log.AppendLine($"  pipeline: HDR grading, MSAA {rp.msaaSampleCount}x, shadow distance {rp.shadowDistance} m");
+        }
+
+        /// <summary>Deletes generated district meshes the rebuilt scene and prefabs no longer use (from disk, no dialogs).</summary>
+        private static void RemoveStaleMeshes(Context c)
+        {
+            var used = new HashSet<string>(AssetDatabase.GetDependencies(ScenePath, true));
+            foreach (var scene in AssetDatabase.FindAssets("t:Scene", new[] { "Assets/_NeonRift/Scenes" }))
+                used.UnionWith(AssetDatabase.GetDependencies(AssetDatabase.GUIDToAssetPath(scene), true));
+            foreach (var prefab in AssetDatabase.FindAssets("t:Prefab", new[] { DistrictKit.PrefabFolder }))
+                used.UnionWith(AssetDatabase.GetDependencies(AssetDatabase.GUIDToAssetPath(prefab), true));
+            int removed = 0;
+            foreach (var guid in AssetDatabase.FindAssets("t:Mesh", new[] { DistrictKit.MeshFolder }))
+            {
+                string path = AssetDatabase.GUIDToAssetPath(guid);
+                if (used.Contains(path)) continue;
+                System.IO.File.Delete(path);
+                System.IO.File.Delete(path + ".meta");
+                removed++;
+            }
+            if (removed > 0) AssetDatabase.Refresh();
+            c.Log.AppendLine($"  stale meshes removed: {removed}");
         }
 
         private static void Configure(Object target, System.Action<SerializedObject> edit)

@@ -29,6 +29,22 @@
             <ui:Label name="countdown" class="nr-countdown nr-hidden" picking-mode="Ignore" />
         </ui:VisualElement>
 
+        <ui:VisualElement name="race" class="nr-race nr-hidden" picking-mode="Ignore">
+            <ui:VisualElement class="nr-race__header" picking-mode="Ignore">
+                <ui:Label name="race-position" text="P1" class="nr-race__position" picking-mode="Ignore" />
+                <ui:Label name="race-count" text="/3" class="nr-race__count" picking-mode="Ignore" />
+            </ui:VisualElement>
+            <ui:Label name="race-gap" class="nr-race__gap" picking-mode="Ignore" />
+            <ui:VisualElement name="race-rows" class="nr-race__rows" picking-mode="Ignore" />
+        </ui:VisualElement>
+
+        <ui:VisualElement name="navigator" class="nr-nav" picking-mode="Ignore">
+            <ui:Label name="nav-district" class="nr-nav__district" picking-mode="Ignore" />
+            <ui:Label name="nav-street" class="nr-nav__street" picking-mode="Ignore" />
+            <ui:VisualElement name="minimap-frame" class="nr-minimap" picking-mode="Ignore" />
+            <ui:Label name="nav-route" class="nr-nav__route" picking-mode="Ignore" />
+        </ui:VisualElement>
+
         <ui:VisualElement name="toasts" class="nr-toasts" picking-mode="Ignore" />
 
         <ui:VisualElement name="banner" class="nr-banner" picking-mode="Ignore">

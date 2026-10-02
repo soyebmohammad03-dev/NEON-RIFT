@@ -158,7 +158,7 @@ namespace NeonRift.Frontend
         {
             if (catalog == null || catalog.Count == 0 || context.Flow.IsTransitioning) return;
             var session = context.Session;
-            session.SelectVehicle(catalog.Vehicles[index]);
+            session.SelectVehicle(catalog.Vehicles[index], catalog);
             if (session.SelectedMission == null)
             {
                 var mission = context.Config.DefaultMission;

@@ -9,7 +9,8 @@
         "NeonRift.Vehicles",
         "NeonRift.Missions",
         "NeonRift.Audio",
-        "Unity.RenderPipelines.Core.Runtime"
+        "Unity.RenderPipelines.Core.Runtime",
+        "NeonRift.World"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

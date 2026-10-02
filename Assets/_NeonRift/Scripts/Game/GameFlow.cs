@@ -155,7 +155,7 @@ namespace NeonRift.Game
         private void PrepareDevelopmentSession(string sceneName)
         {
             if (session.SelectedVehicle == null && config.VehicleCatalog != null && config.VehicleCatalog.Default != null)
-                session.SelectVehicle(config.VehicleCatalog.Default);
+                session.SelectVehicle(config.VehicleCatalog.Default, config.VehicleCatalog);
 
             var mission = config.FindMissionForScene(sceneName);
             if (mission != null) session.SelectMission(mission);

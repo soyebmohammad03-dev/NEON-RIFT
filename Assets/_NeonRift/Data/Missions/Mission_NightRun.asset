@@ -29,6 +29,8 @@ MonoBehaviour:
     timeoutReason: TIME EXPIRED
     eventsOnStart: []
     eventsOnComplete: []
+    rivalGoalId: core_staging
+    rivalStartDelay: 0.6
   - id: hack_core
     kind: 1
     targetId: core_uplink
@@ -41,17 +43,21 @@ MonoBehaviour:
     eventsOnComplete:
     - core.breached
     - lockdown
+    rivalGoalId: 
+    rivalStartDelay: 0
   - id: escape
     kind: 0
     targetId: extraction
     title: ESCAPE TO THE RIFT GATE
-    detail: The district is sealing. Beat the checkpoints or hack your way out.
+    detail: The district is sealing. Beat the checkpoints, take the skyway, or hack your way out.
     securityLevel: 2
     timeLimit: 80
     timeoutReason: "TRACE COMPLETE \u2014 YOU WERE FOUND"
     eventsOnStart:
     - escape.start
     eventsOnComplete: []
+    rivalGoalId: extraction
+    rivalStartDelay: 1.2
   eventsOnStart:
   - mission.start
   eventsOnComplete:
@@ -84,5 +90,21 @@ MonoBehaviour:
     tone: 1
     delay: 7
     banner: 0
+  - eventId: escape.start
+    text: "CREW: SKYWAY GATE OPEN  \xB7  HARBOR ROUTE CLEAR"
+    tone: 3
+    delay: 2.5
+    banner: 0
+  - eventId: mission.start
+    text: "RIVAL CREWS ON THE GRID  \xB7  BEAT THEM OUT OF SECTOR 7"
+    tone: 1
+    delay: 9
+    banner: 0
+  - eventId: core.breached
+    text: "CAMERAS ARMED  \xB7  STAY OUT OF SIGHT"
+    tone: 1
+    delay: 5.5
+    banner: 0
+  maxRivals: 2
   heatTimePenalty: 25
   minimumTimeLimit: 30

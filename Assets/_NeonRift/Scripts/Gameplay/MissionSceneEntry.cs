@@ -20,6 +20,8 @@ namespace NeonRift.Gameplay
         [SerializeField] private MissionDirector director;
         [Tooltip("Camera the HUD projects waypoints with.")]
         [SerializeField] private Camera viewCamera;
+        [Tooltip("Rival crews driving the catalog cars the player did not pick. Optional.")]
+        [SerializeField] private RivalDirector rivals;
         [Tooltip("Optional development overlay.")]
         [SerializeField] private VehicleDebugHud debugHud;
         [Tooltip("A vehicle that falls below this height has left the world and is returned to the spawn point, m.")]
@@ -31,6 +33,7 @@ namespace NeonRift.Gameplay
         public VehicleController PlayerVehicle { get; private set; }
         public VehicleChaseCamera ChaseCamera => chaseCamera;
         public MissionDirector Director => director;
+        public RivalDirector Rivals => rivals;
 
         public void Enter(GameContext gameContext)
         {
@@ -41,7 +44,7 @@ namespace NeonRift.Gameplay
             if (vehicle == null)
                 Debug.LogWarning("[Mission] No vehicle selected (the Vehicle Catalog is empty); nothing to spawn.", this);
             else
-                PlayerVehicle = spawnPoint.Spawn(vehicle);
+                PlayerVehicle = spawnPoint.Spawn(vehicle, detailedLights: true);
 
             if (PlayerVehicle != null)
             {
@@ -57,6 +60,7 @@ namespace NeonRift.Gameplay
             context.Controls.Driving.Enable();
 
             var mission = context.Session.SelectedMission;
+            if (rivals != null && mission != null && PlayerVehicle != null) rivals.Spawn(context.Session.Rivals, mission.MaxRivals);
             if (director != null && mission != null && PlayerVehicle != null)
                 director.Begin(context, mission, PlayerVehicle, viewCamera != null ? viewCamera : Camera.main);
         }

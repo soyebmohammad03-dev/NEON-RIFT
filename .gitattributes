@@ -81,6 +81,8 @@
 # Generated mesh data (split wheel meshes, test-track route meshes) is large serialized geometry
 Assets/_NeonRift/Art/Vehicles/**/*.asset filter=lfs diff=lfs merge=lfs -text
 Assets/_NeonRift/Art/Materials/DevTrack/ValidationRoute_*.asset filter=lfs diff=lfs merge=lfs -text
+# Generated city geometry (Night Run district builder): large serialized meshes, regenerated, never hand-merged
+Assets/_NeonRift/Art/District/Meshes/*.asset filter=lfs diff=lfs merge=lfs -text
 # Baked lighting / terrain / probe data
 LightingData.asset filter=lfs diff=lfs merge=lfs -text
 *.bytes filter=lfs diff=lfs merge=lfs -text

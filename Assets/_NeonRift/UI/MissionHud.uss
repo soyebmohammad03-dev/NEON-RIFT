@@ -147,7 +147,7 @@
 .nr-toasts {
     position: absolute;
     right: 56px;
-    top: 160px;
+    top: 196px;
     align-items: flex-end;
 }
 
@@ -427,3 +427,102 @@
 
 .nr-results__buttons { flex-direction: row; justify-content: center; }
 .nr-results__buttons .nr-button { min-width: 220px; }
+
+/* ---------------- Race standings (top right) ---------------- */
+.nr-race {
+    position: absolute;
+    right: 56px;
+    top: 40px;
+    min-width: 230px;
+    align-items: flex-end;
+}
+
+.nr-race__header {
+    flex-direction: row;
+    align-items: flex-end;
+}
+
+.nr-race__position {
+    font-size: 46px;
+    -unity-font-style: bold;
+    color: rgb(255, 255, 255);
+}
+
+.nr-race__count {
+    font-size: 20px;
+    color: var(--nr-text-dim);
+    margin-bottom: 8px;
+    margin-left: 2px;
+}
+
+.nr-race__gap {
+    font-size: 13px;
+    color: var(--nr-amber);
+    letter-spacing: 1px;
+}
+
+.nr-race__rows {
+    margin-top: 4px;
+    align-items: flex-end;
+}
+
+.nr-race__row {
+    font-size: 12px;
+    color: var(--nr-text-dim);
+    letter-spacing: 1px;
+}
+
+.nr-race__row--player {
+    color: var(--nr-cyan);
+}
+
+.nr-race__row--finished {
+    color: var(--nr-amber);
+}
+
+/* ---------------- Navigator: location + minimap (bottom left) ---------------- */
+.nr-nav {
+    position: absolute;
+    left: 48px;
+    bottom: 40px;
+    width: 236px;
+}
+
+.nr-nav__district {
+    font-size: 12px;
+    letter-spacing: 3px;
+    color: var(--nr-text-dim);
+}
+
+.nr-nav__street {
+    font-size: 19px;
+    -unity-font-style: bold;
+    color: rgb(255, 255, 255);
+    margin-bottom: 8px;
+}
+
+.nr-minimap {
+    width: 236px;
+    height: 236px;
+    border-radius: 118px;
+    border-width: 2px;
+    border-color: rgba(90, 220, 255, 0.55);
+    background-color: rgba(4, 8, 14, 0.72);
+    overflow: hidden;
+}
+
+.nr-nav--lockdown .nr-minimap {
+    border-color: rgba(255, 60, 110, 0.8);
+}
+
+.nr-nav__route {
+    font-size: 12px;
+    letter-spacing: 1px;
+    color: var(--nr-cyan);
+    margin-top: 6px;
+    -unity-text-align: upper-center;
+}
+
+.nr-nav--lockdown .nr-nav__route {
+    color: rgb(255, 90, 160);
+}

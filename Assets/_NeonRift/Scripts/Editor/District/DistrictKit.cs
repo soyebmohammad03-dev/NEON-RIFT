@@ -25,9 +25,18 @@ namespace NeonRift.EditorTools.District
         public readonly DistrictTextures.Set Textures;
         public Material Asphalt, Pavement, Roof, Shopfront, Security, Marking, Metal, Concrete, LampHead, Plaza, CoreGlow,
                         Indicator, BarrierWarning, TunnelWall, NightSky, BeaconCyan, BeaconMagenta, Steam, Reflector;
-        public Material[] Facades, NeonStrips, Signs, Billboards;
+        public Material[] Facades, NeonStrips, Signs, Billboards, Containers;
+        public Material Kerb, DarkPlastic, Glass, StreetSign, MarkingYellow, Lantern, LanternWarm, WarningScreen, AviationRed, Holo,
+                        CameraLed, RollerDoor, WallPack, ConcreteDark, Foliage;
+        /// <summary>Signal lenses: [0..2] = north–south red/amber/green, [3..5] = east–west red/amber/green.</summary>
+        public Material[] SignalLenses;
 
-        public GameObject StreetLight, StreetLightLit, JerseyBarrier, Beacon;
+        public enum LampKind { Led, Sodium, Warm }
+        public static readonly Color[] LampColours = { new(0.86f, 0.92f, 1f), new(1f, 0.6f, 0.26f), new(1f, 0.77f, 0.52f) };
+        public Material[] LampHeads, LightPools, LightCones;
+        public GameObject[] StreetLights;
+
+        public GameObject JerseyBarrier, Beacon;
 
         public DistrictKit(DistrictTextures.Set textures)
         {
@@ -50,7 +59,8 @@ namespace NeonRift.EditorTools.District
             Shopfront = Lit("District_Shopfront", Color.white, 0.75f, 0f, t.ShopAlbedo, emissionMap: t.ShopEmission, emission: Color.white * 1.25f);
             Facades = new Material[t.FacadeAlbedo.Length];
             for (int i = 0; i < Facades.Length; i++)
-                Facades[i] = Lit($"District_Facade{i}", Color.white, 0.55f, 0f, t.FacadeAlbedo[i], emissionMap: t.FacadeEmission[i], emission: Color.white * 1.8f);
+                Facades[i] = Lit($"District_Facade{i}", Color.white, 0.55f, 0f, t.FacadeAlbedo[i], metalSmooth: t.FacadeMask[i], emissionMap: t.FacadeEmission[i],
+                                 emission: Color.white * (DistrictTextures.FacadeStyles[i] == DistrictTextures.FacadeLook.CurtainWall ? 1.5f : 1.9f));
             Security = Lit("District_SecurityStrip", Color.black, 0.5f, 0f, emission: new Color(0.15f, 1.3f, 1.8f));
             Marking = Lit("District_RoadMarking", new Color(0.72f, 0.74f, 0.78f), 0.55f, 0f, emission: new Color(0.12f, 0.12f, 0.14f));
             Metal = Lit("District_Metal", new Color(0.07f, 0.075f, 0.09f), 0.55f, 0.6f);
@@ -78,6 +88,44 @@ namespace NeonRift.EditorTools.District
             Steam = Glow("District_Steam", new Color(0.09f, 0.07f, 0.12f), t.GlowSoft, 0f);
 
             NightSky = Material("District_NightSky", Shader.Find("NeonRift/NightSky"));
+
+            Kerb = Lit("District_Kerb", new Color(0.28f, 0.28f, 0.3f), 0.3f, 0f, t.PavementAlbedo, t.PavementNormal, 0.4f);
+            ConcreteDark = Lit("District_ConcreteDark", new Color(0.13f, 0.13f, 0.14f), 0.25f, 0f, t.PavementAlbedo, t.PavementNormal, 0.5f);
+            DarkPlastic = Lit("District_DarkPlastic", new Color(0.035f, 0.035f, 0.04f), 0.45f, 0f);
+            Glass = Lit("District_Glass", new Color(0.04f, 0.05f, 0.06f), 0.95f, 0f);
+            StreetSign = Lit("District_StreetSign", new Color(0.02f, 0.05f, 0.045f), 0.5f, 0f, emissionMap: t.Signs, emission: new Color(1.1f, 1.25f, 1.3f));
+            MarkingYellow = Lit("District_MarkingYellow", new Color(0.7f, 0.5f, 0.08f), 0.5f, 0f, emission: new Color(0.1f, 0.07f, 0.01f));
+            Lantern = Lit("District_Lantern", new Color(0.3f, 0.02f, 0.02f), 0.5f, 0f, emission: new Color(3.6f, 0.45f, 0.25f));
+            LanternWarm = Lit("District_LanternWarm", new Color(0.3f, 0.2f, 0.05f), 0.5f, 0f, emission: new Color(3.4f, 1.8f, 0.55f));
+            WarningScreen = Lit("District_WarningScreen", Color.black, 0.7f, 0f, emissionMap: t.WarningBillboard, emission: Color.white * 2f);
+            AviationRed = Lit("District_AviationRed", Color.black, 0.5f, 0f, emission: new Color(5f, 0.15f, 0.12f));
+            Holo = Lit("District_Holo", Color.black, 0.9f, 0f, emission: new Color(0.9f, 2.2f, 3.4f));
+            CameraLed = Lit("District_CameraLed", Color.black, 0.5f, 0f, emission: new Color(0.1f, 0.9f, 0.4f));
+            RollerDoor = Lit("District_RollerDoor", new Color(0.22f, 0.23f, 0.24f), 0.45f, 0.6f, t.ContainerAlbedo, t.ContainerNormal, 0.6f);
+            WallPack = Lit("District_WallPack", new Color(0.4f, 0.3f, 0.15f), 0.5f, 0f, emission: new Color(4f, 2.2f, 0.8f));
+            Foliage = Lit("District_Foliage", new Color(0.02f, 0.05f, 0.03f), 0.35f, 0f);
+
+            Color[] containerTints = { new(0.55f, 0.18f, 0.08f), new(0.1f, 0.22f, 0.4f), new(0.12f, 0.3f, 0.18f), new(0.38f, 0.38f, 0.4f), new(0.55f, 0.42f, 0.1f) };
+            Containers = new Material[containerTints.Length];
+            for (int i = 0; i < Containers.Length; i++)
+                Containers[i] = Lit($"District_Container{i}", containerTints[i], 0.35f, 0.4f, t.ContainerAlbedo, t.ContainerNormal, 1f);
+
+            string[] lamp = { "Led", "Sodium", "Warm" };
+            LampHeads = new Material[3];
+            LightPools = new Material[3];
+            LightCones = new Material[3];
+            for (int i = 0; i < 3; i++)
+            {
+                Color c = LampColours[i];
+                LampHeads[i] = Lit($"District_LampHead{lamp[i]}", Color.white, 0.6f, 0f, emission: c * 3.2f);
+                LightPools[i] = Glow($"District_LightPool{lamp[i]}", c * 0.085f, t.GlowSoft, 0f);
+                LightCones[i] = Glow($"District_LightCone{lamp[i]}", c * 0.03f, t.GlowGradient, 0.6f);
+            }
+            string[] lens = { "NsRed", "NsAmber", "NsGreen", "EwRed", "EwAmber", "EwGreen" };
+            Color[] lensColours = { new(4f, 0.15f, 0.1f), new(4f, 1.6f, 0.1f), new(0.15f, 3.6f, 1.4f) };
+            SignalLenses = new Material[6];
+            for (int i = 0; i < 6; i++)
+                SignalLenses[i] = Lit($"District_Signal{lens[i]}", new Color(0.02f, 0.02f, 0.02f), 0.8f, 0f, emission: lensColours[i % 3]);
         }
 
         private static Material Material(string name, Shader shader)
@@ -173,49 +221,51 @@ namespace NeonRift.EditorTools.District
 
         private void CreatePrefabs()
         {
-            StreetLight = BuildStreetLight(false);
-            StreetLightLit = BuildStreetLight(true);
+            StreetLights = new[] { BuildStreetLight(LampKind.Led), BuildStreetLight(LampKind.Sodium), BuildStreetLight(LampKind.Warm) };
             JerseyBarrier = BuildJerseyBarrier();
             Beacon = BuildBeacon();
         }
 
-        private GameObject BuildStreetLight(bool lit)
+        /// <summary>
+        /// Single-arm street light. Every lamp carries a disabled spot light; the scene's LightBudget enables the ones
+        /// nearest the camera, so streets far away read by their emissive heads, ground pools and haze cones.
+        /// </summary>
+        private GameObject BuildStreetLight(LampKind kind)
         {
-            var root = new GameObject(lit ? "PF_Prop_StreetLightLit" : "PF_Prop_StreetLight");
+            var root = new GameObject($"PF_Prop_StreetLight_{kind}");
             try
             {
                 var pole = new MeshBuilder();
                 pole.Cylinder(Vector3.zero, 0.13f, 8.2f, 10, true);
                 pole.OrientedBox(new Vector3(0f, 8.05f, 1.3f), new Vector3(0.16f, 0.16f, 2.8f), Quaternion.identity, 1f);
                 pole.OrientedBox(new Vector3(0f, 0.3f, 0f), new Vector3(0.5f, 0.6f, 0.5f), Quaternion.identity, 1f);
+                pole.OrientedBox(new Vector3(0f, 2.6f, -0.14f), new Vector3(0.22f, 0.5f, 0.12f), Quaternion.identity, 1f);   // service box
                 var head = new MeshBuilder();
                 head.OrientedBox(new Vector3(0f, 7.92f, 2.75f), new Vector3(0.42f, 0.16f, 1.2f), Quaternion.identity, 1f);
                 var poleMesh = SaveMesh(pole, "Prop_StreetLight_Pole");
                 var headMesh = SaveMesh(head, "Prop_StreetLight_Head");
                 int layer = LayerMask.NameToLayer("Environment");
                 var p = Renderer("Pole", root.transform, poleMesh, Metal, layer);
-                var h = Renderer("Head", root.transform, headMesh, LampHead, layer, shadows: false);
+                var h = Renderer("Head", root.transform, headMesh, LampHeads[(int)kind], layer, shadows: false);
                 var col = root.AddComponent<CapsuleCollider>();
                 col.radius = 0.2f;
                 col.height = 8f;
                 col.center = new Vector3(0f, 4f, 0f);
                 root.layer = layer;
-                if (lit)
-                {
-                    var lightGo = new GameObject("Light");
-                    lightGo.transform.SetParent(root.transform, false);
-                    lightGo.transform.localPosition = new Vector3(0f, 7.7f, 2.9f);
-                    lightGo.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
-                    var light = lightGo.AddComponent<Light>();
-                    light.type = LightType.Spot;
-                    light.spotAngle = 120f;
-                    light.innerSpotAngle = 60f;
-                    light.range = 17f;
-                    light.intensity = 26f;
-                    light.color = new Color(0.78f, 0.88f, 1f);
-                    light.shadows = LightShadows.None;
-                    light.renderMode = LightRenderMode.Auto;
-                }
+                var lightGo = new GameObject("Light");
+                lightGo.transform.SetParent(root.transform, false);
+                lightGo.transform.localPosition = new Vector3(0f, 7.7f, 2.9f);
+                lightGo.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
+                var light = lightGo.AddComponent<Light>();
+                light.type = LightType.Spot;
+                light.spotAngle = 125f;
+                light.innerSpotAngle = 55f;
+                light.range = 24f;
+                light.intensity = kind == LampKind.Led ? 150f : 170f;
+                light.color = LampColours[(int)kind];
+                light.shadows = LightShadows.None;
+                light.renderMode = LightRenderMode.Auto;
+                light.enabled = false;
                 AddLod(root, 0.012f, p.GetComponent<Renderer>(), h.GetComponent<Renderer>());
                 return SavePrefab(root, root.name);
             }

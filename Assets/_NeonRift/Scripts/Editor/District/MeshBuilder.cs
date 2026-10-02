@@ -126,6 +126,27 @@ namespace NeonRift.EditorTools.District
             }
         }
 
+        /// <summary>Open cone hanging from <paramref name="apex"/> down to a ring of <paramref name="radius"/>; v = 0 at the apex (light haze).</summary>
+        public void Cone(Vector3 apex, float radius, float height, int segments, float apexRadius = 0.1f)
+        {
+            for (int s = 0; s < segments; s++)
+            {
+                float a0 = s / (float)segments * Mathf.PI * 2f, a1 = (s + 1) / (float)segments * Mathf.PI * 2f;
+                Vector3 d0 = new(Mathf.Sin(a0), 0f, Mathf.Cos(a0)), d1 = new(Mathf.Sin(a1), 0f, Mathf.Cos(a1));
+                Vector3 bottom = apex + Vector3.down * height;
+                Quad(apex + d0 * apexRadius, apex + d1 * apexRadius, bottom + d1 * radius, bottom + d0 * radius,
+                     new Vector2(0f, 0.02f), new Vector2(1f, 0.02f), new Vector2(1f, 1f), new Vector2(0f, 1f));
+            }
+        }
+
+        /// <summary>Flat quad lying on the XZ plane facing up, with a 0..1 UV (glow decals).</summary>
+        public void Decal(Vector3 centre, float width, float depth, float yaw = 0f)
+        {
+            var r = Quaternion.Euler(0f, yaw, 0f);
+            Vector3 x = r * Vector3.right * (width * 0.5f), z = r * Vector3.forward * (depth * 0.5f);
+            Quad(centre - x - z, centre - x + z, centre + x + z, centre + x - z, new Vector2(0, 0), new Vector2(0, 1), new Vector2(1, 1), new Vector2(1, 0));
+        }
+
         /// <summary>Torus around +Y.</summary>
         public void Torus(Vector3 centre, float major, float minor, int majorSegments, int minorSegments)
         {

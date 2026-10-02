@@ -14,7 +14,7 @@ namespace NeonRift.Gameplay
         public Quaternion Rotation => transform.rotation;
 
         /// <summary>Instantiates the definition's gameplay prefab and applies its physics profile.</summary>
-        public VehicleController Spawn(VehicleDefinition definition, string instanceName = null)
+        public VehicleController Spawn(VehicleDefinition definition, string instanceName = null, bool detailedLights = false)
         {
             if (definition == null || definition.GameplayPrefab == null)
             {
@@ -35,6 +35,8 @@ namespace NeonRift.Gameplay
                 return null;
             }
             controller.Configure(definition.PhysicsProfile);
+            if (!instance.TryGetComponent(out VehicleLights lights)) lights = instance.AddComponent<VehicleLights>();
+            lights.Build(detailedLights);
             if (definition.AudioProfile != null && instance.TryGetComponent(out VehicleAudio audio))
                 audio.Configure(definition.AudioProfile, controller);
             return controller;

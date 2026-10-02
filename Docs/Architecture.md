@@ -5,7 +5,7 @@
 Dependencies point downwards only. Data modules know nothing about flow or UI.
 
 ```
-NeonRift.Frontend   NeonRift.Gameplay         (scene-level features)
+NeonRift.Frontend   NeonRift.Gameplay         (scene-level features; Gameplay also refs World)
         \              /
          NeonRift.Game                        (composition root, flow, session, config)
         /      |       \
@@ -23,14 +23,14 @@ NeonRift.Tests.EditMode   unit tests
 | Assembly | Owns |
 |---|---|
 | Core | `AssetLicense` |
-| Vehicles | `VehicleDefinition`, `VehicleCatalog`, `VehicleDisplayStats`, `VehicleRig`/`WheelRig`, `DrivingInput`, `IVehicleInputSource`, `IVehicleInputReceiver`; driving model: `VehicleController`, `VehiclePhysicsProfile` (+ settings structs), `VehicleWheel`, `TyreModel`, `Drivetrain`, `Gearbox`, `SteeringSystem`, `VehicleTelemetry`, `DrivingSurface`, `ScriptedDrivingInput` |
-| World | `BuildingDefinition`, `BuildingCatalog`, `BuildingTier` (Hero / Midground / Skyline) |
+| Vehicles | `VehicleLights` (head/tail lights from the rig), `VehicleDefinition`, `VehicleCatalog`, `VehicleDisplayStats`, `VehicleRig`/`WheelRig`, `DrivingInput`, `IVehicleInputSource`, `IVehicleInputReceiver`; driving model: `VehicleController`, `VehiclePhysicsProfile` (+ settings structs), `VehicleWheel`, `TyreModel`, `Drivetrain`, `Gearbox`, `SteeringSystem`, `VehicleTelemetry`, `DrivingSurface`, `ScriptedDrivingInput` |
+| World | `BuildingDefinition`, `BuildingCatalog`, `BuildingTier` (Hero / Midground / Skyline); `RoadNetwork` (road graph data: nodes, edges with class, width, lanes, median, street, gate id; districts) and `RoadGraph` / `RoadPath` (shortest routes, pure C#) |
 | Missions | `MissionDefinition`, `ObjectiveDefinition`, `ObjectiveKind`, `MissionAnnouncement`, `MessageTone`, `SecurityLevel`, `MissionPhase`, `MissionProgress` (pure state machine), `RunResult`, `MissionOutcome` |
 | Input | Generated `NeonRiftControls` (from `Settings/Input/NeonRiftControls.inputactions`), `PlayerDrivingInput` |
 | Game | `GameRoot` (also owns `AudioMixerService`, switches Menu/Gameplay snapshots on state change), `GameFlow`/`IGameFlow`, `GameContext` (+ `Audio`), `ISceneEntryPoint`, `RunSession`, `GameConfig` (+ `AudioMixer`), `LoadingOverlay`, `BootstrapLoader` |
 | Frontend | `TitleScreen`, `CarSelectScreen`, `VehicleShowroom` |
 | Audio | `VehicleAudio`, `EngineSoundModel`, `TyreSoundModel`, `AudioMixerConfig`, `AudioMixerService`, `MixerState`, `AudioChannel`; dev `AudioOutputRecorder`, `AudioSignalAnalysis` (see [Audio.md](Audio.md)) |
-| Gameplay | `MissionSceneEntry`, `VehicleSpawnPoint`, `VehicleChaseCamera`, `DrivingRoute`, `RouteAutopilot`; mission runtime `MissionDirector`, `MissionWorld`, `IMissionWorldComponent`, `IMissionTarget`, `MissionZone`, `Interactable` + `InteractionDefinition`, `SecurityBarrier`, `SecurityLightGroup`, `SecurityAlarm`, `SecurityPostEffects`, `DataCoreVisual`, `MissionHud`, `MissionAudio` + `MissionAudioSet` (see [NightRun.md](NightRun.md)); dev tools `VehicleDebugHud`, `VehicleTelemetryLog`, `VehicleAudioValidator`, `NightRunValidator` |
+| Gameplay | `MissionSceneEntry`, `VehicleSpawnPoint`, `VehicleChaseCamera`, `DrivingRoute`, `RouteAutopilot`; mission runtime `MissionDirector`, `MissionWorld`, `IMissionWorldComponent`, `IMissionTarget`, `MissionZone`, `Interactable` + `InteractionDefinition`, `SecurityBarrier`, `SecurityLightGroup`, `SecurityAlarm`, `SecurityPostEffects`, `DataCoreVisual`, `MissionHud`, `MissionAudio` + `MissionAudioSet`, `CityMinimap` (see [NightRun.md](NightRun.md)); city `CityNavigation` (graph + live gate state), `LightBudget`, `TrafficSignalNetwork`, `LockdownScreens`, `SecurityCamera`; racing `RacerProfile`, `RacerDriver`, `RacingLine`, `RaceMarker`, `RivalDirector` (see [City.md](City.md)); dev tools `VehicleDebugHud`, `VehicleTelemetryLog`, `VehicleAudioValidator`, `NightRunValidator` |
 
 ## Scene model
 
@@ -42,9 +42,9 @@ NeonRift.Tests.EditMode   unit tests
 
 ## Data flow for a run
 
-`CarSelectScreen` → `RunSession.SelectVehicle` / `SelectMission` → `IGameFlow.StartMission()` → mission scene → `MissionSceneEntry.Enter` → `VehicleSpawnPoint.Spawn(selected definition)` (instantiates the gameplay prefab, calls `VehicleController.Configure(definition.PhysicsProfile)` and `VehicleAudio.Configure(definition.AudioProfile)`) → every `IVehicleInputReceiver` on the spawned prefab gets a `PlayerDrivingInput` → `VehicleChaseCamera.SetTarget`. Input action `ResetVehicle` calls `VehicleController.Recover()`.
+`CarSelectScreen` → `RunSession.SelectVehicle(vehicle, catalog)` (the rest of the catalog becomes `RunSession.Rivals`) / `SelectMission` → `IGameFlow.StartMission()` → mission scene → `MissionSceneEntry.Enter` → `VehicleSpawnPoint.Spawn(selected definition)` (instantiates the gameplay prefab, calls `VehicleController.Configure(definition.PhysicsProfile)` and `VehicleAudio.Configure(definition.AudioProfile)`) → every `IVehicleInputReceiver` on the spawned prefab gets a `PlayerDrivingInput` → `VehicleChaseCamera.SetTarget`. Input action `ResetVehicle` calls `VehicleController.Recover()`.
 
-If the scene has a `MissionDirector`, `MissionSceneEntry` starts it with the session's mission after spawning: the director binds every `IMissionWorldComponent` in the scene to a fresh `MissionWorld`, runs `MissionProgress` and drives the HUD, mixer snapshots (Gameplay → Lockdown → Results) and audio. Results come back through `RunSession.RecordResult(RunResult)`; retry calls `IGameFlow.StartMission()` again.
+If the scene has a `RivalDirector`, `MissionSceneEntry` spawns `RunSession.Rivals` (up to `MissionDefinition.MaxRivals`) through the same `VehicleSpawnPoint.Spawn` path and gives each a `RacerDriver`. If the scene has a `MissionDirector`, `MissionSceneEntry` starts it with the session's mission after spawning: the director binds every `IMissionWorldComponent` in the scene to a fresh `MissionWorld`, runs `MissionProgress` and drives the HUD, mixer snapshots (Gameplay → Lockdown → Results) and audio. Results come back through `RunSession.RecordResult(RunResult)`; retry calls `IGameFlow.StartMission()` again.
 
 ## Asset pipeline
 

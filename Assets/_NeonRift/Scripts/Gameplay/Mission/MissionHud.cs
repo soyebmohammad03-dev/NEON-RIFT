@@ -23,6 +23,12 @@ namespace NeonRift.Gameplay
         private Label objectiveStep, objectiveTitle, objectiveDetail, objectiveDistance, waypointLabel, waypointDistance;
         private Label securityState, heatLabel, timer, countdown, promptText, promptHint, speed, gear, vehicleName, bannerTitle, bannerSubtitle, resultsTitle, resultsReason;
         private Button retryButton, continueButton;
+        private VisualElement race, raceRows, navigator;
+        private Label racePosition, raceCount, raceGap, navDistrict, navStreet, navRoute;
+        private CityMinimap minimap;
+        private float nextMinimapRepaint;
+        private string lastStreet, lastDistrict, lastRoute, lastGap;
+        private int lastRacePosition = -1;
         private readonly List<(Label label, float expires)> activeToasts = new();
         private float bannerHideAt;
         private int lastSpeed = -1, lastDistance = -1, lastWaypointDistance = -1, lastTimerTenths = -1, lastCountdown = -1;
@@ -69,6 +75,21 @@ namespace NeonRift.Gameplay
             resultsStats = root.Q("results-stats");
             retryButton = root.Q<Button>("retry-button");
             continueButton = root.Q<Button>("continue-button");
+            race = root.Q("race");
+            raceRows = root.Q("race-rows");
+            racePosition = root.Q<Label>("race-position");
+            raceCount = root.Q<Label>("race-count");
+            raceGap = root.Q<Label>("race-gap");
+            navigator = root.Q("navigator");
+            navDistrict = root.Q<Label>("nav-district");
+            navStreet = root.Q<Label>("nav-street");
+            navRoute = root.Q<Label>("nav-route");
+            var frameElement = root.Q("minimap-frame");
+            frameElement.Clear();
+            minimap = new CityMinimap();
+            minimap.AddToClassList("nr-minimap__canvas");
+            minimap.StretchToParentSize();
+            frameElement.Add(minimap);
             retryButton.clicked += OnRetry;
             continueButton.clicked += OnContinue;
             Clear();
@@ -99,6 +120,70 @@ namespace NeonRift.Gameplay
             SetSecurity(SecurityLevel.Calm, 0f);
             SetTimer(false, 0f);
             SetCountdown(null, 0f);
+            SetRace(false, 0, 0, null, null);
+        }
+
+        // ---------------- Navigator ----------------
+
+        public void SetRoadNetwork(NeonRift.World.RoadNetwork network, Func<int, bool> isClosed)
+        {
+            if (minimap != null) minimap.SetNetwork(network, isClosed);
+            Show(navigator, network != null);
+        }
+
+        /// <summary>Location readout and minimap state; the minimap repaints at ~15 Hz.</summary>
+        public void SetNavigator(Vector3 position, float heading, string district, string street, IReadOnlyList<Vector3> route, float routeMetres,
+                                 bool hasTarget, Vector3 target, IEnumerable<Vector3> rivalPositions, bool lockdown)
+        {
+            if (minimap == null) return;
+            if (district != lastDistrict) { lastDistrict = district; navDistrict.text = district ?? string.Empty; }
+            string s = string.IsNullOrEmpty(street) ? "—" : street.ToUpperInvariant();
+            if (s != lastStreet) { lastStreet = s; navStreet.text = s; }
+            string r = route != null && route.Count > 1 ? $"ROUTE  {Mathf.RoundToInt(routeMetres / 10f) * 10} M" : hasTarget ? "NO OPEN ROUTE" : string.Empty;
+            if (r != lastRoute) { lastRoute = r; navRoute.text = r; }
+            navigator.EnableInClassList("nr-nav--lockdown", lockdown);
+            if (Time.unscaledTime < nextMinimapRepaint) return;
+            nextMinimapRepaint = Time.unscaledTime + 1f / 15f;
+            minimap.SetView(position, heading, lockdown);
+            minimap.SetRoute(route);
+            minimap.SetTarget(hasTarget, target);
+            minimap.SetRivals(rivalPositions);
+            minimap.MarkDirtyRepaint();
+        }
+
+        // ---------------- Race ----------------
+
+        /// <summary>Race standings: position, gap line and one row per racer (name, finished flag, is-player flag).</summary>
+        public void SetRace(bool visible, int position, int count, string gap, IReadOnlyList<(string name, bool finished, bool player)> rows)
+        {
+            if (race == null) return;
+            Show(race, visible);
+            if (!visible) { lastRacePosition = -1; return; }
+            if (position != lastRacePosition)
+            {
+                lastRacePosition = position;
+                racePosition.text = $"P{position}";
+                raceCount.text = $"/{count}";
+            }
+            if (gap != lastGap) { lastGap = gap; raceGap.text = gap ?? string.Empty; }
+            if (rows == null) return;
+            while (raceRows.childCount < rows.Count)
+            {
+                var l = new Label { pickingMode = PickingMode.Ignore };
+                l.AddToClassList("nr-race__row");
+                raceRows.Add(l);
+            }
+            for (int i = 0; i < raceRows.childCount; i++)
+            {
+                var l = (Label)raceRows[i];
+                bool used = i < rows.Count;
+                Show(l, used);
+                if (!used) continue;
+                string text = $"{i + 1}  {rows[i].name}{(rows[i].finished ? "  ·  OUT" : string.Empty)}";
+                if (l.text != text) l.text = text;
+                l.EnableInClassList("nr-race__row--player", rows[i].player);
+                l.EnableInClassList("nr-race__row--finished", rows[i].finished);
+            }
         }
 
         public void SetVehicleName(string text) => vehicleName.text = text?.ToUpperInvariant() ?? string.Empty;

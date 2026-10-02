@@ -4,6 +4,7 @@ using NeonRift.Audio;
 using NeonRift.Game;
 using NeonRift.Missions;
 using NeonRift.Vehicles;
+using NeonRift.World;
 using UnityEngine;
 
 namespace NeonRift.Gameplay
@@ -25,6 +26,14 @@ namespace NeonRift.Gameplay
         [Tooltip("Delay between the mission ending and the results panel, s.")]
         [SerializeField, Min(0f)] private float resultsDelay = 2f;
         [SerializeField, Min(0.1f)] private float mixerFadeSeconds = 1.2f;
+        [Tooltip("Road graph for the HUD route and location readout. Optional.")]
+        [SerializeField] private CityNavigation navigation;
+        [Tooltip("Gameplay camera, for shake and framing on mission beats. Optional.")]
+        [SerializeField] private VehicleChaseCamera chaseCamera;
+        [Tooltip("Rival crews (standings on the HUD, position in the results). Optional.")]
+        [SerializeField] private RivalDirector rivals;
+        [Tooltip("How often the HUD route to the objective is re-planned, s.")]
+        [SerializeField, Min(0.1f)] private float routeInterval = 0.5f;
 
         private readonly List<IMissionWorldComponent> components = new();
         private readonly Dictionary<string, IMissionTarget> targets = new();
@@ -39,6 +48,12 @@ namespace NeonRift.Gameplay
         private Interactable focused;
         private float resultsAt = -1f;
         private int lastTickSecond = -1;
+        private readonly RoadPath route = new();
+        private readonly List<Vector3> rivalPositions = new();
+        private readonly List<(string, bool, bool)> raceRows = new();
+        private float nextRoute;
+        private int routeVersion = -1;
+        private bool routeValid;
 
         public MissionProgress Progress { get; private set; }
         public MissionWorld World { get; private set; }
@@ -73,9 +88,12 @@ namespace NeonRift.Gameplay
             BindScene();
             SetMix(MixerState.Gameplay, 0.2f);
             if (missionAudio != null) missionAudio.Initialize(context?.Config.AudioMixer);
+            routeValid = false;
+            nextRoute = 0f;
             if (hud != null)
             {
                 hud.Clear();
+                if (navigation != null) hud.SetRoadNetwork(navigation.Network, navigation.IsBlocked);
                 hud.RetryClicked += Retry;
                 hud.ContinueClicked += Continue;
                 hud.SetVehicleName(context?.Session.SelectedVehicle != null ? context.Session.SelectedVehicle.DisplayName : player != null ? player.name : string.Empty);
@@ -211,6 +229,8 @@ namespace NeonRift.Gameplay
                 target.SetObjectiveActive(true);
             }
             foreach (var i in interactables) i.Refresh();
+            bool last = objective != null && Progress.ObjectiveIndex == Progress.Definition.Objectives.Count - 1;
+            World.NotifyObjectiveStarted(objective, activeTarget != null ? activeTarget.WaypointPosition : (Vector3?)null, last);
             if (objective == null)
             {
                 if (hud != null) hud.HideObjective();
@@ -233,6 +253,11 @@ namespace NeonRift.Gameplay
             Debug.Log($"[Mission] security → {level} (heat {Progress.Heat:0.00})");
             if (level == SecurityLevel.Lockdown)
             {
+                if (chaseCamera != null)
+                {
+                    chaseCamera.Kick(0.35f);
+                    chaseCamera.Focus(World.AlertOrigin + Vector3.up * 20f, 2.2f, 0.25f);
+                }
                 SetMix(MixerState.Lockdown, mixerFadeSeconds);
                 if (missionAudio != null) missionAudio.Play(MissionAudio.Cue.Lockdown);
             }
@@ -244,9 +269,13 @@ namespace NeonRift.Gameplay
             if (missionAudio != null) missionAudio.Play(MissionAudio.Cue.Heat);
         }
 
+        /// <summary>The player's finishing position among the rival crews (set when the mission completes).</summary>
+        public int FinishPosition { get; private set; } = 1;
+
         private void OnPhaseChanged(MissionPhase phase)
         {
             if (phase is not (MissionPhase.Completed or MissionPhase.Failed)) return;
+            if (rivals != null) FinishPosition = rivals.FinishPosition();
             var result = Progress.ToResult();
             context?.Session.RecordResult(result);
             SetMix(MixerState.Results, mixerFadeSeconds);
@@ -329,6 +358,9 @@ namespace NeonRift.Gameplay
             }
             else hud.SetWaypoint(false, Vector3.zero, null, 0f, false);
 
+            UpdateNavigator(running);
+            UpdateRace(running);
+
             if (running && focused != null && focused.Definition != null)
             {
                 var d = focused.Definition;
@@ -337,6 +369,45 @@ namespace NeonRift.Gameplay
                 hud.SetPrompt(true, $"HOLD  {d.Verb}  ·  {focused.DisplayName}", focused.Progress, hint, tooFast);
             }
             else hud.SetPrompt(false, null, 0f, null, false);
+        }
+
+        private void UpdateNavigator(bool running)
+        {
+            if (navigation == null || Player == null || Player.Body == null) return;
+            Vector3 p = Player.Body.position;
+            bool hasTarget = running && activeTarget != null;
+            Vector3 target = hasTarget ? activeTarget.WaypointPosition : Vector3.zero;
+            if (hasTarget && (Time.time >= nextRoute || navigation.Version != routeVersion))
+            {
+                nextRoute = Time.time + routeInterval;
+                routeVersion = navigation.Version;
+                routeValid = navigation.Plan(p, target, route);
+            }
+            if (!hasTarget) routeValid = false;
+            string district = navigation.TryGetDistrict(p, out var d) ? d.displayName : "OUTSKIRTS";
+            float heading = Vector3.SignedAngle(Vector3.forward, Vector3.ProjectOnPlane(Player.transform.forward, Vector3.up), Vector3.up);
+            rivalPositions.Clear();
+            if (rivals != null)
+                foreach (var r in rivals.Rivals) if (r.Car != null) rivalPositions.Add(r.Car.transform.position);
+            hud.SetNavigator(p, heading, district, navigation.StreetAt(p), routeValid ? route.Points : null, routeValid ? route.Length : 0f,
+                             hasTarget, target, rivalPositions, Progress.Security == SecurityLevel.Lockdown);
+        }
+
+        private void UpdateRace(bool running)
+        {
+            if (rivals == null || !rivals.HasRivals)
+            {
+                hud.SetRace(false, 0, 0, null, null);
+                return;
+            }
+            bool visible = running && rivals.RaceActive && rivals.Standings.Count > 0;
+            if (!visible) { hud.SetRace(false, 0, 0, null, null); return; }
+            raceRows.Clear();
+            foreach (var r in rivals.Standings) raceRows.Add((r.Name, r.Finished, r.IsPlayer));
+            string gap = rivals.TryGetGap(out var other, out float metres, out bool ahead)
+                ? $"{Mathf.RoundToInt(metres)} M {(ahead ? "BEHIND" : "AHEAD OF")} {other.Split('·')[0].Trim()}"
+                : null;
+            hud.SetRace(true, rivals.PlayerPosition, rivals.Count, gap, raceRows);
         }
 
         // ---------------- Results ----------------
@@ -348,13 +419,15 @@ namespace NeonRift.Gameplay
             if (hud == null) return;
             bool success = Progress.Phase == MissionPhase.Completed;
             float t = Progress.Elapsed;
-            hud.ShowResults(success, success ? "EXTRACTION CONFIRMED" : Progress.FailReason, new[]
+            var stats = new List<(string, string)>
             {
                 ("TIME", $"{(int)(t / 60f)}:{t % 60f:00.00}"),
                 ("HEAT", $"{Mathf.RoundToInt(Progress.Heat * 100f)}%"),
                 ("SECURITY", Progress.Security.ToString().ToUpperInvariant()),
                 ("OBJECTIVES", $"{(success ? Progress.Definition.Objectives.Count : Progress.ObjectiveIndex)}/{Progress.Definition.Objectives.Count}")
-            });
+            };
+            if (success && rivals != null && rivals.HasRivals) stats.Insert(1, ("POSITION", $"{FinishPosition}/{rivals.Count}"));
+            hud.ShowResults(success, success ? "EXTRACTION CONFIRMED" : Progress.FailReason, stats);
             if (context != null) context.Controls.Driving.Interact.performed += OnRetryInput;
         }
 

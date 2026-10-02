@@ -10,7 +10,8 @@
         "NeonRift.Editor",
         "NeonRift.Gameplay",
         "NeonRift.Core",
-        "NeonRift.Audio"
+        "NeonRift.Audio",
+        "NeonRift.World"
     ],
     "includePlatforms": [
         "Editor"

@@ -34,6 +34,10 @@ namespace NeonRift.Missions
         [Tooltip("HUD messages triggered by world events.")]
         [SerializeField] private List<MissionAnnouncement> announcements = new();
 
+        [Header("Rivals")]
+        [Tooltip("Rival crews spawned from the vehicle catalog (the cars the player did not pick). 0 = solo run.")]
+        [SerializeField, Min(0)] private int maxRivals = 2;
+
         [Header("Security")]
         [Tooltip("Seconds removed from a timed objective per 1.0 heat (heat is 0..1). Applied when the timer starts, " +
                  "and immediately for heat gained while it runs.")]
@@ -54,6 +58,7 @@ namespace NeonRift.Missions
         public IReadOnlyList<MissionAnnouncement> Announcements => announcements;
         public float HeatTimePenalty => heatTimePenalty;
         public float MinimumTimeLimit => minimumTimeLimit;
+        public int MaxRivals => maxRivals;
 
         /// <summary>Data problems that would break the mission at runtime.</summary>
         public List<string> Validate()
@@ -77,8 +82,9 @@ namespace NeonRift.Missions
 #if UNITY_EDITOR
         public void EditorConfigure(string missionId, string missionName, string missionTagline, string missionBriefing, string scene,
                                     List<ObjectiveDefinition> missionObjectives, string[] onStart, string[] onComplete, string[] onFail,
-                                    List<MissionAnnouncement> missionAnnouncements, float timePenalty, float minimumTime)
+                                    List<MissionAnnouncement> missionAnnouncements, float timePenalty, float minimumTime, int rivals = 2)
         {
+            maxRivals = rivals;
             id = missionId;
             displayName = missionName;
             tagline = missionTagline;

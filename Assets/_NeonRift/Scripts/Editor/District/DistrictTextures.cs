@@ -20,10 +20,16 @@ namespace NeonRift.EditorTools.District
         public static readonly string[] SignRows =
         {
             "DATA CORE", "SECTOR 7", "SERVICE ALLEY", "EXTRACTION", "EXPRESSWAY", "NEON RIFT", "RAMEN", "HOTEL",
-            "ARCADE", "NOODLE BAR", "OPEN 24H", "CLUB VOLT", "KAIJU", "RIFT GATE", "→", "↑", "←"
+            "ARCADE", "NOODLE BAR", "OPEN 24H", "CLUB VOLT", "KAIJU", "RIFT GATE", "→", "↑", "←",
+            // City districts, streets and infrastructure (signage, street-name blades, gantries).
+            "SPIRE HEIGHTS", "KOWLOON MARKET", "HARBOR YARDS", "LOWTOWN", "SKYWAY", "PARKING", "NO ENTRY", "CHECKPOINT",
+            "W AVENUE", "N BOULEVARD", "MARKET ST", "SOUTH ST", "SPIRE AVE", "SPIRE BLVD", "SKYLINE DR", "LANTERN ST",
+            "DOCK RD", "FREIGHT LN", "YARD RD", "KILN ST", "LOWTOWN RD", "RING RD", "LANTERN X", "FISH ALLEY",
+            "LOCKDOWN", "SECTOR SEALED", "TURN BACK", "DANGER", "CONSTRUCTION", "NIGHT MARKET", "PHARMACY", "PACHINKO",
+            "KARAOKE", "SUSHI", "BAR", "CYBERWARE", "TATTOO", "24/7", "DOCK 4", "CARGO", "SPIRE", "ZONE B", "60", "STOP"
         };
-        public const int SignAtlasWidth = 2048;
-        public const int SignAtlasHeight = 1024;
+        public const int SignAtlasWidth = 1024;
+        public const int SignAtlasHeight = 4096;
         public const int SignRowHeight = 56;
         public const int SignPixel = 7;
 
@@ -31,7 +37,9 @@ namespace NeonRift.EditorTools.District
         {
             public Texture2D AsphaltAlbedo, AsphaltMask, AsphaltNormal;
             public Texture2D PavementAlbedo, PavementNormal;
-            public Texture2D[] FacadeAlbedo, FacadeEmission;
+            public Texture2D[] FacadeAlbedo, FacadeEmission, FacadeMask;
+            public Texture2D ContainerAlbedo, ContainerNormal;
+            public Texture2D WarningBillboard;
             public Texture2D ShopAlbedo, ShopEmission;
             public Texture2D Signs;
             public Texture2D GlowGradient, GlowSoft;
@@ -45,9 +53,12 @@ namespace NeonRift.EditorTools.District
             var set = new Set();
             Asphalt(out set.AsphaltAlbedo, out set.AsphaltMask, out set.AsphaltNormal);
             Pavement(out set.PavementAlbedo, out set.PavementNormal);
-            set.FacadeAlbedo = new Texture2D[3];
-            set.FacadeEmission = new Texture2D[3];
-            for (int i = 0; i < 3; i++) Facade(i, out set.FacadeAlbedo[i], out set.FacadeEmission[i]);
+            set.FacadeAlbedo = new Texture2D[FacadeStyles.Length];
+            set.FacadeEmission = new Texture2D[FacadeStyles.Length];
+            set.FacadeMask = new Texture2D[FacadeStyles.Length];
+            for (int i = 0; i < FacadeStyles.Length; i++) Facade(i, out set.FacadeAlbedo[i], out set.FacadeEmission[i], out set.FacadeMask[i]);
+            Container(out set.ContainerAlbedo, out set.ContainerNormal);
+            set.WarningBillboard = WarningBillboard();
             Shopfronts(out set.ShopAlbedo, out set.ShopEmission);
             set.Signs = Signs();
             set.GlowGradient = GlowGradient();
@@ -125,8 +136,8 @@ namespace NeonRift.EditorTools.District
                     float patch = Fbm(u, v, 4, 4, 23);
                     // Puddles: low-frequency blobs over a threshold, soft edges.
                     float puddle = Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(0.6f, 0.66f, Fbm(u, v, 3, 4, 41)));
-                    float tone = 0.04f + 0.025f * patch + 0.018f * grain + 0.03f * stones;
-                    tone *= Mathf.Lerp(1f, 0.55f, puddle);
+                    float tone = 0.085f + 0.035f * patch + 0.025f * grain + 0.04f * stones;
+                    tone *= Mathf.Lerp(1f, 0.45f, puddle);
                     a[y * n + x] = new Color(tone * 0.95f, tone * 0.97f, tone * 1.05f, 1f);
                     // Damp asphalt is fairly rough (it must not mirror the sky at grazing angles); puddles are glassy.
                     float smooth = Mathf.Lerp(0.3f + 0.12f * patch - 0.08f * grain, 0.94f, puddle);
@@ -160,60 +171,178 @@ namespace NeonRift.EditorTools.District
             normal = SaveNormal("District_Pavement_Normal", n, height, 3f);
         }
 
-        /// <summary>Window grid: 4 bays × 4 floors per tile; ~40 % of windows lit in varied colour temperatures.</summary>
-        private static void Facade(int variant, out Texture2D albedo, out Texture2D emission)
+        /// <summary>Facade looks: the index is the facade material index used by the district zones.</summary>
+        public enum FacadeLook { Mixed, Mullioned, Dense, CurtainWall, Industrial, Residential }
+
+        public static readonly FacadeLook[] FacadeStyles =
+        {
+            FacadeLook.Mixed, FacadeLook.Mullioned, FacadeLook.Dense, FacadeLook.CurtainWall, FacadeLook.Industrial, FacadeLook.Residential
+        };
+
+        /// <summary>Real-world size of one facade tile (8 bays × 8 floors), m. Box UVs use this.</summary>
+        public static readonly Vector2 FacadeTile = new(25.6f, 28.8f);
+
+        /// <summary>
+        /// Window grid, 8 bays × 8 floors per tile (3.2 × 3.6 m). Lit windows cluster by floor (offices are lit floor by
+        /// floor, homes window by window) and mix colour temperatures; most of the facade stays dark so lit windows
+        /// read against it. A metallic-smoothness mask makes glass glossy and walls rough.
+        /// </summary>
+        private static void Facade(int variant, out Texture2D albedo, out Texture2D emission, out Texture2D mask)
         {
             const int n = 1024;
-            const int cells = 4;
+            const int cells = 8;
             int cell = n / cells;
+            var look = FacadeStyles[variant];
             var a = new Color[n * n];
             var e = new Color[n * n];
-            Color[] wallTones = { new(0.075f, 0.08f, 0.11f), new(0.1f, 0.085f, 0.09f), new(0.06f, 0.07f, 0.075f) };
-            Color[] warm = { new(1f, 0.72f, 0.42f), new(1f, 0.85f, 0.6f), new(0.95f, 0.6f, 0.35f) };
-            Color[] cool = { new(0.55f, 0.8f, 1f), new(0.75f, 0.9f, 1f) };
+            var m = new Color[n * n];
+            Color wallTone = look switch
+            {
+                FacadeLook.Mixed => new Color(0.075f, 0.08f, 0.1f),
+                FacadeLook.Mullioned => new Color(0.1f, 0.085f, 0.085f),
+                FacadeLook.Dense => new Color(0.06f, 0.068f, 0.072f),
+                FacadeLook.CurtainWall => new Color(0.05f, 0.06f, 0.075f),
+                FacadeLook.Industrial => new Color(0.12f, 0.12f, 0.11f),
+                _ => new Color(0.11f, 0.095f, 0.085f)
+            };
+            Color[] warm = { new(1f, 0.7f, 0.4f), new(1f, 0.83f, 0.58f), new(0.95f, 0.58f, 0.32f) };
+            Color[] cool = { new(0.62f, 0.82f, 1f), new(0.82f, 0.9f, 1f) };
             Color[] neon = { new(0.2f, 0.95f, 1f), new(1f, 0.25f, 0.85f), new(0.6f, 0.35f, 1f) };
-            float litChance = variant switch { 0 => 0.5f, 1 => 0.4f, _ => 0.58f };
+            float litChance = look switch
+            {
+                FacadeLook.Mixed => 0.32f, FacadeLook.Mullioned => 0.26f, FacadeLook.Dense => 0.38f,
+                FacadeLook.CurtainWall => 0.5f, FacadeLook.Industrial => 0.12f, _ => 0.34f
+            };
             for (int cy = 0; cy < cells; cy++)
+            {
+                // Offices light whole floors; homes and shops light windows one by one.
+                bool officeFloor = look == FacadeLook.CurtainWall || look == FacadeLook.Mullioned;
+                float floorLit = Hash(cy, 7, 900 + variant);
                 for (int cx = 0; cx < cells; cx++)
                 {
-                    float r = Hash(cx, cy, 100 + variant);
-                    bool lit = r < litChance;
+                    bool lit = officeFloor ? floorLit < litChance && Hash(cx, cy, 100 + variant) < 0.85f : Hash(cx, cy, 100 + variant) < litChance;
                     float pick = Hash(cx, cy, 200 + variant);
-                    Color light = pick < 0.55f ? warm[(int)(pick * 100) % warm.Length] : pick < 0.88f ? cool[(int)(pick * 100) % cool.Length] : neon[(int)(pick * 100) % neon.Length];
-                    float brightness = 0.35f + 0.65f * Hash(cx, cy, 300 + variant);
+                    Color light = look switch
+                    {
+                        FacadeLook.CurtainWall => cool[(int)(floorLit * 10) % cool.Length],
+                        FacadeLook.Industrial => new Color(1f, 0.62f, 0.28f),
+                        FacadeLook.Residential => pick < 0.75f ? warm[(int)(pick * 100) % warm.Length] : pick < 0.93f ? cool[0] : neon[(int)(pick * 100) % neon.Length],
+                        _ => pick < 0.5f ? warm[(int)(pick * 100) % warm.Length] : pick < 0.88f ? cool[(int)(pick * 100) % cool.Length] : neon[(int)(pick * 100) % neon.Length]
+                    };
+                    float brightness = (0.3f + 0.7f * Hash(cx, cy, 300 + variant)) * (officeFloor ? 0.8f : 1f);
                     float blinds = Hash(cx, cy, 400 + variant);
+                    bool balcony = look == FacadeLook.Residential && Hash(cx, cy, 700) < 0.4f;
+                    bool acUnit = (look == FacadeLook.Residential || look == FacadeLook.Dense) && Hash(cx, cy, 750) < 0.3f;
                     for (int y = 0; y < cell; y++)
                         for (int x = 0; x < cell; x++)
                         {
                             int px = cx * cell + x, py = cy * cell + y;
                             float fx = x / (float)cell, fy = y / (float)cell;
-                            bool slab = fy < 0.16f;                                    // floor slab band
-                            bool mullion = fx < 0.07f || fx > 0.93f || (variant == 1 && Mathf.Abs(fx - 0.5f) < 0.02f);
-                            bool window = !slab && !mullion && fy < 0.92f;
-                            float grime = 0.85f + 0.3f * Fbm(px / (float)n, py / (float)n, 8, 3, 50 + variant);
-                            Color wall = wallTones[variant] * grime;
-                            if (slab) wall *= 1.25f;
+                            float grime = 0.82f + 0.32f * Fbm(px / (float)n, py / (float)n, 8, 3, 50 + variant);
+                            // Vertical streaks under sills.
+                            grime *= 1f - 0.12f * Mathf.Clamp01(Fbm(px / (float)n, 0.3f, 64, 2, 77) * 2f - 1f) * (1f - fy);
+                            Color wall = wallTone * grime;
+                            bool window;
+                            switch (look)
+                            {
+                                case FacadeLook.CurtainWall:
+                                    window = fy > 0.1f && (fx > 0.03f && fx < 0.47f || fx > 0.53f && fx < 0.97f);
+                                    if (fy < 0.1f) wall *= 1.35f;
+                                    break;
+                                case FacadeLook.Industrial:
+                                {
+                                    // Corrugated cladding with a strip of small high windows on some bays.
+                                    float rib = Mathf.Repeat(fx * 16f, 1f);
+                                    wall *= rib < 0.5f ? 0.82f : 1.05f;
+                                    window = cy % 4 == 3 && fy > 0.45f && fy < 0.75f && fx > 0.15f && fx < 0.85f && Hash(cx, cy, 810) < 0.6f;
+                                    break;
+                                }
+                                case FacadeLook.Residential:
+                                    window = fy > 0.28f && fy < 0.86f && fx > 0.18f && fx < 0.82f;
+                                    if (balcony && fy < 0.28f && fy > 0.18f) wall = new Color(0.16f, 0.15f, 0.14f) * grime;
+                                    if (balcony && fy > 0.18f && fy < 0.45f && Mathf.Repeat(fx * 10f, 1f) < 0.15f) wall = new Color(0.03f, 0.03f, 0.03f);
+                                    break;
+                                default:
+                                    window = fy > 0.16f && fy < 0.92f && fx > 0.07f && fx < 0.93f && !(look == FacadeLook.Mullioned && Mathf.Abs(fx - 0.5f) < 0.02f);
+                                    if (fy < 0.16f) wall *= 1.25f;
+                                    break;
+                            }
+                            if (acUnit && !window && fx > 0.62f && fx < 0.9f && fy > 0.02f && fy < 0.2f)
+                            {
+                                bool grille = Mathf.Repeat(fx * 40f, 1f) < 0.4f;
+                                a[py * n + px] = new Color(0.2f, 0.2f, 0.21f) * (grille ? 0.5f : 1f);
+                                e[py * n + px] = Color.black;
+                                m[py * n + px] = new Color(0.4f, 0f, 0f, 0.35f);
+                                continue;
+                            }
                             if (!window)
                             {
                                 a[py * n + px] = wall;
                                 e[py * n + px] = Color.black;
+                                m[py * n + px] = new Color(look == FacadeLook.Industrial ? 0.5f : 0f, 0f, 0f, look == FacadeLook.Industrial ? 0.42f : 0.22f);
                                 continue;
                             }
-                            // Interior: brighter at the window centre; blinds hide the top part.
+                            // Interior: brighter at the centre; blinds hide the top; furniture silhouettes.
                             float glow = 0f;
                             if (lit)
                             {
                                 float centre = 1f - Mathf.Abs(fx - 0.5f) * 1.2f;
                                 glow = brightness * Mathf.Clamp01(centre) * (fy > 0.9f - blinds * 0.4f ? 0.25f : 1f);
-                                if (Hash(px / 40, py / 40, 600 + variant) > 0.8f && fy < 0.5f) glow *= 0.55f; // furniture silhouettes
+                                if (Hash(px / 24, py / 24, 600 + variant) > 0.82f && fy < 0.5f) glow *= 0.5f;
                             }
-                            Color glass = new Color(0.03f, 0.045f, 0.07f) * grime;
+                            Color glass = (look == FacadeLook.CurtainWall ? new Color(0.025f, 0.04f, 0.06f) : new Color(0.03f, 0.04f, 0.06f)) * grime;
                             a[py * n + px] = Color.Lerp(glass, light * 0.6f, glow * 0.5f);
                             e[py * n + px] = light * glow;
+                            m[py * n + px] = new Color(0f, 0f, 0f, lit ? 0.6f : 0.9f);
                         }
                 }
+            }
             albedo = Save($"District_Facade{variant}_Albedo", n, n, a, srgb: true);
             emission = Save($"District_Facade{variant}_Emission", n, n, e, srgb: true);
+            mask = Save($"District_Facade{variant}_Mask", n, n, m, srgb: false, alpha: true);
+        }
+
+        /// <summary>Shipping container side: corrugation ribs, a door end, rust and a stencil band (tinted per material).</summary>
+        private static void Container(out Texture2D albedo, out Texture2D normal)
+        {
+            const int n = 512;
+            var a = new Color[n * n];
+            var h = new float[n * n];
+            for (int y = 0; y < n; y++)
+                for (int x = 0; x < n; x++)
+                {
+                    float u = x / (float)n, v = y / (float)n;
+                    float rib = Mathf.Repeat(u * 24f, 1f);
+                    float ribShape = Mathf.SmoothStep(0f, 1f, Mathf.Abs(rib - 0.5f) * 2f);
+                    float rust = Mathf.Clamp01(Fbm(u, v, 8, 4, 131) * 2.2f - 1.2f);
+                    float tone = 0.62f + 0.18f * Fbm(u, v, 32, 2, 133) - 0.2f * ribShape;
+                    bool band = v > 0.83f && v < 0.87f;
+                    Color c = Color.white * tone;
+                    c = Color.Lerp(c, new Color(0.35f, 0.18f, 0.08f), rust * 0.7f);
+                    if (band) c *= 0.4f;
+                    a[y * n + x] = new Color(c.r, c.g, c.b, 1f);
+                    h[y * n + x] = 1f - ribShape;
+                }
+            albedo = Save("District_Container_Albedo", n, n, a, srgb: true);
+            normal = SaveNormal("District_Container_Normal", n, h, 4f);
+        }
+
+        /// <summary>Red/black hazard stripes with a bright border: billboards and screens switch to this in a lockdown.</summary>
+        private static Texture2D WarningBillboard()
+        {
+            const int w = 512, h = 256;
+            var c = new Color[w * h];
+            for (int y = 0; y < h; y++)
+                for (int x = 0; x < w; x++)
+                {
+                    bool stripe = Mathf.Repeat((x + y) / 48f, 1f) < 0.5f;
+                    bool band = y > h * 0.32f && y < h * 0.68f;
+                    bool border = x < 8 || x > w - 9 || y < 8 || y > h - 9;
+                    Color col = border ? new Color(1f, 0.25f, 0.2f) : band ? new Color(0.06f, 0f, 0.01f) : stripe ? new Color(1f, 0.08f, 0.12f) : new Color(0.05f, 0f, 0.01f);
+                    if (band && Mathf.Repeat(x / 20f, 1f) < 0.55f && y > h * 0.42f && y < h * 0.58f) col = new Color(1f, 0.2f, 0.18f);
+                    c[y * w + x] = col;
+                }
+            return Save("District_WarningBillboard", w, h, c, srgb: true);
         }
 
         /// <summary>

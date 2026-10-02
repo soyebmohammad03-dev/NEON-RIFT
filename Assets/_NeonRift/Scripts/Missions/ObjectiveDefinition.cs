@@ -31,6 +31,12 @@ namespace NeonRift.Missions
         [Tooltip("World events fired when the objective is completed.")]
         [SerializeField] private string[] eventsOnComplete = Array.Empty<string>();
 
+        [Header("Rivals")]
+        [Tooltip("Race marker id rival drivers head for during this objective (empty = they hold where they are).")]
+        [SerializeField] private string rivalGoalId;
+        [Tooltip("Seconds rivals wait after the objective starts before they set off (reaction time).")]
+        [SerializeField, Min(0f)] private float rivalStartDelay;
+
         public string Id => id;
         public ObjectiveKind Kind => kind;
         public string TargetId => targetId;
@@ -41,13 +47,17 @@ namespace NeonRift.Missions
         public string TimeoutReason => timeoutReason;
         public string[] EventsOnStart => eventsOnStart ?? Array.Empty<string>();
         public string[] EventsOnComplete => eventsOnComplete ?? Array.Empty<string>();
+        public string RivalGoalId => rivalGoalId;
+        public float RivalStartDelay => rivalStartDelay;
 
         public ObjectiveDefinition() { }
 
         public ObjectiveDefinition(string id, ObjectiveKind kind, string targetId, string title, string detail,
                                    SecurityLevel securityLevel = SecurityLevel.Calm, float timeLimit = 0f, string timeoutReason = "TIME EXPIRED",
-                                   string[] eventsOnStart = null, string[] eventsOnComplete = null)
+                                   string[] eventsOnStart = null, string[] eventsOnComplete = null, string rivalGoalId = null, float rivalStartDelay = 0f)
         {
+            this.rivalGoalId = rivalGoalId;
+            this.rivalStartDelay = rivalStartDelay;
             this.id = id;
             this.kind = kind;
             this.targetId = targetId;

@@ -28,6 +28,8 @@ namespace NeonRift.Gameplay
         public event Action<string> EventRaised;
         public event Action<SecurityLevel> SecurityChanged;
         public event Action<string, MessageTone> Announced;
+        /// <summary>An objective started: its definition, its target's waypoint (if any) and whether it is the last one.</summary>
+        public event Action<ObjectiveDefinition, Vector3?, bool> ObjectiveStarted;
         internal event Action<MissionZone> ZoneEntered;
         internal event Action<Interactable> InteractionCompleted;
 
@@ -85,6 +87,7 @@ namespace NeonRift.Gameplay
         }
 
         internal void NotifySecurityChanged(SecurityLevel level) => SecurityChanged?.Invoke(level);
+        internal void NotifyObjectiveStarted(ObjectiveDefinition objective, Vector3? target, bool last) => ObjectiveStarted?.Invoke(objective, target, last);
         internal void NotifyZoneEntered(MissionZone zone) => ZoneEntered?.Invoke(zone);
         internal void NotifyInteractionCompleted(Interactable interactable) => InteractionCompleted?.Invoke(interactable);
 

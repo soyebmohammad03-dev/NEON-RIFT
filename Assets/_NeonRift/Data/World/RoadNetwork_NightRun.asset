@@ -1,0 +1,1074 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b49216e0887814b6294ff5edf1798bfd, type: 3}
+  m_Name: RoadNetwork_NightRun
+  m_EditorClassIdentifier: NeonRift.World::NeonRift.World.RoadNetwork
+  cityName: NEON RIFT
+  nodes:
+  - position: {x: -380, y: 0, z: -700}
+  - position: {x: -380, y: 0, z: 700}
+  - position: {x: -200, y: 0, z: -320}
+  - position: {x: -200, y: 0, z: 300}
+  - position: {x: 0, y: 0, z: -700}
+  - position: {x: 0, y: 0, z: 700}
+  - position: {x: 160, y: 0, z: 300}
+  - position: {x: 160, y: 0, z: 700}
+  - position: {x: 160, y: 0, z: 195}
+  - position: {x: 160, y: 0, z: -100}
+  - position: {x: 160, y: 0, z: 60}
+  - position: {x: 160, y: 0, z: -700}
+  - position: {x: 160, y: 0, z: -320}
+  - position: {x: 320, y: 0, z: -405}
+  - position: {x: 320, y: 0, z: 700}
+  - position: {x: 320, y: 0, z: -470}
+  - position: {x: 560, y: 0, z: -700}
+  - position: {x: 560, y: 0, z: 700}
+  - position: {x: 760, y: 0, z: -700}
+  - position: {x: 760, y: 0, z: 700}
+  - position: {x: -380, y: 0, z: 480}
+  - position: {x: 760, y: 0, z: 480}
+  - position: {x: -380, y: 0, z: 300}
+  - position: {x: 760, y: 0, z: 300}
+  - position: {x: -380, y: 0, z: 120}
+  - position: {x: 0, y: 0, z: 120}
+  - position: {x: 320, y: 0, z: 60}
+  - position: {x: 760, y: 0, z: 60}
+  - position: {x: -380, y: 0, z: -100}
+  - position: {x: 760, y: 0, z: -100}
+  - position: {x: -380, y: 0, z: -210}
+  - position: {x: 0, y: 0, z: -210}
+  - position: {x: -380, y: 0, z: -320}
+  - position: {x: 320, y: 0, z: -320}
+  - position: {x: 760, y: 0, z: -320}
+  - position: {x: -380, y: 0, z: -520}
+  - position: {x: 760, y: 0, z: -520}
+  - position: {x: 160, y: 0, z: 127.5}
+  - position: {x: 128, y: 0, z: 246}
+  - position: {x: 160, y: 0, z: 246}
+  - position: {x: 345, y: 0, z: 60}
+  - position: {x: 405, y: 8, z: 60}
+  - position: {x: 680, y: 8, z: 60}
+  - position: {x: 740, y: 0, z: 60}
+  - position: {x: -200, y: 0, z: 120}
+  - position: {x: -200, y: 0, z: -100}
+  - position: {x: -200, y: 0, z: -210}
+  - position: {x: 0, y: 0, z: 480}
+  - position: {x: 0, y: 0, z: 300}
+  - position: {x: 0, y: 0, z: -100}
+  - position: {x: 0, y: 0, z: -320}
+  - position: {x: 0, y: 0, z: -520}
+  - position: {x: 160, y: 0, z: 480}
+  - position: {x: 160, y: 0, z: -520}
+  - position: {x: 320, y: 0, z: 480}
+  - position: {x: 320, y: 0, z: 300}
+  - position: {x: 320, y: 0, z: -100}
+  - position: {x: 560, y: 0, z: 480}
+  - position: {x: 560, y: 0, z: 300}
+  - position: {x: 560, y: 0, z: 60}
+  - position: {x: 560, y: 0, z: -100}
+  - position: {x: 560, y: 0, z: -320}
+  - position: {x: 560, y: 0, z: -520}
+  - position: {x: 160, y: 0, z: -26}
+  - position: {x: 160, y: 0, z: -14}
+  - position: {x: 320, y: 0, z: 164}
+  - position: {x: 320, y: 0, z: 176}
+  - position: {x: 434, y: 0, z: -100}
+  - position: {x: 446, y: 0, z: -100}
+  edges:
+  - a: 0
+    b: 35
+    halfWidth: 7
+    lanesPerDirection: 2
+    median: 0
+    roadClass: 0
+    street: Western Ring Road
+    speedLimit: 38
+    blockerId: 
+  - a: 35
+    b: 32
+    halfWidth: 7
+    lanesPerDirection: 2
+    median: 0
+    roadClass: 0
+    street: Western Ring Road
+    speedLimit: 38
+    blockerId: 
+  - a: 32
+    b: 30
+    halfWidth: 7
+    lanesPerDirection: 2
+    median: 0
+    roadClass: 0
+    street: Western Ring Road
+    speedLimit: 38
+    blockerId: 
+  - a: 30
+    b: 28
+    halfWidth: 7
+    lanesPerDirection: 2
+    median: 0
+    roadClass: 0
+    street: Western Ring Road
+    speedLimit: 38
+    blockerId: 
+  - a: 28
+    b: 24
+    halfWidth: 7
+    lanesPerDirection: 2
+    median: 0
+    roadClass: 0
+    street: Western Ring Road
+    speedLimit: 38
+    blockerId: 
+  - a: 24
+    b: 22
+    halfWidth: 7
+    lanesPerDirection: 2
+    median: 0
+    roadClass: 0
+    street: Western Ring Road
+    speedLimit: 38
+    blockerId: 
+  - a: 22
+    b: 20
+    halfWidth: 7
+    lanesPerDirection: 2
+    median: 0
+    roadClass: 0
+    street: Western Ring Road
+    speedLimit: 38
+    blockerId: 
+  - a: 20
+    b: 1
+    halfWidth: 7
+    lanesPerDirection: 2
+    median: 0
+    roadClass: 0
+    street: Western Ring Road
+    speedLimit: 38
+    blockerId: 
+  - a: 2
+    b: 46
+    halfWidth: 5
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 1
+    street: Lantern Street
+    speedLimit: 28
+    blockerId: 
+  - a: 46
+    b: 45
+    halfWidth: 5
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 1
+    street: Lantern Street
+    speedLimit: 28
+    blockerId: 
+  - a: 45
+    b: 44
+    halfWidth: 5
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 1
+    street: Lantern Street
+    speedLimit: 28
+    blockerId: 
+  - a: 44
+    b: 3
+    halfWidth: 5
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 1
+    street: Lantern Street
+    speedLimit: 28
+    blockerId: 
+  - a: 4
+    b: 51
+    halfWidth: 7
+    lanesPerDirection: 2
+    median: 0
+    roadClass: 0
+    street: W Avenue
+    speedLimit: 38
+    blockerId: 
+  - a: 51
+    b: 50
+    halfWidth: 7
+    lanesPerDirection: 2
+    median: 0
+    roadClass: 0
+    street: W Avenue
+    speedLimit: 38
+    blockerId: 
+  - a: 50
+    b: 31
+    halfWidth: 7
+    lanesPerDirection: 2
+    median: 0
+    roadClass: 0
+    street: W Avenue
+    speedLimit: 38
+    blockerId: 
+  - a: 31
+    b: 49
+    halfWidth: 7
+    lanesPerDirection: 2
+    median: 0
+    roadClass: 0
+    street: W Avenue
+    speedLimit: 38
+    blockerId: 
+  - a: 49
+    b: 25
+    halfWidth: 7
+    lanesPerDirection: 2
+    median: 0
+    roadClass: 0
+    street: W Avenue
+    speedLimit: 38
+    blockerId: 
+  - a: 25
+    b: 48
+    halfWidth: 7
+    lanesPerDirection: 2
+    median: 0
+    roadClass: 0
+    street: W Avenue
+    speedLimit: 38
+    blockerId: 
+  - a: 48
+    b: 47
+    halfWidth: 7
+    lanesPerDirection: 2
+    median: 0
+    roadClass: 0
+    street: W Avenue
+    speedLimit: 38
+    blockerId: 
+  - a: 47
+    b: 5
+    halfWidth: 7
+    lanesPerDirection: 2
+    median: 0
+    roadClass: 0
+    street: W Avenue
+    speedLimit: 38
+    blockerId: 
+  - a: 6
+    b: 52
+    halfWidth: 7
+    lanesPerDirection: 2
+    median: 0
+    roadClass: 0
+    street: Spire Avenue
+    speedLimit: 38
+    blockerId: 
+  - a: 52
+    b: 7
+    halfWidth: 7
+    lanesPerDirection: 2
+    median: 0
+    roadClass: 0
+    street: Spire Avenue
+    speedLimit: 38
+    blockerId: 
+  - a: 8
+    b: 39
+    halfWidth: 6
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 1
+    street: Access Road
+    speedLimit: 28
+    blockerId: 
+  - a: 39
+    b: 6
+    halfWidth: 6
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 1
+    street: Access Road
+    speedLimit: 28
+    blockerId: 
+  - a: 9
+    b: 63
+    halfWidth: 5
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 2
+    street: Service Alley
+    speedLimit: 16
+    blockerId: 
+  - a: 63
+    b: 64
+    halfWidth: 5
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 2
+    street: Service Alley
+    speedLimit: 16
+    blockerId: alley_gate
+  - a: 64
+    b: 10
+    halfWidth: 5
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 2
+    street: Service Alley
+    speedLimit: 16
+    blockerId: 
+  - a: 11
+    b: 53
+    halfWidth: 6
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 1
+    street: Kiln Street
+    speedLimit: 28
+    blockerId: 
+  - a: 53
+    b: 12
+    halfWidth: 6
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 1
+    street: Kiln Street
+    speedLimit: 28
+    blockerId: 
+  - a: 13
+    b: 33
+    halfWidth: 9
+    lanesPerDirection: 2
+    median: 0
+    roadClass: 0
+    street: East Expressway
+    speedLimit: 38
+    blockerId: 
+  - a: 33
+    b: 56
+    halfWidth: 9
+    lanesPerDirection: 2
+    median: 0
+    roadClass: 0
+    street: East Expressway
+    speedLimit: 38
+    blockerId: 
+  - a: 56
+    b: 26
+    halfWidth: 9
+    lanesPerDirection: 2
+    median: 0
+    roadClass: 0
+    street: East Expressway
+    speedLimit: 38
+    blockerId: 
+  - a: 26
+    b: 65
+    halfWidth: 9
+    lanesPerDirection: 2
+    median: 0
+    roadClass: 0
+    street: East Expressway
+    speedLimit: 38
+    blockerId: 
+  - a: 65
+    b: 66
+    halfWidth: 9
+    lanesPerDirection: 2
+    median: 0
+    roadClass: 0
+    street: East Expressway
+    speedLimit: 38
+    blockerId: expressway_checkpoint
+  - a: 66
+    b: 55
+    halfWidth: 9
+    lanesPerDirection: 2
+    median: 0
+    roadClass: 0
+    street: East Expressway
+    speedLimit: 38
+    blockerId: 
+  - a: 55
+    b: 54
+    halfWidth: 9
+    lanesPerDirection: 2
+    median: 0
+    roadClass: 0
+    street: East Expressway
+    speedLimit: 38
+    blockerId: 
+  - a: 54
+    b: 14
+    halfWidth: 9
+    lanesPerDirection: 2
+    median: 0
+    roadClass: 0
+    street: East Expressway
+    speedLimit: 38
+    blockerId: 
+  - a: 15
+    b: 13
+    halfWidth: 9
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 5
+    street: Rift Gate Tunnel
+    speedLimit: 26
+    blockerId: 
+  - a: 16
+    b: 62
+    halfWidth: 7
+    lanesPerDirection: 2
+    median: 0
+    roadClass: 0
+    street: Dock Road
+    speedLimit: 38
+    blockerId: 
+  - a: 62
+    b: 61
+    halfWidth: 7
+    lanesPerDirection: 2
+    median: 0
+    roadClass: 0
+    street: Dock Road
+    speedLimit: 38
+    blockerId: 
+  - a: 61
+    b: 60
+    halfWidth: 7
+    lanesPerDirection: 2
+    median: 0
+    roadClass: 0
+    street: Dock Road
+    speedLimit: 38
+    blockerId: 
+  - a: 60
+    b: 59
+    halfWidth: 7
+    lanesPerDirection: 2
+    median: 0
+    roadClass: 0
+    street: Dock Road
+    speedLimit: 38
+    blockerId: 
+  - a: 59
+    b: 58
+    halfWidth: 7
+    lanesPerDirection: 2
+    median: 0
+    roadClass: 0
+    street: Dock Road
+    speedLimit: 38
+    blockerId: 
+  - a: 58
+    b: 57
+    halfWidth: 7
+    lanesPerDirection: 2
+    median: 0
+    roadClass: 0
+    street: Dock Road
+    speedLimit: 38
+    blockerId: 
+  - a: 57
+    b: 17
+    halfWidth: 7
+    lanesPerDirection: 2
+    median: 0
+    roadClass: 0
+    street: Dock Road
+    speedLimit: 38
+    blockerId: 
+  - a: 18
+    b: 36
+    halfWidth: 7
+    lanesPerDirection: 2
+    median: 0
+    roadClass: 0
+    street: Eastern Ring Road
+    speedLimit: 38
+    blockerId: 
+  - a: 36
+    b: 34
+    halfWidth: 7
+    lanesPerDirection: 2
+    median: 0
+    roadClass: 0
+    street: Eastern Ring Road
+    speedLimit: 38
+    blockerId: 
+  - a: 34
+    b: 29
+    halfWidth: 7
+    lanesPerDirection: 2
+    median: 0
+    roadClass: 0
+    street: Eastern Ring Road
+    speedLimit: 38
+    blockerId: 
+  - a: 29
+    b: 27
+    halfWidth: 7
+    lanesPerDirection: 2
+    median: 0
+    roadClass: 0
+    street: Eastern Ring Road
+    speedLimit: 38
+    blockerId: 
+  - a: 27
+    b: 23
+    halfWidth: 7
+    lanesPerDirection: 2
+    median: 0
+    roadClass: 0
+    street: Eastern Ring Road
+    speedLimit: 38
+    blockerId: 
+  - a: 23
+    b: 21
+    halfWidth: 7
+    lanesPerDirection: 2
+    median: 0
+    roadClass: 0
+    street: Eastern Ring Road
+    speedLimit: 38
+    blockerId: 
+  - a: 21
+    b: 19
+    halfWidth: 7
+    lanesPerDirection: 2
+    median: 0
+    roadClass: 0
+    street: Eastern Ring Road
+    speedLimit: 38
+    blockerId: 
+  - a: 1
+    b: 5
+    halfWidth: 7
+    lanesPerDirection: 2
+    median: 0
+    roadClass: 0
+    street: Skyline Drive
+    speedLimit: 38
+    blockerId: 
+  - a: 5
+    b: 7
+    halfWidth: 7
+    lanesPerDirection: 2
+    median: 0
+    roadClass: 0
+    street: Skyline Drive
+    speedLimit: 38
+    blockerId: 
+  - a: 7
+    b: 14
+    halfWidth: 7
+    lanesPerDirection: 2
+    median: 0
+    roadClass: 0
+    street: Skyline Drive
+    speedLimit: 38
+    blockerId: 
+  - a: 14
+    b: 17
+    halfWidth: 7
+    lanesPerDirection: 2
+    median: 0
+    roadClass: 0
+    street: Skyline Drive
+    speedLimit: 38
+    blockerId: 
+  - a: 17
+    b: 19
+    halfWidth: 7
+    lanesPerDirection: 2
+    median: 0
+    roadClass: 0
+    street: Skyline Drive
+    speedLimit: 38
+    blockerId: 
+  - a: 20
+    b: 47
+    halfWidth: 8
+    lanesPerDirection: 2
+    median: 0
+    roadClass: 0
+    street: Spire Boulevard
+    speedLimit: 38
+    blockerId: 
+  - a: 47
+    b: 52
+    halfWidth: 8
+    lanesPerDirection: 2
+    median: 0
+    roadClass: 0
+    street: Spire Boulevard
+    speedLimit: 38
+    blockerId: 
+  - a: 52
+    b: 54
+    halfWidth: 8
+    lanesPerDirection: 2
+    median: 0
+    roadClass: 0
+    street: Spire Boulevard
+    speedLimit: 38
+    blockerId: 
+  - a: 54
+    b: 57
+    halfWidth: 8
+    lanesPerDirection: 2
+    median: 0
+    roadClass: 0
+    street: Spire Boulevard
+    speedLimit: 38
+    blockerId: 
+  - a: 57
+    b: 21
+    halfWidth: 8
+    lanesPerDirection: 2
+    median: 0
+    roadClass: 0
+    street: Spire Boulevard
+    speedLimit: 38
+    blockerId: 
+  - a: 22
+    b: 3
+    halfWidth: 7
+    lanesPerDirection: 2
+    median: 0
+    roadClass: 0
+    street: North Boulevard
+    speedLimit: 38
+    blockerId: 
+  - a: 3
+    b: 48
+    halfWidth: 7
+    lanesPerDirection: 2
+    median: 0
+    roadClass: 0
+    street: North Boulevard
+    speedLimit: 38
+    blockerId: 
+  - a: 48
+    b: 6
+    halfWidth: 7
+    lanesPerDirection: 2
+    median: 0
+    roadClass: 0
+    street: North Boulevard
+    speedLimit: 38
+    blockerId: 
+  - a: 6
+    b: 55
+    halfWidth: 7
+    lanesPerDirection: 2
+    median: 0
+    roadClass: 0
+    street: North Boulevard
+    speedLimit: 38
+    blockerId: 
+  - a: 55
+    b: 58
+    halfWidth: 7
+    lanesPerDirection: 2
+    median: 0
+    roadClass: 0
+    street: North Boulevard
+    speedLimit: 38
+    blockerId: 
+  - a: 58
+    b: 23
+    halfWidth: 7
+    lanesPerDirection: 2
+    median: 0
+    roadClass: 0
+    street: North Boulevard
+    speedLimit: 38
+    blockerId: 
+  - a: 24
+    b: 44
+    halfWidth: 5
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 1
+    street: Lantern Cross
+    speedLimit: 28
+    blockerId: 
+  - a: 44
+    b: 25
+    halfWidth: 5
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 1
+    street: Lantern Cross
+    speedLimit: 28
+    blockerId: 
+  - a: 26
+    b: 40
+    halfWidth: 12
+    lanesPerDirection: 1
+    median: 4.5
+    roadClass: 1
+    street: Freight Lane
+    speedLimit: 28
+    blockerId: 
+  - a: 40
+    b: 59
+    halfWidth: 12
+    lanesPerDirection: 1
+    median: 4.5
+    roadClass: 1
+    street: Freight Lane
+    speedLimit: 28
+    blockerId: 
+  - a: 59
+    b: 43
+    halfWidth: 12
+    lanesPerDirection: 1
+    median: 4.5
+    roadClass: 1
+    street: Freight Lane
+    speedLimit: 28
+    blockerId: 
+  - a: 43
+    b: 27
+    halfWidth: 12
+    lanesPerDirection: 1
+    median: 4.5
+    roadClass: 1
+    street: Freight Lane
+    speedLimit: 28
+    blockerId: 
+  - a: 28
+    b: 45
+    halfWidth: 6
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 1
+    street: Market Street
+    speedLimit: 28
+    blockerId: 
+  - a: 45
+    b: 49
+    halfWidth: 6
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 1
+    street: Market Street
+    speedLimit: 28
+    blockerId: 
+  - a: 49
+    b: 9
+    halfWidth: 6
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 1
+    street: Market Street
+    speedLimit: 28
+    blockerId: 
+  - a: 9
+    b: 56
+    halfWidth: 6
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 1
+    street: Market Street
+    speedLimit: 28
+    blockerId: 
+  - a: 56
+    b: 67
+    halfWidth: 6
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 1
+    street: Market Street
+    speedLimit: 28
+    blockerId: 
+  - a: 67
+    b: 68
+    halfWidth: 6
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 1
+    street: Market Street
+    speedLimit: 28
+    blockerId: harbor_checkpoint
+  - a: 68
+    b: 60
+    halfWidth: 6
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 1
+    street: Market Street
+    speedLimit: 28
+    blockerId: 
+  - a: 60
+    b: 29
+    halfWidth: 6
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 1
+    street: Market Street
+    speedLimit: 28
+    blockerId: 
+  - a: 30
+    b: 46
+    halfWidth: 4
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 2
+    street: Fish Alley
+    speedLimit: 16
+    blockerId: 
+  - a: 46
+    b: 31
+    halfWidth: 4
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 2
+    street: Fish Alley
+    speedLimit: 16
+    blockerId: 
+  - a: 32
+    b: 2
+    halfWidth: 6
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 1
+    street: South Street
+    speedLimit: 28
+    blockerId: 
+  - a: 2
+    b: 50
+    halfWidth: 6
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 1
+    street: South Street
+    speedLimit: 28
+    blockerId: 
+  - a: 50
+    b: 12
+    halfWidth: 6
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 1
+    street: South Street
+    speedLimit: 28
+    blockerId: 
+  - a: 12
+    b: 33
+    halfWidth: 6
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 1
+    street: South Street
+    speedLimit: 28
+    blockerId: 
+  - a: 33
+    b: 61
+    halfWidth: 7
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 1
+    street: Yard Road
+    speedLimit: 28
+    blockerId: 
+  - a: 61
+    b: 34
+    halfWidth: 7
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 1
+    street: Yard Road
+    speedLimit: 28
+    blockerId: 
+  - a: 35
+    b: 51
+    halfWidth: 6
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 1
+    street: Lowtown Road
+    speedLimit: 28
+    blockerId: 
+  - a: 51
+    b: 53
+    halfWidth: 6
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 1
+    street: Lowtown Road
+    speedLimit: 28
+    blockerId: 
+  - a: 53
+    b: 62
+    halfWidth: 6
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 1
+    street: Lowtown Road
+    speedLimit: 28
+    blockerId: 
+  - a: 62
+    b: 36
+    halfWidth: 6
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 1
+    street: Lowtown Road
+    speedLimit: 28
+    blockerId: 
+  - a: 0
+    b: 4
+    halfWidth: 7
+    lanesPerDirection: 2
+    median: 0
+    roadClass: 0
+    street: Southern Perimeter
+    speedLimit: 38
+    blockerId: 
+  - a: 4
+    b: 11
+    halfWidth: 7
+    lanesPerDirection: 2
+    median: 0
+    roadClass: 0
+    street: Southern Perimeter
+    speedLimit: 38
+    blockerId: 
+  - a: 11
+    b: 16
+    halfWidth: 7
+    lanesPerDirection: 2
+    median: 0
+    roadClass: 0
+    street: Southern Perimeter
+    speedLimit: 38
+    blockerId: 
+  - a: 16
+    b: 18
+    halfWidth: 7
+    lanesPerDirection: 2
+    median: 0
+    roadClass: 0
+    street: Southern Perimeter
+    speedLimit: 38
+    blockerId: 
+  - a: 37
+    b: 8
+    halfWidth: 6
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 3
+    street: Compound Drive
+    speedLimit: 12
+    blockerId: compound_gate
+  - a: 10
+    b: 37
+    halfWidth: 6
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 3
+    street: Compound South
+    speedLimit: 12
+    blockerId: 
+  - a: 38
+    b: 39
+    halfWidth: 4
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 3
+    street: Car Park
+    speedLimit: 12
+    blockerId: 
+  - a: 40
+    b: 41
+    halfWidth: 4.5
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 4
+    street: Skyway West Ramp
+    speedLimit: 40
+    blockerId: skyway_gate
+  - a: 41
+    b: 42
+    halfWidth: 4.5
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 4
+    street: Harbor Skyway
+    speedLimit: 40
+    blockerId: 
+  - a: 42
+    b: 43
+    halfWidth: 4.5
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 4
+    street: Skyway East Ramp
+    speedLimit: 40
+    blockerId: 
+  districts:
+  - id: sector7
+    displayName: SECTOR 7
+    area:
+      serializedVersion: 2
+      x: 0
+      y: -320
+      width: 320
+      height: 620
+    colour: {r: 0.3, g: 0.9, b: 1, a: 1}
+  - id: kowloon
+    displayName: KOWLOON MARKET
+    area:
+      serializedVersion: 2
+      x: -400
+      y: -320
+      width: 400
+      height: 620
+    colour: {r: 1, g: 0.45, b: 0.3, a: 1}
+  - id: spire
+    displayName: SPIRE HEIGHTS
+    area:
+      serializedVersion: 2
+      x: -400
+      y: 300
+      width: 960
+      height: 420
+    colour: {r: 0.65, g: 0.75, b: 1, a: 1}
+  - id: lowtown
+    displayName: LOWTOWN
+    area:
+      serializedVersion: 2
+      x: -400
+      y: -720
+      width: 720
+      height: 400
+    colour: {r: 1, g: 0.7, b: 0.35, a: 1}
+  - id: harbor
+    displayName: HARBOR YARDS
+    area:
+      serializedVersion: 2
+      x: 320
+      y: -720
+      width: 460
+      height: 1440
+    colour: {r: 1, g: 0.6, b: 0.2, a: 1}
+  bounds:
+    serializedVersion: 2
+    x: -380
+    y: -700
+    width: 1140
+    height: 1400

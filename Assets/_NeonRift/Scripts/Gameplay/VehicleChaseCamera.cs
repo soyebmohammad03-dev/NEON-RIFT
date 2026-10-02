@@ -59,7 +59,17 @@ namespace NeonRift.Gameplay
         [SerializeField, Range(0.05f, 1f)] private float collisionRadius = 0.25f;
         [SerializeField, Min(0.5f)] private float minDistance = 1.6f;
 
+        [Header("Shake and events")]
+        [Tooltip("Shake per unit of collision impulse / car mass (m/s of velocity change).")]
+        [SerializeField, Range(0f, 0.2f)] private float impactShake = 0.05f;
+        [Tooltip("Faint high-frequency buzz at top speed, m.")]
+        [SerializeField, Range(0f, 0.1f)] private float speedShake = 0.012f;
+        [SerializeField, Range(0.5f, 10f)] private float shakeDecay = 3.5f;
+        [SerializeField, Range(0f, 1.5f)] private float maxShake = 0.45f;
+
         private CinemachineCamera cinemachineCamera;
+        private float shake, focusUntil, focusWeight;
+        private Vector3 focusPoint;
         private VehicleController target;
         private float yaw, yawVelocity;
         private float followY, followYVelocity;
@@ -72,8 +82,32 @@ namespace NeonRift.Gameplay
 
         public void SetTarget(VehicleController vehicle)
         {
+            if (target != null) target.Collided -= OnCollided;
             target = vehicle;
+            if (target != null) target.Collided += OnCollided;
             Snap();
+        }
+
+        private void OnDestroy()
+        {
+            if (target != null) target.Collided -= OnCollided;
+        }
+
+        private void OnCollided(VehicleCollision collision)
+        {
+            if (target.Body == null) return;
+            Kick(collision.Impulse / target.Body.mass * impactShake);
+        }
+
+        /// <summary>Adds camera shake (m of offset, decays).</summary>
+        public void Kick(float amount) => shake = Mathf.Min(maxShake, shake + Mathf.Max(0f, amount));
+
+        /// <summary>Briefly biases the aim towards a world point (mission beats: the theft, a gate sealing).</summary>
+        public void Focus(Vector3 point, float seconds, float weight = 0.3f)
+        {
+            focusPoint = point;
+            focusUntil = Time.time + seconds;
+            focusWeight = weight;
         }
 
         /// <summary>Jumps straight to the resting pose (after spawn or recovery).</summary>
@@ -134,6 +168,25 @@ namespace NeonRift.Gameplay
             // down onto the roof. Fades in over the first few m/s so a stop/start never snaps the view.
             float forwardLead = Mathf.Clamp01(telemetry.ForwardSpeed / 3f);
             Vector3 lookAt = aimOrigin + Vector3.ClampMagnitude(flatVelocity * (lookAheadTime * forwardLead), maxLookAhead);
+            if (Time.time < focusUntil)
+            {
+                // Ease in and out over the focus window, never more than the weight.
+                float remaining = focusUntil - Time.time;
+                float w = focusWeight * Mathf.Clamp01(remaining / 0.6f);
+                Vector3 toFocus = (focusPoint - aimOrigin).normalized * Vector3.Distance(lookAt, position);
+                lookAt = Vector3.Lerp(lookAt, aimOrigin + toFocus, w);
+            }
+            if (dt > 0f)
+            {
+                shake = Mathf.MoveTowards(shake, 0f, shake * shakeDecay * dt + 0.02f * dt);
+                float amplitude = shake + speedShake * n * n;
+                if (amplitude > 1e-4f)
+                {
+                    float time = Time.time * 23f;
+                    var jitter = new Vector3(Mathf.PerlinNoise(time, 0.3f) - 0.5f, Mathf.PerlinNoise(0.7f, time) - 0.5f, 0f) * (2f * amplitude);
+                    position += Quaternion.Euler(0f, yaw, 0f) * jitter;
+                }
+            }
             transform.SetPositionAndRotation(position, Quaternion.LookRotation(lookAt - position, Vector3.up));
             if (cinemachineCamera != null) cinemachineCamera.Lens.FieldOfView = fieldOfView;
         }

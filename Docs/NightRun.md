@@ -1,6 +1,6 @@
-# Night Run — vertical slice
+# Night Run
 
-The first playable mission. Infiltrate Sector 7, steal the Data Core, survive the lockdown, escape through the Rift Gate.
+The first mission. Infiltrate Sector 7, steal the Data Core, survive the lockdown and escape through the Rift Gate, racing two rival crews. Sector 7 now sits at the centre of a five-district city: see [City.md](City.md).
 
 Rebuild everything (scene, textures, meshes, mission data, audio, probes): **Neon Rift ▸ Night Run ▸ Build Night Run (district + mission)**. The scene is generated; change the builder, not the scene.
 
@@ -35,6 +35,25 @@ Timeout fails the mission ("TRACE COMPLETE"). Results panel: **E** retry, **Esc*
   - Compound north gate seals in 12 s (−4 s per heat).
   - Expressway checkpoint seals in 30 s (−12 s per heat).
 - **Escape options**: race north/east before the compound gate and checkpoint seal (fast, ≈ 1 km), or re-hack the alley (short, ≈ 700 m, costs heat). If both seal, the long west loop via W Avenue and Market Street is still open but tight on time.
+
+## Rival crews
+
+The two catalog cars the player did not pick spawn behind the player on W Avenue (`RivalDirector`, driver profiles `Data/Racing/Racer_Vex` and `Racer_Kade`).
+
+| Objective | Rivals (`rivalGoalId`, delay) |
+|---|---|
+| `reach_core` | Race to the S7 car park off the Access Road (`core_staging`, 0.6 s) and wait there |
+| `hack_core` | Hold |
+| `escape` | Race to the Rift Gate tunnel (`extraction`, 1.2 s) |
+
+Standings come from route distance to the current objective over the road graph. The HUD shows position, the gap to the next car and the field. Results show the finishing position (rivals already extracted are ahead). Rivals re-plan when gates change, so a sealed checkpoint sends them another way.
+
+## New in the city
+
+- **Harbor checkpoint** on Market Street east of the expressway seals 22 s after the theft (−8 s per heat).
+- **Skyway gate**: closed at the start; the crew opens it when the escape starts (`escape.start`), giving an elevated route over the harbor that only exists during a lockdown.
+- **Security cameras** (12, at the alley, compound, checkpoints, tunnel and skyway) arm once security is raised. Staying in view for 1.1 s logs +8 % heat.
+- **Traffic signals** across the city flash red in a lockdown. Billboards and shelter screens switch to warnings with the lockdown wave.
 
 ## Architecture
 
@@ -82,7 +101,7 @@ Adding a mechanic: create an `InteractionDefinition` (or a new `IMissionWorldCom
   `FindAnyObjectByType<NightRunValidator>().Begin(FindAnyObjectByType<MissionSceneEntry>().Director, Scenario.AlleyInExpresswayOut)`; the report is logged as `[NightRunValidator]`.
   With an unfocused editor, enable `unity command set_autotick --enable true` (or focus Unity) or Play Mode barely ticks.
 
-Results at commit time (SLS AMG, validation driver at 0.72 g corners):
+Results at the vertical-slice commit (SLS AMG, validation driver at 0.72 g corners); see the latest table below for the city build:
 
 | Scenario | Result |
 |---|---|
@@ -92,3 +111,13 @@ Results at commit time (SLS AMG, validation driver at 0.72 g corners):
 
 Audio during lockdown: 6/6 sirens playing, ambience on the Ambience group, vehicle audio continuous. EditMode: 73/73.
 
+
+### City build validation (five-district city, rivals on)
+
+| Check | Result |
+|---|---|
+| `BoulevardInAlleyOut` (SLS AMG) | **Completed** in 102.5 s. Alley re-hack +35 % heat; two camera detections in the alley (+8 % each, heat 0.51); compound gate, harbor checkpoint and expressway checkpoint sealed on schedule; finished **P1/3** |
+| Rivals in that run | Raced W Avenue → North Boulevard → Access Road at up to 173 km/h, parked in the S7 car park, left 1.2 s after the theft, avoided the closing expressway checkpoint and re-routed via W Avenue and Market Street; no recoveries |
+| `AlleyInExpresswayOut` | Lost the race at the expressway checkpoint, as before. With camera heat (0.59) it seals sooner (~23 s) |
+| Title → Car Select → Night Run | Car 2/3 (SLS GT3) became the player with its own physics profile; SLS AMG and Terzo Millennio spawned as rivals with their own profiles and engine audio |
+| EditMode | 83/83 (adds `CityTests`: network validity, connectivity, gate re-routing, skyway, racing line, rubber band, rival field; scene wiring for navigation, rivals, light budget) |

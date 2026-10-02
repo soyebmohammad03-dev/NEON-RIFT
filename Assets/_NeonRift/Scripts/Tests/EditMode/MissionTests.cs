@@ -169,15 +169,20 @@ namespace NeonRift.Tests
                 foreach (var field in new[] { "hud", "missionAudio", "alertOrigin" })
                     Assert.IsNotNull(dso.FindProperty(field).objectReferenceValue, $"MissionDirector.{field} is not set.");
 
-                // Lockdown must change routes: gates that close on it, and the alley gate that can be reopened.
+                // Lockdown must change routes: gates that close on it, the alley gate that can be reopened, and the
+                // skyway gate the crew opens when the escape starts (an alternate route).
                 var barriers = roots.SelectMany(r => r.GetComponentsInChildren<SecurityBarrier>(true)).ToList();
-                Assert.GreaterOrEqual(barriers.Count, 3);
+                Assert.GreaterOrEqual(barriers.Count, 5);
+                bool Listens(SerializedObject o, string list, string id) =>
+                    Enumerable.Range(0, o.FindProperty(list).arraySize).Any(i => o.FindProperty(list).GetArrayElementAtIndex(i).stringValue == id);
+                int opening = 0;
                 foreach (var b in barriers)
                 {
                     var bso = new SerializedObject(b);
-                    var closeOn = bso.FindProperty("closeOn");
-                    Assert.IsTrue(Enumerable.Range(0, closeOn.arraySize).Any(i => closeOn.GetArrayElementAtIndex(i).stringValue == NightRunBuilder.EventLockdown),
-                                  $"{b.name} should close on lockdown.");
+                    bool closes = Listens(bso, "closeOn", NightRunBuilder.EventLockdown);
+                    bool opens = Listens(bso, "openOn", NightRunBuilder.EventEscape);
+                    if (opens) opening++;
+                    Assert.IsTrue(closes || opens, $"{b.name} should react to the theft (close on lockdown or open on escape).");
                     var panels = bso.FindProperty("panels");
                     for (int i = 0; i < panels.arraySize; i++)
                     {
@@ -186,6 +191,23 @@ namespace NeonRift.Tests
                         Assert.IsTrue(body.isKinematic);
                     }
                 }
+                Assert.GreaterOrEqual(opening, 1, "The lockdown should open at least one alternate route.");
+
+                // City and rivals are wired: navigation knows every gate, rivals have slots and markers, lamps are budgeted.
+                var nav = roots.SelectMany(r => r.GetComponentsInChildren<CityNavigation>(true)).Single();
+                Assert.IsNotNull(nav.Network);
+                Assert.That(nav.Network.Validate(), Is.Empty);
+                Assert.AreEqual(barriers.Count, new SerializedObject(nav).FindProperty("blockers").arraySize, "Every gate must be known to navigation.");
+                var rivals = roots.SelectMany(r => r.GetComponentsInChildren<RivalDirector>(true)).Single();
+                var rso = new SerializedObject(rivals);
+                Assert.GreaterOrEqual(rso.FindProperty("slots").arraySize, mission.MaxRivals);
+                var markerIds = roots.SelectMany(r => r.GetComponentsInChildren<RaceMarker>(true)).Select(m => m.Id).ToList();
+                foreach (var o in mission.Objectives)
+                    if (!string.IsNullOrEmpty(o.RivalGoalId)) Assert.Contains(o.RivalGoalId, markerIds);
+                Assert.IsNotNull(new SerializedObject(entry).FindProperty("rivals").objectReferenceValue);
+                var budget = roots.SelectMany(r => r.GetComponentsInChildren<LightBudget>(true)).Single();
+                Assert.Greater(budget.Count, 300);
+
                 var terminal = targets.OfType<Interactable>().FirstOrDefault(i => i.Id == NightRunBuilder.GateTerminalId)
                                ?? roots.SelectMany(r => r.GetComponentsInChildren<Interactable>(true)).Single(i => i.Id == NightRunBuilder.GateTerminalId);
                 Assert.IsNotNull(terminal.Definition);
