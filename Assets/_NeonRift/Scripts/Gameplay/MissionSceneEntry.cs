@@ -9,12 +9,17 @@ namespace NeonRift.Gameplay
 {
     /// <summary>
     /// Entry point for any scene that hosts a mission: spawns the selected vehicle,
-    /// gives it the player's controls and points the camera at it.
+    /// gives it the player's controls, points the camera at it and, if the scene has one,
+    /// starts the <see cref="MissionDirector"/> with the session's mission.
     /// </summary>
     public sealed class MissionSceneEntry : MonoBehaviour, ISceneEntryPoint
     {
         [SerializeField] private VehicleSpawnPoint spawnPoint;
         [SerializeField] private VehicleChaseCamera chaseCamera;
+        [Tooltip("Runs the mission's objectives. Optional: dev scenes without one are free driving.")]
+        [SerializeField] private MissionDirector director;
+        [Tooltip("Camera the HUD projects waypoints with.")]
+        [SerializeField] private Camera viewCamera;
         [Tooltip("Optional development overlay.")]
         [SerializeField] private VehicleDebugHud debugHud;
         [Tooltip("A vehicle that falls below this height has left the world and is returned to the spawn point, m.")]
@@ -25,6 +30,7 @@ namespace NeonRift.Gameplay
 
         public VehicleController PlayerVehicle { get; private set; }
         public VehicleChaseCamera ChaseCamera => chaseCamera;
+        public MissionDirector Director => director;
 
         public void Enter(GameContext gameContext)
         {
@@ -49,11 +55,16 @@ namespace NeonRift.Gameplay
             context.Controls.Driving.Pause.performed += OnPause;
             context.Controls.Driving.ResetVehicle.performed += OnResetVehicle;
             context.Controls.Driving.Enable();
+
+            var mission = context.Session.SelectedMission;
+            if (director != null && mission != null && PlayerVehicle != null)
+                director.Begin(context, mission, PlayerVehicle, viewCamera != null ? viewCamera : Camera.main);
         }
 
         public void Exit()
         {
             if (context == null) return;
+            if (director != null) director.End();
             context.Controls.Driving.Pause.performed -= OnPause;
             context.Controls.Driving.ResetVehicle.performed -= OnResetVehicle;
             context.Controls.Driving.Disable();
@@ -62,7 +73,7 @@ namespace NeonRift.Gameplay
 
         private void FixedUpdate()
         {
-            if (PlayerVehicle == null || PlayerVehicle.Body.position.y > outOfBoundsHeight) return;
+            if (PlayerVehicle == null || PlayerVehicle.Body == null || PlayerVehicle.Body.position.y > outOfBoundsHeight) return;
             Debug.Log("[Mission] Vehicle left the world; returning it to the spawn point.", this);
             PlayerVehicle.Teleport(spawnPoint.Position, spawnPoint.Rotation);
             if (chaseCamera != null) chaseCamera.Snap();
@@ -78,6 +89,7 @@ namespace NeonRift.Gameplay
         // Returns to the title until the pause menu exists (UI phase).
         private void OnPause(InputAction.CallbackContext _)
         {
+            if (director != null && director.TryHandlePause()) return;
             if (context != null && !context.Flow.IsTransitioning)
                 context.Flow.GoToFrontend();
         }

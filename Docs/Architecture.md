@@ -16,7 +16,7 @@ NeonRift.Input |  NeonRift.Missions           (player input bridge / mission dat
                  \             /
                   NeonRift.Core               (shared primitives: AssetLicense)
 
-NeonRift.Editor           editor tooling (validator, third-party intake, prefab builders, vehicle bench, route builder)
+NeonRift.Editor           editor tooling (validator, third-party intake, prefab builders, vehicle bench, route builder, Night Run district builder)
 NeonRift.Tests.EditMode   unit tests
 ```
 
@@ -25,12 +25,12 @@ NeonRift.Tests.EditMode   unit tests
 | Core | `AssetLicense` |
 | Vehicles | `VehicleDefinition`, `VehicleCatalog`, `VehicleDisplayStats`, `VehicleRig`/`WheelRig`, `DrivingInput`, `IVehicleInputSource`, `IVehicleInputReceiver`; driving model: `VehicleController`, `VehiclePhysicsProfile` (+ settings structs), `VehicleWheel`, `TyreModel`, `Drivetrain`, `Gearbox`, `SteeringSystem`, `VehicleTelemetry`, `DrivingSurface`, `ScriptedDrivingInput` |
 | World | `BuildingDefinition`, `BuildingCatalog`, `BuildingTier` (Hero / Midground / Skyline) |
-| Missions | `MissionDefinition`, `RunResult`, `MissionOutcome` |
+| Missions | `MissionDefinition`, `ObjectiveDefinition`, `ObjectiveKind`, `MissionAnnouncement`, `MessageTone`, `SecurityLevel`, `MissionPhase`, `MissionProgress` (pure state machine), `RunResult`, `MissionOutcome` |
 | Input | Generated `NeonRiftControls` (from `Settings/Input/NeonRiftControls.inputactions`), `PlayerDrivingInput` |
 | Game | `GameRoot` (also owns `AudioMixerService`, switches Menu/Gameplay snapshots on state change), `GameFlow`/`IGameFlow`, `GameContext` (+ `Audio`), `ISceneEntryPoint`, `RunSession`, `GameConfig` (+ `AudioMixer`), `LoadingOverlay`, `BootstrapLoader` |
 | Frontend | `TitleScreen`, `CarSelectScreen`, `VehicleShowroom` |
 | Audio | `VehicleAudio`, `EngineSoundModel`, `TyreSoundModel`, `AudioMixerConfig`, `AudioMixerService`, `MixerState`, `AudioChannel`; dev `AudioOutputRecorder`, `AudioSignalAnalysis` (see [Audio.md](Audio.md)) |
-| Gameplay | `MissionSceneEntry`, `VehicleSpawnPoint`, `VehicleChaseCamera`, `DrivingRoute`, `RouteAutopilot`; dev tools `VehicleDebugHud`, `VehicleTelemetryLog`, `VehicleAudioValidator` |
+| Gameplay | `MissionSceneEntry`, `VehicleSpawnPoint`, `VehicleChaseCamera`, `DrivingRoute`, `RouteAutopilot`; mission runtime `MissionDirector`, `MissionWorld`, `IMissionWorldComponent`, `IMissionTarget`, `MissionZone`, `Interactable` + `InteractionDefinition`, `SecurityBarrier`, `SecurityLightGroup`, `SecurityAlarm`, `SecurityPostEffects`, `DataCoreVisual`, `MissionHud`, `MissionAudio` + `MissionAudioSet` (see [NightRun.md](NightRun.md)); dev tools `VehicleDebugHud`, `VehicleTelemetryLog`, `VehicleAudioValidator`, `NightRunValidator` |
 
 ## Scene model
 
@@ -44,7 +44,7 @@ NeonRift.Tests.EditMode   unit tests
 
 `CarSelectScreen` → `RunSession.SelectVehicle` / `SelectMission` → `IGameFlow.StartMission()` → mission scene → `MissionSceneEntry.Enter` → `VehicleSpawnPoint.Spawn(selected definition)` (instantiates the gameplay prefab, calls `VehicleController.Configure(definition.PhysicsProfile)` and `VehicleAudio.Configure(definition.AudioProfile)`) → every `IVehicleInputReceiver` on the spawned prefab gets a `PlayerDrivingInput` → `VehicleChaseCamera.SetTarget`. Input action `ResetVehicle` calls `VehicleController.Recover()`.
 
-Results come back through `RunSession.RecordResult(RunResult)`.
+If the scene has a `MissionDirector`, `MissionSceneEntry` starts it with the session's mission after spawning: the director binds every `IMissionWorldComponent` in the scene to a fresh `MissionWorld`, runs `MissionProgress` and drives the HUD, mixer snapshots (Gameplay → Lockdown → Results) and audio. Results come back through `RunSession.RecordResult(RunResult)`; retry calls `IGameFlow.StartMission()` again.
 
 ## Asset pipeline
 

@@ -16,7 +16,8 @@ MonoBehaviour:
   carSelectScene: CarSelect
   vehicleCatalog: {fileID: 11400000, guid: eb772a81547f5450fbdfe60c97931f67, type: 2}
   missions:
+  - {fileID: 11400000, guid: 6dbb8108a4bcb4e23a90ef55ed634f2b, type: 2}
   - {fileID: 11400000, guid: 9d569398464724e2a917b49e0477a0de, type: 2}
-  defaultMission: {fileID: 11400000, guid: 9d569398464724e2a917b49e0477a0de, type: 2}
+  defaultMission: {fileID: 11400000, guid: 6dbb8108a4bcb4e23a90ef55ed634f2b, type: 2}
   audioMixer: {fileID: 11400000, guid: 7a1ea81aef9664ef19faf3a26a7180fa, type: 2}
   fadeSeconds: 0.35

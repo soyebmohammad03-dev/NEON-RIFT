@@ -1,0 +1,429 @@
+/* Night Run gameplay HUD. Minimal, edge-anchored, readable over a bright neon scene. */
+.nr-hud {
+    position: absolute;
+    left: 0; top: 0; right: 0; bottom: 0;
+    color: var(--nr-text);
+}
+
+.nr-hud-frame {
+    position: absolute;
+    left: 0; top: 0; right: 0; bottom: 0;
+    border-width: 10px;
+    border-color: rgba(255, 30, 80, 0.55);
+    opacity: 0;
+    transition-property: opacity;
+    transition-duration: 0.6s;
+}
+
+/* Objective, top left */
+.nr-objective {
+    position: absolute;
+    left: 56px;
+    top: 48px;
+    max-width: 640px;
+    padding-left: 18px;
+    border-left-width: 3px;
+    border-color: var(--nr-cyan);
+    transition-property: opacity, translate;
+    transition-duration: 0.35s;
+}
+
+.nr-objective--refresh {
+    opacity: 0;
+    translate: -24px 0;
+}
+
+.nr-objective__step {
+    font-size: 15px;
+    letter-spacing: 6px;
+    color: var(--nr-text-dim);
+}
+
+.nr-objective__title {
+    font-size: 32px;
+    -unity-font-style: bold;
+    letter-spacing: 3px;
+    color: var(--nr-cyan);
+    white-space: normal;
+    text-shadow: 0 0 8px rgba(0, 0, 0, 0.9);
+}
+
+.nr-objective__detail {
+    font-size: 17px;
+    color: var(--nr-text);
+    white-space: normal;
+    margin-top: 2px;
+    text-shadow: 0 0 6px rgba(0, 0, 0, 0.9);
+}
+
+.nr-objective__distance {
+    font-size: 22px;
+    -unity-font-style: bold;
+    letter-spacing: 4px;
+    color: var(--nr-text);
+    margin-top: 8px;
+}
+
+.nr-objective--lockdown { border-color: rgb(255, 50, 100); }
+.nr-objective--lockdown .nr-objective__title { color: rgb(255, 80, 120); }
+
+/* Security, top centre */
+.nr-security {
+    position: absolute;
+    top: 40px;
+    left: 0; right: 0;
+    align-items: center;
+}
+
+.nr-security__row {
+    flex-direction: row;
+    align-items: center;
+}
+
+.nr-security__caption {
+    font-size: 14px;
+    letter-spacing: 6px;
+    color: var(--nr-text-dim);
+    margin-right: 14px;
+}
+
+.nr-security__state {
+    font-size: 18px;
+    -unity-font-style: bold;
+    letter-spacing: 8px;
+    color: var(--nr-cyan);
+    padding: 2px 10px;
+    border-width: 1px;
+    border-color: var(--nr-line);
+    background-color: rgba(10, 9, 24, 0.55);
+}
+
+.nr-security--alert .nr-security__state { color: var(--nr-amber); border-color: rgba(255, 176, 64, 0.6); }
+.nr-security--lockdown .nr-security__state { color: rgb(255, 255, 255); background-color: rgba(230, 20, 70, 0.85); border-color: rgb(255, 80, 120); }
+
+.nr-heat {
+    width: 280px;
+    height: 4px;
+    margin-top: 10px;
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.nr-heat__fill {
+    height: 100%;
+    width: 0%;
+    background-color: var(--nr-amber);
+    transition-property: width;
+    transition-duration: 0.5s;
+}
+
+.nr-heat__label {
+    font-size: 13px;
+    letter-spacing: 5px;
+    color: var(--nr-text-dim);
+    margin-top: 4px;
+}
+
+.nr-timer {
+    font-size: 54px;
+    -unity-font-style: bold;
+    letter-spacing: 4px;
+    color: rgb(255, 255, 255);
+    margin-top: 6px;
+    text-shadow: 0 0 12px rgba(255, 30, 80, 0.9);
+}
+
+.nr-timer--critical { color: rgb(255, 70, 110); }
+
+.nr-countdown {
+    font-size: 17px;
+    -unity-font-style: bold;
+    letter-spacing: 4px;
+    color: var(--nr-amber);
+    margin-top: 2px;
+    text-shadow: 0 0 6px rgba(0, 0, 0, 0.9);
+}
+
+/* Toasts, right side */
+.nr-toasts {
+    position: absolute;
+    right: 56px;
+    top: 160px;
+    align-items: flex-end;
+}
+
+.nr-toast {
+    font-size: 18px;
+    -unity-font-style: bold;
+    letter-spacing: 4px;
+    padding: 8px 16px;
+    margin-bottom: 8px;
+    background-color: rgba(10, 9, 24, 0.75);
+    border-right-width: 3px;
+    border-color: var(--nr-cyan);
+    color: var(--nr-text);
+    transition-property: opacity, translate;
+    transition-duration: 0.3s;
+}
+
+.nr-toast--enter { opacity: 0; translate: 40px 0; }
+.nr-toast--leave { opacity: 0; }
+.nr-toast--warning { border-color: var(--nr-amber); color: var(--nr-amber); }
+.nr-toast--danger { border-color: rgb(255, 50, 100); color: rgb(255, 110, 140); }
+.nr-toast--success { border-color: rgb(80, 255, 160); color: rgb(140, 255, 190); }
+
+/* Centre banner (intro card, lockdown) */
+.nr-banner {
+    position: absolute;
+    left: 0; right: 0;
+    top: 30%;
+    align-items: center;
+    padding: 18px 0;
+    opacity: 0;
+    transition-property: opacity, scale;
+    transition-duration: 0.45s;
+    scale: 1.06 1.06;
+}
+
+.nr-banner--visible { opacity: 1; scale: 1 1; }
+
+.nr-banner__title {
+    font-size: 84px;
+    -unity-font-style: bold;
+    letter-spacing: 18px;
+    color: var(--nr-cyan);
+    text-shadow: 0 0 18px rgba(84, 232, 255, 0.8);
+}
+
+.nr-banner__subtitle {
+    font-size: 22px;
+    letter-spacing: 8px;
+    color: var(--nr-text);
+    text-shadow: 0 0 8px rgba(0, 0, 0, 1);
+}
+
+.nr-banner--danger { background-color: rgba(200, 10, 60, 0.35); }
+.nr-banner--danger .nr-banner__title { color: rgb(255, 255, 255); text-shadow: 0 0 22px rgba(255, 30, 90, 1); }
+.nr-banner--success .nr-banner__title { color: rgb(140, 255, 200); text-shadow: 0 0 18px rgba(60, 255, 160, 0.8); }
+
+/* Waypoint */
+.nr-waypoint {
+    position: absolute;
+    width: 0; height: 0;
+    align-items: center;
+    overflow: visible;
+}
+
+.nr-waypoint__diamond {
+    position: absolute;
+    width: 20px; height: 20px;
+    left: -10px; top: -10px;
+    rotate: 45deg;
+    border-width: 3px;
+    border-color: var(--nr-cyan);
+    background-color: rgba(84, 232, 255, 0.25);
+}
+
+.nr-waypoint__arrow {
+    position: absolute;
+    width: 0; height: 0;
+    left: -12px; top: -40px;
+    border-left-width: 12px; border-right-width: 12px; border-bottom-width: 16px;
+    border-left-color: rgba(0, 0, 0, 0); border-right-color: rgba(0, 0, 0, 0);
+    border-bottom-color: var(--nr-cyan);
+    transform-origin: 12px 40px;
+    display: none;
+}
+
+.nr-waypoint__label {
+    position: absolute;
+    top: 16px;
+    width: 300px; left: -150px;
+    -unity-text-align: upper-center;
+    font-size: 15px;
+    -unity-font-style: bold;
+    letter-spacing: 5px;
+    color: var(--nr-cyan);
+    text-shadow: 0 0 6px rgba(0, 0, 0, 1);
+}
+
+.nr-waypoint__distance {
+    position: absolute;
+    top: 36px;
+    width: 300px; left: -150px;
+    -unity-text-align: upper-center;
+    font-size: 14px;
+    letter-spacing: 3px;
+    color: var(--nr-text);
+    text-shadow: 0 0 6px rgba(0, 0, 0, 1);
+}
+
+.nr-waypoint--offscreen .nr-waypoint__arrow { display: flex; }
+.nr-waypoint--extraction .nr-waypoint__diamond { border-color: var(--nr-magenta); background-color: rgba(236, 64, 210, 0.3); }
+.nr-waypoint--extraction .nr-waypoint__label { color: var(--nr-magenta); }
+.nr-waypoint--extraction .nr-waypoint__arrow { border-bottom-color: var(--nr-magenta); }
+
+/* Interaction prompt, lower centre */
+.nr-prompt {
+    position: absolute;
+    left: 0; right: 0;
+    bottom: 200px;
+    align-items: center;
+    opacity: 0;
+    transition-property: opacity;
+    transition-duration: 0.2s;
+}
+
+.nr-prompt--visible { opacity: 1; }
+
+.nr-prompt__row { flex-direction: row; align-items: center; }
+
+.nr-prompt__key {
+    width: 40px; height: 40px;
+    -unity-text-align: middle-center;
+    font-size: 20px;
+    -unity-font-style: bold;
+    color: var(--nr-bg);
+    background-color: var(--nr-cyan);
+    border-radius: 4px;
+    margin-right: 14px;
+}
+
+.nr-prompt__text {
+    font-size: 24px;
+    -unity-font-style: bold;
+    letter-spacing: 5px;
+    text-shadow: 0 0 8px rgba(0, 0, 0, 1);
+}
+
+.nr-prompt__track {
+    width: 420px;
+    height: 6px;
+    margin-top: 12px;
+    background-color: rgba(255, 255, 255, 0.12);
+}
+
+.nr-prompt__fill {
+    height: 100%;
+    width: 0%;
+    background-color: var(--nr-cyan);
+}
+
+.nr-prompt__hint {
+    font-size: 15px;
+    letter-spacing: 4px;
+    color: var(--nr-amber);
+    margin-top: 8px;
+    text-shadow: 0 0 6px rgba(0, 0, 0, 1);
+}
+
+.nr-prompt--blocked .nr-prompt__key { background-color: var(--nr-text-dim); }
+
+/* Speed, bottom right */
+.nr-speedo {
+    position: absolute;
+    right: 56px;
+    bottom: 44px;
+    align-items: flex-end;
+}
+
+.nr-speedo__row { flex-direction: row; align-items: flex-end; }
+
+.nr-speedo__speed {
+    font-size: 72px;
+    -unity-font-style: bold;
+    -unity-text-align: lower-right;
+    min-width: 160px;
+    color: var(--nr-text);
+    text-shadow: 0 0 10px rgba(0, 0, 0, 0.9);
+}
+
+.nr-speedo__side { margin-left: 10px; margin-bottom: 14px; align-items: flex-start; }
+
+.nr-speedo__gear {
+    font-size: 30px;
+    -unity-font-style: bold;
+    color: var(--nr-magenta);
+}
+
+.nr-speedo__unit {
+    font-size: 13px;
+    letter-spacing: 4px;
+    color: var(--nr-text-dim);
+}
+
+.nr-speedo__rpm {
+    width: 240px;
+    height: 4px;
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.nr-speedo__rpm-fill {
+    height: 100%;
+    width: 0%;
+    background-color: var(--nr-cyan);
+}
+
+.nr-speedo__rpm-fill--redline { background-color: rgb(255, 60, 100); }
+
+.nr-speedo__vehicle {
+    font-size: 12px;
+    letter-spacing: 4px;
+    color: var(--nr-text-dim);
+    margin-top: 6px;
+}
+
+/* Results */
+.nr-results {
+    position: absolute;
+    left: 0; top: 0; right: 0; bottom: 0;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(6, 5, 14, 0.55);
+}
+
+.nr-results__panel {
+    width: 640px;
+    padding: 40px 48px;
+    background-color: var(--nr-panel);
+    border-top-width: 3px;
+    border-color: var(--nr-cyan);
+    align-items: stretch;
+}
+
+.nr-results--failed .nr-results__panel { border-color: rgb(255, 50, 100); }
+
+.nr-results__title {
+    font-size: 46px;
+    -unity-font-style: bold;
+    letter-spacing: 8px;
+    color: var(--nr-cyan);
+    -unity-text-align: middle-center;
+}
+
+.nr-results--failed .nr-results__title { color: rgb(255, 80, 120); }
+
+.nr-results__reason {
+    font-size: 18px;
+    letter-spacing: 4px;
+    color: var(--nr-text-dim);
+    -unity-text-align: middle-center;
+    margin-bottom: 24px;
+}
+
+.nr-results__stats { margin-bottom: 24px; }
+
+.nr-results__stat {
+    flex-direction: row;
+    justify-content: space-between;
+    font-size: 18px;
+    letter-spacing: 4px;
+    padding: 6px 0;
+    border-bottom-width: 1px;
+    border-color: rgba(255, 255, 255, 0.08);
+}
+
+.nr-results__stat-name { color: var(--nr-text-dim); }
+.nr-results__stat-value { color: var(--nr-text); -unity-font-style: bold; }
+
+.nr-results__buttons { flex-direction: row; justify-content: center; }
+.nr-results__buttons .nr-button { min-width: 220px; }

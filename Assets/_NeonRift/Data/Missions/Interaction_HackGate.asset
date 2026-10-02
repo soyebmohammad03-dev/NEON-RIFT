@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f3165135b17b0442ca6c54896582ced7, type: 3}
+  m_Name: Interaction_HackGate
+  m_EditorClassIdentifier: NeonRift.Gameplay::NeonRift.Gameplay.InteractionDefinition
+  verb: HACK
+  holdSeconds: 2.5
+  maxSpeedKph: 10
+  decayPerSecond: 0.6
+  heatOnComplete: 0.35
+  heatReason: GATE BREACH LOGGED
+  completeMessage: GATE OVERRIDDEN

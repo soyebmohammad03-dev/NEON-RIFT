@@ -130,7 +130,10 @@ namespace NeonRift.Gameplay
             if (length > 1e-3f && scene.SphereCast(aimOrigin, collisionRadius, toCamera / length, out var hit, length, obstacleLayers, QueryTriggerInteraction.Ignore))
                 position = aimOrigin + toCamera / length * Mathf.Max(minDistance, hit.distance);
 
-            Vector3 lookAt = aimOrigin + Vector3.ClampMagnitude(flatVelocity * lookAheadTime, maxLookAhead);
+            // Lead only forward travel: reversing would pull the aim point towards (or past) the camera and pitch it
+            // down onto the roof. Fades in over the first few m/s so a stop/start never snaps the view.
+            float forwardLead = Mathf.Clamp01(telemetry.ForwardSpeed / 3f);
+            Vector3 lookAt = aimOrigin + Vector3.ClampMagnitude(flatVelocity * (lookAheadTime * forwardLead), maxLookAhead);
             transform.SetPositionAndRotation(position, Quaternion.LookRotation(lookAt - position, Vector3.up));
             if (cinemachineCamera != null) cinemachineCamera.Lens.FieldOfView = fieldOfView;
         }

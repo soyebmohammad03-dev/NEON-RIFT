@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5ea3074b973e4342a15cd2cfd715bc8, type: 3}
+  m_Name: MissionAudio_NightRun
+  m_EditorClassIdentifier: NeonRift.Gameplay::NeonRift.Gameplay.MissionAudioSet
+  ambience: {fileID: 8300000, guid: b61227214a536410191080d466216c8d, type: 3}
+  ambienceVolume: 0.55
+  interactLoop: {fileID: 8300000, guid: ca5be23f94edb4321affda35534f7176, type: 3}
+  interactVolume: 0.6
+  objective: {fileID: 8300000, guid: e7b32ca6845eb412d86d9a88056dd2e5, type: 3}
+  interactComplete: {fileID: 8300000, guid: eaed454450ef74b588f1555e5d6781f9, type: 3}
+  heat: {fileID: 8300000, guid: e0978b6d43aab4ab690becb0411b09c3, type: 3}
+  lockdown: {fileID: 8300000, guid: fd977162e6c714368818304d695668ff, type: 3}
+  countdownTick: {fileID: 8300000, guid: b5c45ed88b52a4f2e8a91879535d0423, type: 3}
+  message: {fileID: 8300000, guid: d36150e9b3878440f9023ac45d1fa89a, type: 3}
+  success: {fileID: 8300000, guid: a564cff56d66b4180a30628cb146b02a, type: 3}
+  failure: {fileID: 8300000, guid: 68cd7da6e54cf48f889c6a92a2c89c92, type: 3}

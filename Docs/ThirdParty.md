@@ -46,7 +46,11 @@ Sources: the GLB licences come from each file's embedded glTF `asset.extras`. Th
 
 ## Audio
 
-All game audio is generated in-house by `VehicleAudioGenerator` (procedural synthesis, deterministic). No third-party sound files are used and none were downloaded. See [Audio.md](Audio.md) for free, clearly licensed sources if recorded sounds are wanted later.
+All game audio is generated in-house by `VehicleAudioGenerator` and `MissionAudioGenerator` (procedural synthesis, deterministic: engines, tyres, sirens, klaxon, barrier motor/slam, city ambience, hack loop, HUD cues). No third-party sound files are used and none were downloaded. See [Audio.md](Audio.md) for free, clearly licensed sources if recorded sounds are wanted later.
+
+## District art (Night Run)
+
+All district textures (asphalt, pavement, facades, shopfronts, signage, billboards, glow shapes) are generated in-house by `DistrictTextures`, including the signage font (`PixelFont`, a first-party 5×7 bitmap font). Shaders `NeonRift/NightSky` and `NeonRift/AdditiveGlow` are first-party. No third-party textures, fonts or packages were added; the only external models used are the audited buildings above.
 
 ## Vehicle audit
 

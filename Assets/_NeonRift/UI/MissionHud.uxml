@@ -1,0 +1,77 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <ui:VisualElement name="hud-root" class="nr-hud" picking-mode="Ignore">
+        <ui:VisualElement name="lockdown-frame" class="nr-hud-frame" picking-mode="Ignore" />
+
+        <ui:VisualElement name="waypoint" class="nr-waypoint" picking-mode="Ignore">
+            <ui:VisualElement name="waypoint-arrow" class="nr-waypoint__arrow" picking-mode="Ignore" />
+            <ui:VisualElement class="nr-waypoint__diamond" picking-mode="Ignore" />
+            <ui:Label name="waypoint-label" class="nr-waypoint__label" picking-mode="Ignore" />
+            <ui:Label name="waypoint-distance" class="nr-waypoint__distance" picking-mode="Ignore" />
+        </ui:VisualElement>
+
+        <ui:VisualElement name="objective" class="nr-objective" picking-mode="Ignore">
+            <ui:Label name="objective-step" text="OBJECTIVE" class="nr-objective__step" picking-mode="Ignore" />
+            <ui:Label name="objective-title" class="nr-objective__title" picking-mode="Ignore" />
+            <ui:Label name="objective-detail" class="nr-objective__detail" picking-mode="Ignore" />
+            <ui:Label name="objective-distance" class="nr-objective__distance" picking-mode="Ignore" />
+        </ui:VisualElement>
+
+        <ui:VisualElement name="security" class="nr-security" picking-mode="Ignore">
+            <ui:VisualElement class="nr-security__row" picking-mode="Ignore">
+                <ui:Label text="SECTOR 7 GRID" class="nr-security__caption" picking-mode="Ignore" />
+                <ui:Label name="security-state" text="CALM" class="nr-security__state" picking-mode="Ignore" />
+            </ui:VisualElement>
+            <ui:VisualElement class="nr-heat" picking-mode="Ignore">
+                <ui:VisualElement name="heat-fill" class="nr-heat__fill" picking-mode="Ignore" />
+            </ui:VisualElement>
+            <ui:Label name="heat-label" text="HEAT 0%" class="nr-heat__label" picking-mode="Ignore" />
+            <ui:Label name="timer" class="nr-timer nr-hidden" picking-mode="Ignore" />
+            <ui:Label name="countdown" class="nr-countdown nr-hidden" picking-mode="Ignore" />
+        </ui:VisualElement>
+
+        <ui:VisualElement name="toasts" class="nr-toasts" picking-mode="Ignore" />
+
+        <ui:VisualElement name="banner" class="nr-banner" picking-mode="Ignore">
+            <ui:Label name="banner-title" class="nr-banner__title" picking-mode="Ignore" />
+            <ui:Label name="banner-subtitle" class="nr-banner__subtitle" picking-mode="Ignore" />
+        </ui:VisualElement>
+
+        <ui:VisualElement name="prompt" class="nr-prompt" picking-mode="Ignore">
+            <ui:VisualElement class="nr-prompt__row" picking-mode="Ignore">
+                <ui:Label name="prompt-key" text="E" class="nr-prompt__key" picking-mode="Ignore" />
+                <ui:Label name="prompt-text" class="nr-prompt__text" picking-mode="Ignore" />
+            </ui:VisualElement>
+            <ui:VisualElement class="nr-prompt__track" picking-mode="Ignore">
+                <ui:VisualElement name="prompt-fill" class="nr-prompt__fill" picking-mode="Ignore" />
+            </ui:VisualElement>
+            <ui:Label name="prompt-hint" class="nr-prompt__hint" picking-mode="Ignore" />
+        </ui:VisualElement>
+
+        <ui:VisualElement name="speedo" class="nr-speedo" picking-mode="Ignore">
+            <ui:VisualElement class="nr-speedo__row" picking-mode="Ignore">
+                <ui:Label name="speed" text="0" class="nr-speedo__speed" picking-mode="Ignore" />
+                <ui:VisualElement class="nr-speedo__side" picking-mode="Ignore">
+                    <ui:Label name="gear" text="N" class="nr-speedo__gear" picking-mode="Ignore" />
+                    <ui:Label text="KM/H" class="nr-speedo__unit" picking-mode="Ignore" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+            <ui:VisualElement class="nr-speedo__rpm" picking-mode="Ignore">
+                <ui:VisualElement name="rpm-fill" class="nr-speedo__rpm-fill" picking-mode="Ignore" />
+            </ui:VisualElement>
+            <ui:Label name="vehicle-name" class="nr-speedo__vehicle" picking-mode="Ignore" />
+        </ui:VisualElement>
+
+        <ui:VisualElement name="results" class="nr-results nr-hidden">
+            <ui:VisualElement class="nr-results__panel">
+                <ui:Label name="results-title" class="nr-results__title" />
+                <ui:Label name="results-reason" class="nr-results__reason" />
+                <ui:VisualElement name="results-stats" class="nr-results__stats" />
+                <ui:VisualElement class="nr-results__buttons">
+                    <ui:Button name="retry-button" text="RETRY" class="nr-button nr-button--primary" />
+                    <ui:Button name="continue-button" text="CONTINUE" class="nr-button" />
+                </ui:VisualElement>
+                <ui:Label text="E  RETRY   ·   ESC  CONTINUE" class="nr-hint" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

@@ -147,6 +147,15 @@ namespace NeonRift.Input
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Interact"",
+                    ""type"": ""Button"",
+                    ""id"": ""f917ada2-5200-40a2-926f-7425d89245c4"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -356,6 +365,28 @@ namespace NeonRift.Input
                     ""processors"": """",
                     ""groups"": ""Gamepad"",
                     ""action"": ""Pause"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""aee1b167-37a0-4457-932c-3242c29a0dc3"",
+                    ""path"": ""<Keyboard>/e"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""KeyboardMouse"",
+                    ""action"": ""Interact"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""f07d348c-cd3c-46f9-b14a-c4440e46773f"",
+                    ""path"": ""<Gamepad>/buttonWest"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Gamepad"",
+                    ""action"": ""Interact"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -640,6 +671,7 @@ namespace NeonRift.Input
             m_Driving_Handbrake = m_Driving.FindAction("Handbrake", throwIfNotFound: true);
             m_Driving_ResetVehicle = m_Driving.FindAction("ResetVehicle", throwIfNotFound: true);
             m_Driving_Pause = m_Driving.FindAction("Pause", throwIfNotFound: true);
+            m_Driving_Interact = m_Driving.FindAction("Interact", throwIfNotFound: true);
             // Menu
             m_Menu = asset.FindActionMap("Menu", throwIfNotFound: true);
             m_Menu_Previous = m_Menu.FindAction("Previous", throwIfNotFound: true);
@@ -734,6 +766,7 @@ namespace NeonRift.Input
         private readonly InputAction m_Driving_Handbrake;
         private readonly InputAction m_Driving_ResetVehicle;
         private readonly InputAction m_Driving_Pause;
+        private readonly InputAction m_Driving_Interact;
         /// <summary>
         /// Provides access to input actions defined in input action map "Driving".
         /// </summary>
@@ -769,6 +802,10 @@ namespace NeonRift.Input
             /// Provides access to the underlying input action "Driving/Pause".
             /// </summary>
             public InputAction @Pause => m_Wrapper.m_Driving_Pause;
+            /// <summary>
+            /// Provides access to the underlying input action "Driving/Interact".
+            /// </summary>
+            public InputAction @Interact => m_Wrapper.m_Driving_Interact;
             /// <summary>
             /// Provides access to the underlying input action map instance.
             /// </summary>
@@ -813,6 +850,9 @@ namespace NeonRift.Input
                 @Pause.started += instance.OnPause;
                 @Pause.performed += instance.OnPause;
                 @Pause.canceled += instance.OnPause;
+                @Interact.started += instance.OnInteract;
+                @Interact.performed += instance.OnInteract;
+                @Interact.canceled += instance.OnInteract;
             }
 
             /// <summary>
@@ -842,6 +882,9 @@ namespace NeonRift.Input
                 @Pause.started -= instance.OnPause;
                 @Pause.performed -= instance.OnPause;
                 @Pause.canceled -= instance.OnPause;
+                @Interact.started -= instance.OnInteract;
+                @Interact.performed -= instance.OnInteract;
+                @Interact.canceled -= instance.OnInteract;
             }
 
             /// <summary>
@@ -1090,6 +1133,13 @@ namespace NeonRift.Input
             /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
             /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
             void OnPause(InputAction.CallbackContext context);
+            /// <summary>
+            /// Method invoked when associated input action "Interact" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnInteract(InputAction.CallbackContext context);
         }
         /// <summary>
         /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "Menu" which allows adding and removing callbacks.
