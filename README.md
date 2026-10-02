@@ -65,6 +65,8 @@ See [Docs/Architecture.md](Docs/Architecture.md), [Docs/Decisions.md](Docs/Decis
 
 ## Credits and licences
 
+See [LICENSE.md](LICENSE.md) for ownership: first-party content is all rights reserved; third-party models keep their own licences.
+
 Code, generated art (district textures, signage font, meshes) and all audio are first-party.
 
 Third-party 3D models (Sketchfab), used under their Creative Commons licences. Full details are in [Docs/ThirdParty.md](Docs/ThirdParty.md) and each folder's `ATTRIBUTION.txt`:
