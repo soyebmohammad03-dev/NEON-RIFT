@@ -15,6 +15,8 @@ namespace NeonRift.Vehicles
         [Min(0f)] public float powerHp;
         [Min(0f)] public float massKg;
         [Range(0f, 10f)] public float handlingRating;
+        [Tooltip("Full braking 100–0 km/h on the test bench, m.")]
+        [Min(0f)] public float brakingDistanceMetres;
 
         public static VehicleDisplayStats Default => new VehicleDisplayStats
         {
@@ -22,7 +24,8 @@ namespace NeonRift.Vehicles
             zeroToHundredSeconds = 4f,
             powerHp = 500f,
             massKg = 1500f,
-            handlingRating = 5f
+            handlingRating = 5f,
+            brakingDistanceMetres = 36f
         };
     }
 }

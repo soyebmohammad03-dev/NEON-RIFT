@@ -20,6 +20,8 @@ namespace NeonRift.Vehicles
         private Light[] heads = new Light[0];
         private Light tail;
         private VehicleController controller;
+        private float[] headBase = new float[0];
+        private float tailOverride = -1f;
 
         /// <summary>Creates the lights. <paramref name="detailed"/> = player car (shadows, full range).</summary>
         public void Build(bool detailed)
@@ -44,6 +46,7 @@ namespace NeonRift.Vehicles
                 l.shadows = detailed && i == 0 ? LightShadows.Soft : LightShadows.None;
                 heads[i] = l;
             }
+            headBase = new[] { heads[0].intensity, heads[1].intensity };
             tail = Make("TailLight", new Vector3(0f, size.y * 0.5f, -size.z * 0.5f - 0.3f), Quaternion.identity);
             tail.type = LightType.Point;
             tail.color = new Color(1f, 0.05f, 0.05f);
@@ -58,6 +61,25 @@ namespace NeonRift.Vehicles
             foreach (var l in heads) if (l != null) l.enabled = on;
         }
 
+        /// <summary>Headlight level 0..1 of the built intensity (presentation fades; 1 = normal).</summary>
+        public void SetHeadlightLevel(float level)
+        {
+            for (int i = 0; i < heads.Length; i++)
+                if (heads[i] != null)
+                {
+                    heads[i].intensity = headBase[i] * Mathf.Max(0f, level);
+                    heads[i].enabled = level > 0.001f;
+                }
+        }
+
+        /// <summary>
+        /// Drives the tail light without a controller (showroom, cinematics): 0 = off, 1 = tail level, 2+ = brake.
+        /// Negative hands control back to the controller's brake input.
+        /// </summary>
+        public void SetTailOverride(float level) => tailOverride = level;
+
+        public float TailLevel => tail == null ? 0f : tail.intensity;
+
         private Light Make(string name, Vector3 local, Quaternion rotation)
         {
             var go = new GameObject(name);
@@ -68,7 +90,15 @@ namespace NeonRift.Vehicles
 
         private void Update()
         {
-            if (tail == null || controller == null) return;
+            if (tail == null) return;
+            if (tailOverride >= 0f || controller == null || !controller.enabled)
+            {
+                float level = tailOverride >= 0f ? tailOverride : 1f;   // no controller, no override: plain tail light
+                float manual = level <= 1f ? tailIntensity * level : Mathf.Lerp(tailIntensity, brakeIntensity, Mathf.Clamp01(level - 1f));
+                tail.color = new Color(1f, 0.05f, 0.05f);
+                tail.intensity = Mathf.MoveTowards(tail.intensity, manual, 40f * Time.unscaledDeltaTime);
+                return;
+            }
             var t = controller.Telemetry;
             bool reversing = t.Gear < 0;
             tail.color = reversing ? new Color(1f, 0.92f, 0.85f) : new Color(1f, 0.05f, 0.05f);

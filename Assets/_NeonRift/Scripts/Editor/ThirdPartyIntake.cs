@@ -52,7 +52,7 @@ namespace NeonRift.EditorTools
 
         private struct VehicleRecipe
         {
-            public string Id, Name, Maker, Description, Model, Prefab;
+            public string Id, Name, Maker, Category, Description, Model, Prefab;
             public Vector3 Rotation;
             public float WheelDiameter;
             public string[] Wheel, Static, Blur, Hidden, Lights;
@@ -62,12 +62,37 @@ namespace NeonRift.EditorTools
             public string ExcludeReason;
         }
 
+        /// <summary>
+        /// Re-applies the player-facing copy (name, maker, category, description) from the recipes to the existing
+        /// definitions, without rebuilding prefabs or touching measured stats.
+        /// </summary>
+        [MenuItem("Neon Rift/Vehicles/Apply Vehicle Copy From Recipes")]
+        public static string ApplyVehicleCopy()
+        {
+            var log = new System.Text.StringBuilder("[Vehicle] copy\n");
+            foreach (var r in VehicleRecipes())
+            {
+                var def = AssetDatabase.LoadAssetAtPath<VehicleDefinition>($"{VehicleData}Vehicle_{r.Prefab.Replace("PF_Vehicle_", "")}.asset");
+                if (def == null) continue;
+                var so = new SerializedObject(def);
+                so.FindProperty("displayName").stringValue = r.Name;
+                so.FindProperty("manufacturer").stringValue = r.Maker;
+                so.FindProperty("category").stringValue = r.Category ?? string.Empty;
+                so.FindProperty("description").stringValue = r.Description;
+                so.ApplyModifiedPropertiesWithoutUndo();
+                EditorUtility.SetDirty(def);
+                log.AppendLine($"  {r.Id}: {r.Category}");
+            }
+            AssetDatabase.SaveAssets();
+            return log.ToString();
+        }
+
         private static IEnumerable<VehicleRecipe> VehicleRecipes()
         {
             yield return new VehicleRecipe
             {
-                Id = "mercedes_sls_amg_2010", Name = "SLS AMG", Maker = "Mercedes-Benz",
-                Description = "Front-mid V8 gullwing grand tourer. Rear-wheel drive, long bonnet, planted at speed.",
+                Id = "mercedes_sls_amg_2010", Name = "SLS AMG", Maker = "Mercedes-Benz", Category = "Grand Tourer",
+                Description = "Front-mid V8 gullwing. Long bonnet, rear-wheel drive, stable at speed and forgiving over kerbs: the car that gets the crew in and out.",
                 Model = "Vehicles/Mercedes_SLS_AMG_2010/2010_mercedes_sls_amg.glb", Prefab = "PF_Vehicle_MercedesSLS",
                 Wheel = new[] { "Rim", "Tyre", "Brake_" }, Static = new[] { "Caliper" }, Blur = new[] { "Blurred" },
                 Hidden = new[] { "DAMAGE_GLASS" }, Lights = new[] { "Lights_Front", "Lights_Rear", "Microluci" },
@@ -76,8 +101,8 @@ namespace NeonRift.EditorTools
             };
             yield return new VehicleRecipe
             {
-                Id = "mercedes_sls_gt3", Name = "SLS AMG GT3", Maker = "Mercedes-AMG",
-                Description = "Customer GT3 race car on the SLS platform. Lighter, stiffer, big rear wing.",
+                Id = "mercedes_sls_gt3", Name = "SLS AMG GT3", Maker = "Mercedes-AMG", Category = "GT3 Race Car",
+                Description = "Customer GT3 car on the SLS platform. Lighter, stiffer, big rear wing: the sharpest turn-in and the shortest braking in the garage.",
                 Model = "Vehicles/Mercedes_SLS_GT3/mercedes_sls_gt3.glb", Prefab = "PF_Vehicle_MercedesSLSGT3",
                 Wheel = new[] { "EXT_Rim", "EXT_Tyre", "EXT_Brake" }, Static = new[] { "Caliper" }, Blur = new[] { "Rim_Blur" },
                 Hidden = new[] { "DAMAGE_GLASS" }, Lights = new[] { "EXT_Lights_Front", "EXT_Lights_Rear", "Microluci" },
@@ -86,7 +111,7 @@ namespace NeonRift.EditorTools
             };
             yield return new VehicleRecipe
             {
-                Id = "mercedes_amg_gt3", Name = "AMG GT3", Maker = "Mercedes-AMG",
+                Id = "mercedes_amg_gt3", Name = "AMG GT3", Maker = "Mercedes-AMG", Category = "GT3 Race Car",
                 Description = "Modern GT3 race car. Aero-heavy and precise; demands commitment.",
                 Model = "Vehicles/Mercedes_AMG_GT3_RedBull/mercedes-amg_gt3_red_bull_racing.glb", Prefab = "PF_Vehicle_MercedesAMGGT3",
                 Rotation = new Vector3(0, 90, 0),
@@ -98,8 +123,8 @@ namespace NeonRift.EditorTools
             };
             yield return new VehicleRecipe
             {
-                Id = "lamborghini_terzo_millennio", Name = "Terzo Millennio", Maker = "Lamborghini",
-                Description = "Electric hypercar concept. No official performance figures exist; stats are estimates.",
+                Id = "lamborghini_terzo_millennio", Name = "Terzo Millennio", Maker = "Lamborghini", Category = "Electric Hypercar Concept",
+                Description = "Electric concept with a motor at every wheel. Brutal off the line and quiet until it isn't. The figures shown are from the game's physics model; Lamborghini publishes none.",
                 Model = "Vehicles/Lamborghini_Terzo_Millennio/free__lamborghini_terzo_millennio.glb", Prefab = "PF_Vehicle_LamborghiniTerzo",
                 WheelDiameter = 0.70f,
                 Wheel = new[] { "wheelFR_", "Roues" }, Static = new string[0], Blur = new[] { "motion" },
@@ -143,6 +168,7 @@ namespace NeonRift.EditorTools
                 so.FindProperty("displayName").stringValue = r.Name;
                 so.FindProperty("manufacturer").stringValue = r.Maker;
                 so.FindProperty("description").stringValue = r.Description;
+                so.FindProperty("category").stringValue = r.Category ?? string.Empty;
                 so.FindProperty("gameplayPrefab").objectReferenceValue = AssetDatabase.LoadAssetAtPath<GameObject>(report.PrefabPath);
                 so.FindProperty("showroomPrefab").objectReferenceValue = null;
                 // Recipe stats only seed new definitions; afterwards Car Select stats are measured from physics

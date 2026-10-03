@@ -1,26 +1,71 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements">
-    <ui:VisualElement class="nr-screen nr-carselect">
+    <Style src="CarSelect.uss" />
+    <ui:VisualElement name="cs-root" class="nr-screen nr-cs" picking-mode="Ignore">
+        <!-- Cinematic framing: soft top/bottom shades so the text reads over the garage. -->
+        <ui:VisualElement class="nr-cs__shade nr-cs__shade--top" picking-mode="Ignore" />
+        <ui:VisualElement class="nr-cs__shade nr-cs__shade--bottom" picking-mode="Ignore" />
         <ui:VisualElement name="drag-area" class="nr-drag-area" />
-        <ui:VisualElement class="nr-carselect__panel">
-            <ui:VisualElement>
-                <ui:Label text="SELECT VEHICLE" class="nr-heading" />
-                <ui:Label name="vehicle-name" class="nr-vehicle-name" />
-                <ui:Label name="vehicle-maker" class="nr-vehicle-maker" />
-                <ui:Label name="vehicle-desc" class="nr-vehicle-desc" />
-                <ui:VisualElement name="stats" />
-                <ui:Label name="empty-label" class="nr-empty nr-hidden"
-                          text="No vehicles are registered in the Vehicle Catalog yet. Vehicle models are added after the asset audit." />
+
+        <ui:VisualElement class="nr-cs__topbar" picking-mode="Ignore">
+            <ui:VisualElement class="nr-cs__brand" picking-mode="Ignore">
+                <ui:Label text="NEON RIFT" class="nr-cs__brand-name" />
+                <ui:Label text="CREW GARAGE  ·  SECTOR 7 STAGING" class="nr-cs__brand-sub" />
             </ui:VisualElement>
-            <ui:VisualElement>
-                <ui:VisualElement class="nr-carselect__nav">
-                    <ui:Button name="prev-button" text="‹" class="nr-button nr-button--icon" />
-                    <ui:Label name="counter-label" class="nr-counter" />
-                    <ui:Button name="next-button" text="›" class="nr-button nr-button--icon" />
-                </ui:VisualElement>
-                <ui:Button name="confirm-button" text="CONFIRM" class="nr-button nr-button--primary" />
-                <ui:Button name="back-button" text="BACK" class="nr-button" />
-                <ui:Label text="DRAG TO ROTATE  ·  Q / E SWITCH  ·  ENTER CONFIRM" class="nr-hint" />
+            <ui:VisualElement class="nr-cs__step" picking-mode="Ignore">
+                <ui:Label text="NIGHT RUN" class="nr-cs__step-mission" />
+                <ui:Label text="CHOOSE YOUR CAR" class="nr-cs__step-label" />
             </ui:VisualElement>
         </ui:VisualElement>
+
+        <ui:VisualElement name="info" class="nr-cs__info" picking-mode="Ignore">
+            <ui:VisualElement class="nr-cs__kicker" picking-mode="Ignore">
+                <ui:Label name="vehicle-index" class="nr-cs__index" />
+                <ui:Label name="vehicle-category" class="nr-cs__category" />
+            </ui:VisualElement>
+            <ui:Label name="vehicle-maker" class="nr-cs__maker" />
+            <ui:Label name="vehicle-name" class="nr-cs__name" />
+            <ui:VisualElement class="nr-cs__rule" picking-mode="Ignore" />
+            <ui:Label name="vehicle-desc" class="nr-cs__desc" />
+            <ui:Label name="empty-label" class="nr-empty nr-hidden"
+                      text="No vehicles are registered in the Vehicle Catalog yet." />
+        </ui:VisualElement>
+
+        <ui:VisualElement name="specs" class="nr-cs__specs" picking-mode="Ignore">
+            <ui:Label text="PERFORMANCE" class="nr-cs__specs-title" />
+            <ui:VisualElement name="stats" class="nr-cs__stats" picking-mode="Ignore" />
+            <ui:VisualElement class="nr-cs__chips" picking-mode="Ignore">
+                <ui:VisualElement class="nr-cs__chip" picking-mode="Ignore">
+                    <ui:Label text="DRIVETRAIN" class="nr-cs__chip-label" />
+                    <ui:Label name="chip-drive" class="nr-cs__chip-value" />
+                </ui:VisualElement>
+                <ui:VisualElement class="nr-cs__chip" picking-mode="Ignore">
+                    <ui:Label text="POWER" class="nr-cs__chip-label" />
+                    <ui:Label name="chip-power" class="nr-cs__chip-value" />
+                </ui:VisualElement>
+                <ui:VisualElement class="nr-cs__chip" picking-mode="Ignore">
+                    <ui:Label text="WEIGHT" class="nr-cs__chip-label" />
+                    <ui:Label name="chip-weight" class="nr-cs__chip-value" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+            <ui:Label text="Figures measured on the game's physics test bench." class="nr-cs__footnote" />
+        </ui:VisualElement>
+
+        <ui:VisualElement class="nr-cs__bottom" picking-mode="Ignore">
+            <ui:VisualElement class="nr-cs__selector" picking-mode="Ignore">
+                <ui:Button name="prev-button" text="‹" class="nr-cs__arrow" />
+                <ui:VisualElement name="cards" class="nr-cs__cards" picking-mode="Ignore" />
+                <ui:Button name="next-button" text="›" class="nr-cs__arrow" />
+            </ui:VisualElement>
+            <ui:VisualElement class="nr-cs__actions" picking-mode="Ignore">
+                <ui:Button name="confirm-button" class="nr-cs__start">
+                    <ui:Label text="START NIGHT RUN" class="nr-cs__start-label" />
+                    <ui:Label text="ENTER  ·  A" class="nr-cs__start-key" />
+                </ui:Button>
+                <ui:Button name="back-button" text="BACK" class="nr-cs__back" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:Label text="← → / Q E  SWITCH CAR   ·   DRAG / RIGHT STICK  ROTATE   ·   ENTER  START   ·   ESC  BACK" class="nr-cs__hint" />
+        <ui:Label name="counter-label" class="nr-hidden" />
+        <ui:VisualElement name="cs-fade" class="nr-cs__fade" picking-mode="Ignore" />
     </ui:VisualElement>
 </ui:UXML>

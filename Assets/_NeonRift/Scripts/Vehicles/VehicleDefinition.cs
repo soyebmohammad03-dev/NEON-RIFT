@@ -11,6 +11,8 @@ namespace NeonRift.Vehicles
         [SerializeField] private string id;
         [SerializeField] private string displayName;
         [SerializeField] private string manufacturer;
+        [Tooltip("Class shown in Car Select, e.g. GRAND TOURER.")]
+        [SerializeField] private string category;
         [SerializeField, TextArea(2, 5)] private string description;
 
         [Header("Prefabs")]
@@ -38,6 +40,15 @@ namespace NeonRift.Vehicles
         public AssetLicense License => license;
         public string DisplayName => string.IsNullOrWhiteSpace(displayName) ? name : displayName;
         public string Manufacturer => manufacturer;
+        public string Category => category;
+
+        /// <summary>RWD / AWD / FWD from the physics profile (the single source of tuning).</summary>
+        public string DrivetrainLabel => physicsProfile == null ? "—" : physicsProfile.Transmission.driveType switch
+        {
+            DriveType.FrontWheelDrive => "FWD",
+            DriveType.RearWheelDrive => "RWD",
+            _ => "AWD"
+        };
         public string Description => description;
         public GameObject GameplayPrefab => gameplayPrefab;
         public VehiclePhysicsProfile PhysicsProfile => physicsProfile;

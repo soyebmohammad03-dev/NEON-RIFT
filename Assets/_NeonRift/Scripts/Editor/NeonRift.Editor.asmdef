@@ -18,7 +18,8 @@
         "NeonRift.Input",
         "NeonRift.Rendering",
         "NeonRift.Intro",
-        "Unity.Timeline"
+        "Unity.Timeline",
+        "NeonRift.Frontend"
     ],
     "includePlatforms": [
         "Editor"

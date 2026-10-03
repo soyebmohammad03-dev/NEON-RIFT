@@ -292,9 +292,10 @@ namespace NeonRift.EditorTools.Vehicles
             var sb = new StringBuilder("[VehicleProbe] Car Select stats from physics\n");
             foreach (var def in CatalogVehicles())
             {
-                float zeroTo100, top;
+                float zeroTo100, top, brake;
                 using (var b = VehicleTestBench.Create(def)) zeroTo100 = Launch(b).ZeroTo100;
                 using (var b = VehicleTestBench.Create(def)) top = TopSpeed(b);
+                using (var b = VehicleTestBench.Create(def)) brake = Brake(b).Distance;
                 float hp = def.PhysicsProfile.Engine.PeakPowerKw(out _) * 1.341f;
                 var so = new SerializedObject(def);
                 var stats = so.FindProperty("displayStats");
@@ -302,10 +303,11 @@ namespace NeonRift.EditorTools.Vehicles
                 stats.FindPropertyRelative("zeroToHundredSeconds").floatValue = Mathf.Round(zeroTo100 * 10f) / 10f;
                 stats.FindPropertyRelative("powerHp").floatValue = Mathf.Round(hp / 5f) * 5f;
                 stats.FindPropertyRelative("massKg").floatValue = def.PhysicsProfile.Chassis.mass;
+                stats.FindPropertyRelative("brakingDistanceMetres").floatValue = Mathf.Round(brake * 10f) / 10f;
                 so.FindProperty("displayStatsProvisional").boolValue = false;
                 so.ApplyModifiedPropertiesWithoutUndo();
                 EditorUtility.SetDirty(def);
-                sb.AppendLine($"  {def.Id}: {top:0} km/h, 0-100 {zeroTo100:0.0} s, {hp:0} hp, {def.PhysicsProfile.Chassis.mass:0} kg");
+                sb.AppendLine($"  {def.Id}: {top:0} km/h, 0-100 {zeroTo100:0.0} s, 100-0 {brake:0.0} m, {hp:0} hp, {def.PhysicsProfile.Chassis.mass:0} kg");
             }
             AssetDatabase.SaveAssets();
             return sb.ToString();

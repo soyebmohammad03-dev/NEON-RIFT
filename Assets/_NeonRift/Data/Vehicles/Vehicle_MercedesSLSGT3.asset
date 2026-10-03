@@ -15,7 +15,8 @@ MonoBehaviour:
   id: mercedes_sls_gt3
   displayName: SLS AMG GT3
   manufacturer: Mercedes-AMG
-  description: Customer GT3 race car on the SLS platform. Lighter, stiffer, big rear wing.
+  category: GT3 Race Car
+  description: 'Customer GT3 car on the SLS platform. Lighter, stiffer, big rear wing: the sharpest turn-in and the shortest braking in the garage.'
   gameplayPrefab: {fileID: 840988206285905016, guid: 17c5bd1a8ffe749c0a1686492b35e9d4, type: 3}
   showroomPrefab: {fileID: 0}
   physicsProfile: {fileID: 11400000, guid: 28521c6e7d20b4736be970ab5a7414e6, type: 2}
@@ -26,6 +27,7 @@ MonoBehaviour:
     powerHp: 580
     massKg: 1380
     handlingRating: 9
+    brakingDistanceMetres: 30.5
   displayStatsProvisional: 0
   license:
     LicenseId: CC-BY-4.0

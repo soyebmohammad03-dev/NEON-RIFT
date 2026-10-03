@@ -18,6 +18,11 @@ namespace NeonRift.Game
 
         public bool IsReadyToLaunch => SelectedVehicle != null && SelectedMission != null;
 
+        /// <summary>True when Car Select is entered from the intro's push-in (it opens on the matching close-up).</summary>
+        public bool ArrivedFromIntro { get; private set; }
+        public void MarkIntroArrival() => ArrivedFromIntro = true;
+        public void ClearIntroArrival() => ArrivedFromIntro = false;
+
         public void SelectVehicle(VehicleDefinition vehicle)
         {
             SelectedVehicle = vehicle ?? throw new ArgumentNullException(nameof(vehicle));

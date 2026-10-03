@@ -17,7 +17,10 @@
         "Unity.InputSystem.TestFramework",
         "NeonRift.Intro",
         "Unity.Timeline",
-        "Unity.Cinemachine"
+        "Unity.Cinemachine",
+        "NeonRift.Frontend",
+        "Unity.RenderPipelines.Core.Runtime",
+        "Unity.RenderPipelines.Universal.Runtime"
     ],
     "includePlatforms": [
         "Editor"

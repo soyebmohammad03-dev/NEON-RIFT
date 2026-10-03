@@ -81,3 +81,27 @@ Frames from a real playback:
 | ![](Screenshots/Intro/intro_02_51.4s.jpg) | ![](Screenshots/Intro/title_57.5s.jpg) |
 
 Not yet verified by ear: the mix balance of the intro audio. The clips are generated and bound, and the playback ran, but levels have not been listened to on speakers.
+
+## Car Select garage (October 2026)
+
+Car Select is now a generated crew garage (`GarageBuilder`, **Neon Rift ▸ Car Select ▸ Build Garage**):
+
+- **The hall:** polished concrete, steel columns and trusses, soft-box strips, wall washers and tube fittings, a workbench, tool chests, a tyre rack and a planning wall of screens.
+- **The cars:** the selected car sits on a turntable under a key light and two rims. The other two catalog cars are parked in the background bays as silhouettes.
+- **The roller door** opens onto a lit street.
+- **Data:** each car has a category, its drivetrain (from the physics profile) and a measured 100–0 km/h braking distance (`UpdateDisplayStats`).
+- **Switching cars:** the stage dims, the new car comes up with its headlights, a brake-light pulse and an engine blip. `ShowroomEngine` plays the car's own recorded loops, and the camera blends to a low side shot and back.
+- **Confirm:** the turntable swings the car to the door, the door lifts, the engine revs, the brakes release and the car pulls out under a follow camera. Then a fade, and the Night Run loads.
+- **From the intro,** Car Select opens on a headlight close-up and pulls back to the hero shot (`RunSession.ArrivedFromIntro`). This is wired but not yet verified end to end.
+
+Verified in Play Mode:
+- switching SLS AMG → SLS GT3 → Terzo;
+- departure frames captured on the game clock (`PlaytestCapture`);
+- confirming with the Terzo loaded the Night Run with the Terzo as the player;
+- showroom engine idle at 800 rpm on the Engine group, and a blip to 4,640 rpm crossfading to the 5000 rpm on-load loop.
+
+Not checked by ear.
+
+| SLS AMG | SLS GT3 | Terzo | Departure |
+|---|---|---|---|
+| ![](Screenshots/CarSelect/cs9.jpg) | ![](Screenshots/CarSelect/cs7_gt3.jpg) | ![](Screenshots/CarSelect/cs10_terzo.jpg) | ![](Screenshots/CarSelect/departure.jpg) |

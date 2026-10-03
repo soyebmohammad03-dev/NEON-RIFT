@@ -287,6 +287,7 @@ namespace NeonRift.Intro
             if (t >= 1f && phase == Phase.PushIn)
             {
                 phase = Phase.Leaving;
+                context.Session.MarkIntroArrival();
                 context.Flow.GoToCarSelect();
             }
         }

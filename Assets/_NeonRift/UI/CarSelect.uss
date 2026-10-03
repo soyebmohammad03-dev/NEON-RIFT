@@ -1,0 +1,336 @@
+/* Car Select: the crew garage. A film frame, not a menu: the car owns the centre, text sits in the margins. */
+
+.nr-cs {
+    position: absolute;
+    left: 0; right: 0; top: 0; bottom: 0;
+    background-color: rgba(0, 0, 0, 0);
+}
+
+.nr-cs__shade {
+    position: absolute;
+    left: 0; right: 0;
+}
+.nr-cs__shade--top {
+    top: 0;
+    height: 220px;
+    -unity-background-scale-mode: stretch-to-fill;
+}
+.nr-cs__shade--bottom {
+    bottom: 0;
+    height: 420px;
+    -unity-background-scale-mode: stretch-to-fill;
+}
+
+.nr-drag-area {
+    position: absolute;
+    left: 0; right: 0; top: 140px; bottom: 260px;
+}
+
+/* ---------- Top bar ---------- */
+.nr-cs__topbar {
+    position: absolute;
+    left: 64px; right: 64px; top: 40px;
+    flex-direction: row;
+    justify-content: space-between;
+}
+.nr-cs__brand-name {
+    font-size: 26px;
+    -unity-font-style: bold;
+    letter-spacing: 10px;
+    color: rgb(240, 242, 255);
+}
+.nr-cs__brand-sub {
+    font-size: 12px;
+    letter-spacing: 4px;
+    color: var(--nr-text-dim);
+    margin-top: 2px;
+}
+.nr-cs__step { align-items: flex-end; }
+.nr-cs__step-mission {
+    font-size: 12px;
+    letter-spacing: 6px;
+    color: var(--nr-cyan);
+}
+.nr-cs__step-label {
+    font-size: 18px;
+    letter-spacing: 5px;
+    -unity-font-style: bold;
+    color: rgb(240, 242, 255);
+}
+
+/* ---------- Car info (lower left) ---------- */
+.nr-cs__info {
+    position: absolute;
+    left: 64px; bottom: 210px;
+    width: 640px;
+    transition-property: opacity, translate;
+    transition-duration: 0.28s, 0.36s;
+    transition-timing-function: ease-out-cubic;
+}
+.nr-cs__info--out {
+    opacity: 0;
+    translate: -28px 0;
+    transition-duration: 0.16s, 0.16s;
+}
+.nr-cs__kicker { flex-direction: row; align-items: center; }
+.nr-cs__index {
+    font-size: 13px;
+    letter-spacing: 3px;
+    color: rgb(10, 12, 20);
+    background-color: var(--nr-cyan);
+    padding: 2px 8px;
+    margin-right: 12px;
+    -unity-font-style: bold;
+}
+.nr-cs__category {
+    font-size: 14px;
+    letter-spacing: 6px;
+    color: var(--nr-amber);
+}
+.nr-cs__maker {
+    font-size: 20px;
+    letter-spacing: 8px;
+    color: rgb(200, 206, 230);
+    margin-top: 18px;
+}
+.nr-cs__name {
+    font-size: 78px;
+    -unity-font-style: bold;
+    letter-spacing: 3px;
+    color: rgb(250, 251, 255);
+    margin-top: -6px;
+    margin-left: -3px;
+}
+.nr-cs__rule {
+    width: 120px;
+    height: 2px;
+    background-color: var(--nr-cyan);
+    margin-top: 6px;
+    margin-bottom: 14px;
+}
+.nr-cs__desc {
+    font-size: 16px;
+    color: rgb(190, 196, 220);
+    white-space: normal;
+    width: 560px;
+}
+
+/* ---------- Performance (right) ---------- */
+.nr-cs__specs {
+    position: absolute;
+    right: 64px; top: 170px;
+    width: 400px;
+    padding: 22px 24px 18px 24px;
+    background-color: rgba(6, 8, 16, 0.62);
+    border-left-width: 2px;
+    border-left-color: var(--nr-cyan);
+    transition-property: opacity, translate;
+    transition-duration: 0.3s, 0.36s;
+    transition-timing-function: ease-out-cubic;
+}
+.nr-cs__specs--out {
+    opacity: 0.25;
+    translate: 18px 0;
+    transition-duration: 0.16s, 0.16s;
+}
+.nr-cs__specs-title {
+    font-size: 13px;
+    letter-spacing: 6px;
+    color: var(--nr-text-dim);
+    margin-bottom: 14px;
+}
+.nr-stat { margin-bottom: 16px; }
+.nr-stat__header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-end;
+    font-size: 13px;
+    letter-spacing: 3px;
+    color: rgb(200, 206, 230);
+}
+.nr-stat__value {
+    font-size: 20px;
+    -unity-font-style: bold;
+    letter-spacing: 1px;
+    color: rgb(250, 251, 255);
+}
+.nr-stat__track {
+    height: 6px;
+    margin-top: 6px;
+    background-color: rgba(255, 255, 255, 0.08);
+    flex-direction: row;
+}
+.nr-stat__fill {
+    height: 6px;
+    background-color: var(--nr-cyan);
+    transition-property: width;
+    transition-duration: 0.55s;
+    transition-timing-function: ease-out-cubic;
+}
+.nr-stat__ticks {
+    position: absolute;
+    left: 0; right: 0; top: 0; bottom: 0;
+    flex-direction: row;
+    justify-content: space-between;
+}
+.nr-stat__tick {
+    width: 2px;
+    background-color: rgba(6, 8, 16, 0.9);
+}
+.nr-cs__chips {
+    flex-direction: row;
+    justify-content: space-between;
+    margin-top: 6px;
+    padding-top: 14px;
+    border-top-width: 1px;
+    border-top-color: rgba(255, 255, 255, 0.1);
+}
+.nr-cs__chip-label {
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: var(--nr-text-dim);
+}
+.nr-cs__chip-value {
+    font-size: 18px;
+    -unity-font-style: bold;
+    color: rgb(250, 251, 255);
+    margin-top: 2px;
+}
+.nr-cs__footnote {
+    font-size: 10px;
+    letter-spacing: 1px;
+    color: rgba(140, 146, 180, 0.7);
+    margin-top: 14px;
+}
+
+/* ---------- Selector strip and actions (bottom) ---------- */
+.nr-cs__bottom {
+    position: absolute;
+    left: 64px; right: 64px; bottom: 56px;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-end;
+}
+.nr-cs__selector { flex-direction: row; align-items: center; }
+.nr-cs__cards { flex-direction: row; }
+.nr-cs__card {
+    width: 210px;
+    height: 98px;
+    margin: 0 6px;
+    padding: 12px 14px;
+    background-color: rgba(10, 12, 22, 0.55);
+    border-bottom-width: 3px;
+    border-bottom-color: rgba(255, 255, 255, 0.12);
+    justify-content: space-between;
+    transition-property: background-color, border-color, translate;
+    transition-duration: 0.25s;
+}
+.nr-cs__card:hover { background-color: rgba(30, 36, 60, 0.7); }
+.nr-cs__card--selected {
+    background-color: rgba(20, 60, 80, 0.55);
+    border-bottom-color: var(--nr-cyan);
+    translate: 0 -6px;
+}
+.nr-cs__card-index {
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: var(--nr-text-dim);
+}
+.nr-cs__card--selected .nr-cs__card-index { color: var(--nr-cyan); }
+.nr-cs__card-name {
+    font-size: 17px;
+    -unity-font-style: bold;
+    letter-spacing: 1px;
+    color: rgb(235, 238, 255);
+}
+.nr-cs__card-maker {
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--nr-text-dim);
+}
+.nr-cs__arrow {
+    width: 52px;
+    height: 98px;
+    font-size: 34px;
+    color: rgb(235, 238, 255);
+    background-color: rgba(10, 12, 22, 0.4);
+    border-width: 0;
+    margin: 0;
+    transition-duration: 0.12s;
+}
+.nr-cs__arrow:hover, .nr-cs__arrow:focus { background-color: rgba(84, 232, 255, 0.2); }
+
+.nr-cs__actions { align-items: flex-end; }
+.nr-cs__start {
+    width: 380px;
+    height: 76px;
+    margin: 0;
+    padding: 0 26px;
+    background-color: rgb(236, 64, 140);
+    border-width: 0;
+    border-radius: 0;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    transition-property: background-color, scale;
+    transition-duration: 0.15s;
+}
+.nr-cs__start:hover, .nr-cs__start:focus {
+    background-color: rgb(255, 92, 165);
+    scale: 1.02 1.02;
+}
+.nr-cs__start--pressed { background-color: rgb(255, 255, 255); }
+.nr-cs__start-label {
+    font-size: 22px;
+    -unity-font-style: bold;
+    letter-spacing: 5px;
+    color: rgb(255, 255, 255);
+}
+.nr-cs__start--pressed .nr-cs__start-label { color: rgb(20, 10, 20); }
+.nr-cs__start-key {
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: rgba(255, 255, 255, 0.75);
+}
+.nr-cs__back {
+    width: 160px;
+    height: 34px;
+    margin: 10px 0 0 0;
+    font-size: 13px;
+    letter-spacing: 5px;
+    color: var(--nr-text-dim);
+    background-color: rgba(0, 0, 0, 0);
+    border-width: 0;
+    -unity-text-align: middle-right;
+}
+.nr-cs__back:hover, .nr-cs__back:focus { color: rgb(255, 255, 255); }
+
+.nr-cs__hint {
+    position: absolute;
+    left: 0; right: 0; bottom: 18px;
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: rgba(140, 146, 180, 0.8);
+    -unity-text-align: middle-center;
+}
+
+/* Whole-screen states: UI out during the departure, fade to black at the end. */
+.nr-cs--departing .nr-cs__info,
+.nr-cs--departing .nr-cs__specs,
+.nr-cs--departing .nr-cs__bottom,
+.nr-cs--departing .nr-cs__hint,
+.nr-cs--departing .nr-cs__topbar {
+    opacity: 0;
+    transition-property: opacity;
+    transition-duration: 0.6s;
+}
+.nr-cs__fade {
+    position: absolute;
+    left: 0; right: 0; top: 0; bottom: 0;
+    background-color: rgb(0, 0, 0);
+    opacity: 0;
+    transition-property: opacity;
+    transition-duration: 0.9s;
+}
+.nr-cs__fade--in { opacity: 1; }
+.nr-cs--intro .nr-cs__fade { opacity: 1; transition-duration: 0s; }
