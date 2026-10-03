@@ -127,8 +127,8 @@ Audio during lockdown: 6/6 sirens playing, ambience on the Ambience group, vehic
 
 | Check | Result |
 |---|---|
-| `BoulevardInAlleyOut` ×3 | **Completed** every time (113–118 s), 0 player collisions. Rivals: **0 car contacts, 0 reversals, 0 resets** (before the grid fix, the Terzo reversed once at the start in every run, boxed in behind the player) |
-| `AlleyInExpresswayOut` ×3 | Rivals 0 contacts, 0 reversals. The validation driver still loses the expressway checkpoint race, as designed |
+| `BoulevardInAlleyOut` ×2 (final code) | **Completed** both times (118 s), 0 player collisions. Rivals: **0 car contacts, 0 reversals, 0 resets**. Before the grid fix, three earlier runs completed too, but the Terzo reversed once at the start every time, boxed in behind the player |
+| `AlleyInExpresswayOut` ×1 (final code; ×2 on earlier builds) | Rivals 0 contacts, 0 reversals. The validation driver still loses the expressway checkpoint race, as designed |
 | Player parked in the rivals' lane on W Avenue (2.9, −180) | Both rivals passed at 109–170 km/h: 0 contacts, 0 reversals, 3 yields |
 | Player parked across the apex of the W Ave → N Boulevard right turn (6, 300) | Before path occupancy: the GT3 touched it (1 contact). After: 0 contacts. The GT3 stopped 0.6 m short, reversed once and drove round; the Terzo went round without stopping |
 
