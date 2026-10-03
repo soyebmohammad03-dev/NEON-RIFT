@@ -1,0 +1,57 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: District_TowerFacadeB2
+  m_Shader: {fileID: 4800000, guid: f22d77e3e5b7e4a76a3e37dd3ccebb88, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords:
+  - _ALPHATEST_ON
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 1
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _BaseMap:
+        m_Texture: {fileID: 2800000, guid: 0ecd5db148fcb4564a0fff8b7275d2d9, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _EmissionMap:
+        m_Texture: {fileID: 2800000, guid: 8afe60fa0cfe24562b68c92bd870d712, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _AlphaClip: 1
+    - _BounceHeight: 130
+    - _Cutoff: 0.5
+    - _KitEmission: 0.55
+    - _LitFraction: 0.3
+    - _UplightHeight: 16
+    - _UplightSpacing: 8
+    - _WindowStrength: 1
+    m_Colors:
+    - _AccentWindow: {r: 1.4, g: 0.38, b: 0.85, a: 1}
+    - _BaseColor: {r: 0.62, g: 0.64, b: 0.7, a: 1}
+    - _CityBounce: {r: 0.55, g: 0.45, b: 0.38, a: 1}
+    - _CoolWindow: {r: 0.8, g: 0.92, b: 1.12, a: 1}
+    - _FluoroWindow: {r: 0.92, g: 1.12, b: 1, a: 1}
+    - _GlassColor: {r: 0.018, g: 0.022, b: 0.03, a: 1}
+    - _LobbyColor: {r: 1.8, g: 1.35, b: 0.9, a: 1}
+    - _UplightColor: {r: 1.1, g: 0.8, b: 0.5, a: 1}
+    - _WarmWindow: {r: 1.55, g: 0.98, b: 0.56, a: 1}
+    - _WindowSize: {r: 3.2, g: 3.6, b: 0, a: 0}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1

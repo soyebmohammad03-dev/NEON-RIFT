@@ -651,7 +651,9 @@ namespace NeonRift.EditorTools.District
             RenderSettings.ambientGroundColor = new Color(0.02f, 0.016f, 0.012f);
             RenderSettings.fog = true;
             RenderSettings.fogMode = FogMode.ExponentialSquared;
-            RenderSettings.fogDensity = 0.0017f;
+            // Distance fog only sets the far depth; the ground haze below (GroundHaze) gives the low, layered atmosphere,
+            // so this stays light enough for the skyline to read as a huge city.
+            RenderSettings.fogDensity = 0.0011f;
             RenderSettings.fogColor = fog;
             RenderSettings.defaultReflectionMode = DefaultReflectionMode.Skybox;
             RenderSettings.reflectionIntensity = 0.6f;
@@ -695,6 +697,15 @@ namespace NeonRift.EditorTools.District
                 var grain = p.Add<FilmGrain>(true);
                 grain.type.Override(FilmGrainLookup.Thin1);
                 grain.intensity.Override(0.08f);
+                // Layered atmosphere: clear for the first 40 m, then a light-pollution haze that hugs the streets and
+                // thickens with distance, while tower tops rise out of it.
+                var haze = p.Add<NeonRift.Rendering.GroundHaze>(true);
+                haze.density.Override(0.006f);
+                haze.baseHeight.Override(0f);
+                haze.falloff.Override(22f);
+                haze.startDistance.Override(40f);
+                haze.color.Override(fog * 1.35f);
+                haze.maxOpacity.Override(0.78f);
             });
             var alertProfile = Profile("NightRun_Alert", p =>
             {
@@ -711,6 +722,8 @@ namespace NeonRift.EditorTools.District
                 vignette.color.Override(new Color(0.35f, 0f, 0.06f));
                 p.Add<ChromaticAberration>(true).intensity.Override(0.22f);
                 p.Add<Bloom>(true).intensity.Override(1.15f);
+                // The haze picks up the red of the lockdown beacons and screens.
+                p.Add<NeonRift.Rendering.GroundHaze>(true).color.Override(new Color(0.17f, 0.045f, 0.055f));
             });
 
             Volume Global(string name, VolumeProfile profile, float priority, float weight)
@@ -724,6 +737,8 @@ namespace NeonRift.EditorTools.District
                 v.weight = weight;
                 return v;
             }
+            EnsureHazeFeature($"{RenderingFolder}/PC_Renderer.asset");
+            EnsureHazeFeature($"{RenderingFolder}/Mobile_Renderer.asset");
             Global("PostFX_Night", baseProfile, 0f, 1f);
             var alert = Global("PostFX_Alert", alertProfile, 1f, 0f);
             var lockdown = Global("PostFX_Lockdown", lockdownProfile, 2f, 0f);
@@ -731,6 +746,31 @@ namespace NeonRift.EditorTools.District
             fx.transform.SetParent(c.Security, false);
             fx.AddComponent<SecurityPostEffects>().EditorConfigure(alert, lockdown);
             return (alert, lockdown);
+        }
+
+        /// <summary>Adds the ground haze renderer feature to a URP renderer once (kept as a sub-asset of the renderer).</summary>
+        private static void EnsureHazeFeature(string rendererPath)
+        {
+            var data = AssetDatabase.LoadAssetAtPath<UniversalRendererData>(rendererPath);
+            if (data == null)
+            {
+                Debug.LogWarning($"[NightRun] No renderer at {rendererPath}; ground haze not registered.");
+                return;
+            }
+            var feature = data.rendererFeatures.OfType<NeonRift.Rendering.GroundHazeFeature>().FirstOrDefault();
+            if (feature == null)
+            {
+                feature = ScriptableObject.CreateInstance<NeonRift.Rendering.GroundHazeFeature>();
+                feature.name = "GroundHaze";
+                AssetDatabase.AddObjectToAsset(feature, data);
+                data.rendererFeatures.Add(feature);
+            }
+            feature.EditorConfigure(Shader.Find("Hidden/NeonRift/GroundHaze"));
+            feature.SetActive(true);
+            EditorUtility.SetDirty(feature);
+            data.SetDirty();
+            EditorUtility.SetDirty(data);
+            AssetDatabase.SaveAssets();
         }
 
         private static VolumeProfile Profile(string name, System.Action<VolumeProfile> configure)

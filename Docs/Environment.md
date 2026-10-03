@@ -59,9 +59,66 @@ Measured in the editor at the spawn viewpoint, player plus two rivals (`UnitySta
 
 The new look itself costs almost nothing. The lamp shadows are the expense: each shadowed spot light re-renders the combined block meshes inside its cone. `LightBudget.maxShadowed` is the dial (desktop 2, mobile 0). Tower LODs and splitting the combined block meshes would make lamp shadows cheaper; that is the next performance task.
 
+# Environment look (phase 2: towers, atmosphere)
+
+Fixes the known gaps above: dark tower bodies, flat distance fog and an invisible skyline. Before and after are the same viewpoints, captured in Play Mode with `LookDevShots`. Shot 12 got a new viewpoint, because the old one was inside a tower, so it has no "before".
+
+| Before | After |
+|---|---|
+| ![](Screenshots/Environment2/before/08_aerial_southwest.jpg) | ![](Screenshots/Environment2/after/08_aerial_southwest.jpg) |
+| ![](Screenshots/Environment2/before/11_aerial_spire_towers.jpg) | ![](Screenshots/Environment2/after/11_aerial_spire_towers.jpg) |
+| ![](Screenshots/Environment2/before/09_aerial_skyline_north.jpg) | ![](Screenshots/Environment2/after/09_aerial_skyline_north.jpg) |
+| ![](Screenshots/Environment2/before/07_lowtown.jpg) | ![](Screenshots/Environment2/after/07_lowtown.jpg) |
+| ![](Screenshots/Environment2/before/01_spawn_avenue.jpg) | ![](Screenshots/Environment2/after/01_spawn_avenue.jpg) |
+| — | ![](Screenshots/Environment2/after/12_aerial_avenue_low.jpg) |
+
+### Towers (`NeonRift/TowerFacade`, `TowerDressing`)
+
+The 344 kit towers (Asian Night pack: 10–1,500-triangle boxes with a dark atlas) now use `NeonRift/TowerFacade`. The kit texture still provides bands, fins and crowns, and every vertical face gets a procedural office window grid in **world space**, so it survives static batching:
+
+- floors 3.6 m, bays 3.2 m, split panes; each face has its own seed, lit fraction and office/residential mix;
+- lights come on **by suite** (runs of bays on a floor), with dark floors, the odd fully lit floor and the odd late worker;
+- fluorescent, cool and warm interiors. Colour accents are rare (~1.5 % of residential suites);
+- unlit windows are dark glass with a faint sky reflection, plus a lobby band on the ground floor;
+- up close, ceiling-light gradients, darker desk/partition bands, blinds and light spill onto mullions;
+- architectural uplight scallops near the ground and a warm light-pollution bounce that fades with height;
+- windows are filtered by screen footprint, so distant facades average to a glow instead of shimmering.
+
+`TowerDressing` (generated with the district) raycasts each tower's own mesh to find its real roof edge and flat roof:
+
+| Element | Rule | Count |
+|---|---|---|
+| Crown strips | 0.35 m light band under the parapet on every facade that reaches it: 50 % warm white, 25 % cool white, ~11 % accent (towers > 120 m only), the rest dark | 11,229 × 2 m segments |
+| Crown wash | Additive floodlight gradient 14 m down the facade under each strip, in the strip's colour | same |
+| Rooftop plant | 2–4 AC units, water tanks or lift overruns per flat roof, each with a green/red status LED; door lamps on overruns | 915 |
+| Aviation lights | Blinking red at the highest point of towers over 110 m, plus two roof corners over 180 m (uses the skyline shader's aviation mode, so they stay unfogged) | 245 |
+
+Geometry is merged per 400 m cell and per material (30 cells), so it culls with the camera.
+
+### Atmosphere (`GroundHaze`)
+
+- **Distance fog** is lighter: exp² density 0.0017 → 0.0011, so the far city stays readable.
+- **Ground haze** is new: `NeonRift.Rendering.GroundHaze` (a Volume override) drawn by `GroundHazeFeature` (Render Graph, one full-screen triangle before transparents, reading the depth texture, alpha-blended, no colour copy). It integrates exponential height fog analytically along each view ray:
+  - clear for the first 40 m;
+  - density 0.006/m at street level, falling by e every 22 m of height;
+  - light-pollution colour (fog × 1.35), capped at 78 % opacity so silhouettes never vanish.
+
+  Streets and tower bases dissolve with distance while tower tops rise out of it. The lockdown profile tints the haze red. The feature is registered on both the PC and Mobile renderers.
+- **Skyline clusters removed:** the six Sketchfab skyline clusters (~1.25 km out, 36 k triangles plus shadow casting) changed under 0.2 % of pixels in on/off captures (`04` 0.164 %, `07` 0.011 %, `10` 0.037 %; HUD text and film grain account for most of that). `SkylineBackdrop` carries the far city.
+
+Post-processing (ACES, bloom 1.0/0.38, split toning, SMAA + MSAA, SSAO) was reviewed against the new captures and left as it was. The new window and crown emission sits around 1–2.3 HDR, so with the 1.0 threshold only crowns and the brightest windows bloom.
+
+### Performance (spawn viewpoint, player plus two rivals, `UnityStats`, 2 shadowed lamps)
+
+| | Triangles | SetPass | Draw calls | Shadow casters |
+|---|---|---|---|---|
+| Phase 1 (documented above) | 3.82 M | 177 | 4617 | 776 |
+| Phase 2 | 3.93 M | ~208 | 4837 | 744 |
+
+The extra SetPass calls and draws are the new facade, crown, wash and rooftop materials and the haze pass. Removing the clusters cut shadow casters. LODs are the next task (Phase 6).
+
 ## Known gaps (next phases)
 
-- Seen from above, tower bodies are still very dark masses: the facades need roof and facade-edge lighting (rooftop equipment lights, uplights, facade wash), not more ambient.
-- The Sketchfab skyline clusters at ~1.25 km are almost entirely fogged now. They can probably go (saving triangles) once the backdrop rings are tuned.
-- No height fog: URP's built-in fog is distance-only.
+- ~~Dark tower bodies~~, ~~fogged Sketchfab clusters~~, ~~no height fog~~: fixed in phase 2 (below).
+- Plaza trees on Spire Boulevard are dark cubes on poles; low-rise street-wall roofs are bare.
 - Street furniture and road detail (lane markings, signage, parking, construction) are next on the list.

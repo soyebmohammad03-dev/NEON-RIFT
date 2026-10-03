@@ -138,7 +138,7 @@ namespace NeonRift.EditorTools.District
                 SignalLenses[i] = Lit($"District_Signal{lens[i]}", new Color(0.02f, 0.02f, 0.02f), 0.8f, 0f, emission: lensColours[i % 3]);
         }
 
-        private static Material Material(string name, Shader shader)
+        public static Material Material(string name, Shader shader)
         {
             string path = $"{MaterialFolder}/{name}.mat";
             var m = AssetDatabase.LoadAssetAtPath<Material>(path);
@@ -175,7 +175,7 @@ namespace NeonRift.EditorTools.District
             return m;
         }
 
-        private static Material Glow(string name, Color colour, Texture2D shape, float edgeSoftness)
+        public static Material Glow(string name, Color colour, Texture2D shape, float edgeSoftness)
         {
             var m = Material(name, Shader.Find("NeonRift/AdditiveGlow"));
             m.SetColor("_Color", colour);

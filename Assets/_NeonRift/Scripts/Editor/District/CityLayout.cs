@@ -171,13 +171,13 @@ namespace NeonRift.EditorTools.District
             new("asian_night_b1_003", 100f, -165f, 0f, 0.9f),
         };
 
-        /// <summary>Distant skyline masses beyond the playable city.</summary>
-        public static readonly Hero[] Skyline =
-        {
-            new("night_skyline_cluster", 180f, 1240f, 180f), new("night_skyline_cluster", -980f, 60f, 90f),
-            new("night_skyline_cluster", 1320f, -40f, -90f), new("night_skyline_cluster", 200f, -1260f, 0f),
-            new("night_skyline_cluster", -900f, 1000f, 135f), new("night_skyline_cluster", 1250f, 1050f, -135f),
-        };
+        /// <summary>
+        /// Full building models beyond the playable city. Empty since October 2026: the six Sketchfab skyline clusters that
+        /// stood here (~1.25 km out, 36 k triangles plus shadow casting) changed under 0.2 % of pixels in street and aerial
+        /// A/B captures, which is noise level. <see cref="SkylineBackdrop"/> carries the far city instead. The catalog
+        /// entry (night_skyline_cluster) is kept in case a closer placement is wanted.
+        /// </summary>
+        public static readonly Hero[] Skyline = System.Array.Empty<Hero>();
 
         public static readonly (string id, string name, Rect area, Color colour)[] Districts =
         {

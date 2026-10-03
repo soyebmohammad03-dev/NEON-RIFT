@@ -43,12 +43,15 @@ namespace NeonRift.EditorTools.District
             new("08_aerial_southwest", new Vector3(-520f, 170f, -880f), new Vector3(14f, 38f, 0f), true),
             new("09_aerial_skyline_north", new Vector3(60f, 85f, -640f), new Vector3(5f, 12f, 0f), true),
             new("10_aerial_harbor", new Vector3(900f, 120f, -420f), new Vector3(12f, -58f, 0f), true),
+            new("11_aerial_spire_towers", new Vector3(-150f, 60f, 250f), new Vector3(6f, 50f, 0f), true),
+            new("12_aerial_avenue_low", new Vector3(0f, 45f, -200f), new Vector3(6f, 0f, 0f), true),
         };
 
         private const float SettleSeconds = 3f;
         private const float WriteSeconds = 1.5f;
 
         private static string folder;
+        private static string[] filter;
         private static int index;
         private static double nextTime;
         private static bool captured;
@@ -57,8 +60,12 @@ namespace NeonRift.EditorTools.District
         [MenuItem("Neon Rift/Night Run/Capture Look-Dev Shots (Play Mode)")]
         private static void BeginFromMenu() => Begin("Docs/Screenshots/Environment/latest");
 
-        public static string Begin(string outputFolder)
+        public static string Begin(string outputFolder) => Begin(outputFolder, null);
+
+        /// <summary>Captures only the shots whose name contains one of the comma-separated <paramref name="only"/> terms.</summary>
+        public static string Begin(string outputFolder, string only)
         {
+            filter = string.IsNullOrEmpty(only) ? null : only.Split(',');
             if (!EditorApplication.isPlaying) return "enter Play Mode in the Night Run first";
             if (Object.FindAnyObjectByType<MissionSceneEntry>() == null) return "no MissionSceneEntry in the scene";
             folder = Path.GetFullPath(outputFolder);
@@ -93,6 +100,7 @@ namespace NeonRift.EditorTools.District
             }
 
             index++;
+            while (filter != null && index < Shots.Length && !System.Array.Exists(filter, f => Shots[index].Name.Contains(f))) index++;
             var entry = Object.FindAnyObjectByType<MissionSceneEntry>();
             if (index >= Shots.Length || entry == null)
             {

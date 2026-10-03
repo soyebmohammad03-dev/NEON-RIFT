@@ -99,6 +99,7 @@ namespace NeonRift.EditorTools.District
         private CityLayout.Decomposition layout;
 
         public Transform Root { get; private set; }
+        public TowerDressing Dressing { get; private set; }
         public Dictionary<string, Renderer> SecurityStrips { get; } = new();
         public Dictionary<string, Vector3> BlockCentres { get; } = new();
         /// <summary>Every street/flood lamp light (disabled; the LightBudget switches the nearest on).</summary>
@@ -126,12 +127,14 @@ namespace NeonRift.EditorTools.District
             layout = CityLayout.Decompose();
             Props = new CityProps(kit, rng, environment, Lamps);
             Landmarks = new CityLandmarks(kit, rng, drivable, environment, Lamps, Screens);
+            Dressing = new TowerDressing(kit);
             BuildGround();
             BuildMarkings();
             PlaceHeroes();
             int index = 0;
             foreach (var pair in layout.Blocks.OrderBy(p => p.Value.Min(c => c.Grid.xMin)).ThenBy(p => p.Value.Min(c => c.Grid.yMin)))
                 BuildBlock(pair.Value, index++);
+            Dressing.Emit(Root, environment);
             Props.BuildIntersections(Root, layout.Nodes);
             Landmarks.Build(Root);
             SkylineBackdrop.Build(Root, kit, environment);
@@ -518,6 +521,8 @@ namespace NeonRift.EditorTools.District
                 GameObjectUtility.SetStaticEditorFlags(r.gameObject, StaticEditorFlags.BatchingStatic | StaticEditorFlags.OccluderStatic |
                                                                      StaticEditorFlags.OccludeeStatic | StaticEditorFlags.ReflectionProbeStatic);
             if (!collider) foreach (var c in go.GetComponentsInChildren<Collider>(true)) Object.DestroyImmediate(c);
+            Dressing.ApplyFacade(go);
+            Dressing.Dress(go);
             Towers++;
         }
 
