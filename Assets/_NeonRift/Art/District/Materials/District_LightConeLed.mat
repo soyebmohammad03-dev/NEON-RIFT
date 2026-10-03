@@ -32,6 +32,6 @@ Material:
     - _EdgeSoftness: 0.6
     - _ScrollSpeed: 0
     m_Colors:
-    - _Color: {r: 0.025799999, g: 0.0276, b: 0.03, a: 0.03}
+    - _Color: {r: 0.03, g: 0.026999999, b: 0.0234, a: 0.03}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

@@ -134,6 +134,7 @@ namespace NeonRift.EditorTools.District
                 BuildBlock(pair.Value, index++);
             Props.BuildIntersections(Root, layout.Nodes);
             Landmarks.Build(Root);
+            SkylineBackdrop.Build(Root, kit, environment);
             BuildNavigationSigns();
             BuildReflectionProbes();
         }

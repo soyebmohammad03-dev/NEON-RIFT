@@ -28,7 +28,7 @@ namespace NeonRift.Gameplay
         private readonly int probeMask;
 
         private Vector3 goal;
-        private bool hasGoal, holdAtGoal;
+        private bool holdAtGoal;
         private int index = -1, planVersion = -1;
         private float offset, targetOffset;
         private float probeTimer, obstacleDistance = float.MaxValue, obstacleSpeed;
@@ -58,7 +58,6 @@ namespace NeonRift.Gameplay
         public void SetGoal(Vector3 target, bool hold)
         {
             goal = target;
-            hasGoal = true;
             holdAtGoal = hold;
             AtGoal = false;
             State = Mode.Driving;
@@ -69,7 +68,6 @@ namespace NeonRift.Gameplay
         public void Hold()
         {
             State = Mode.Holding;
-            hasGoal = false;
         }
 
         private void Replan()

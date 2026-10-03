@@ -16,10 +16,12 @@ namespace NeonRift.EditorTools.District
         public const string MeshFolder = "Assets/_NeonRift/Art/District/Meshes";
         public const string PrefabFolder = "Assets/_NeonRift/Prefabs/District";
 
-        public static readonly string[] NeonNames = { "Cyan", "Magenta", "Violet", "Amber", "Lime" };
+        // Neon is the accent, not the light source of the city: two signature colours (cyan, magenta) plus the colours
+        // real streets are full of (warm-white shop strips, amber, red neon), at intensities that bloom only at the core.
+        public static readonly string[] NeonNames = { "Cyan", "Magenta", "WarmWhite", "Amber", "Red" };
         public static readonly Color[] NeonColours =
         {
-            new(0.25f, 2.4f, 3.4f), new(3.4f, 0.35f, 2.6f), new(1.5f, 0.7f, 3.6f), new(3.6f, 1.5f, 0.25f), new(0.7f, 3.2f, 1.1f)
+            new(0.2f, 1.7f, 2.3f), new(2.3f, 0.25f, 1.6f), new(2.3f, 1.9f, 1.45f), new(2.6f, 1.1f, 0.2f), new(2.8f, 0.22f, 0.16f)
         };
 
         public readonly DistrictTextures.Set Textures;
@@ -27,12 +29,19 @@ namespace NeonRift.EditorTools.District
                         Indicator, BarrierWarning, TunnelWall, NightSky, BeaconCyan, BeaconMagenta, Steam, Reflector;
         public Material[] Facades, NeonStrips, Signs, Billboards, Containers;
         public Material Kerb, DarkPlastic, Glass, StreetSign, MarkingYellow, Lantern, LanternWarm, WarningScreen, AviationRed, Holo,
-                        CameraLed, RollerDoor, WallPack, ConcreteDark, Foliage;
+                        CameraLed, RollerDoor, WallPack, ConcreteDark, Foliage, SkylineBackdrop;
         /// <summary>Signal lenses: [0..2] = north–south red/amber/green, [3..5] = east–west red/amber/green.</summary>
         public Material[] SignalLenses;
 
+        /// <summary>Calm-state security strips: a faint line in the kerb, so the lockdown's red wave has something to replace.</summary>
+        public static readonly Color SecurityCalmEmission = new(0.03f, 0.22f, 0.3f);
+
         public enum LampKind { Led, Sodium, Warm }
-        public static readonly Color[] LampColours = { new(0.86f, 0.92f, 1f), new(1f, 0.6f, 0.26f), new(1f, 0.77f, 0.52f) };
+        // LED ≈ 4000 K neutral white, sodium ≈ 2000 K, warm ≈ 3000 K.
+        public static readonly Color[] LampColours = { new(1f, 0.9f, 0.78f), new(1f, 0.6f, 0.26f), new(1f, 0.77f, 0.52f) };
+        /// <summary>Luminous intensity of a street lamp, cd: about 10 lux under the head and a soft pool to ~14 m.</summary>
+        public static readonly float[] LampIntensity = { 620f, 680f, 600f };
+        public const float LampRange = 32f;
         public Material[] LampHeads, LightPools, LightCones;
         public GameObject[] StreetLights;
 
@@ -61,7 +70,7 @@ namespace NeonRift.EditorTools.District
             for (int i = 0; i < Facades.Length; i++)
                 Facades[i] = Lit($"District_Facade{i}", Color.white, 0.55f, 0f, t.FacadeAlbedo[i], metalSmooth: t.FacadeMask[i], emissionMap: t.FacadeEmission[i],
                                  emission: Color.white * (DistrictTextures.FacadeStyles[i] == DistrictTextures.FacadeLook.CurtainWall ? 1.5f : 1.9f));
-            Security = Lit("District_SecurityStrip", Color.black, 0.5f, 0f, emission: new Color(0.15f, 1.3f, 1.8f));
+            Security = Lit("District_SecurityStrip", Color.black, 0.5f, 0f, emission: SecurityCalmEmission);
             Marking = Lit("District_RoadMarking", new Color(0.72f, 0.74f, 0.78f), 0.55f, 0f, emission: new Color(0.12f, 0.12f, 0.14f));
             Metal = Lit("District_Metal", new Color(0.07f, 0.075f, 0.09f), 0.55f, 0.6f);
             Concrete = Lit("District_Concrete", new Color(0.3f, 0.3f, 0.32f), 0.2f, 0f);
@@ -88,6 +97,7 @@ namespace NeonRift.EditorTools.District
             Steam = Glow("District_Steam", new Color(0.09f, 0.07f, 0.12f), t.GlowSoft, 0f);
 
             NightSky = Material("District_NightSky", Shader.Find("NeonRift/NightSky"));
+            SkylineBackdrop = Material("District_SkylineBackdrop", Shader.Find("NeonRift/SkylineBackdrop"));
 
             Kerb = Lit("District_Kerb", new Color(0.28f, 0.28f, 0.3f), 0.3f, 0f, t.PavementAlbedo, t.PavementNormal, 0.4f);
             ConcreteDark = Lit("District_ConcreteDark", new Color(0.13f, 0.13f, 0.14f), 0.25f, 0f, t.PavementAlbedo, t.PavementNormal, 0.5f);
@@ -185,9 +195,11 @@ namespace NeonRift.EditorTools.District
         // ---------------- Meshes ----------------
 
         /// <summary>Saves (or overwrites in place) a generated mesh asset.</summary>
-        public static Mesh SaveMesh(MeshBuilder builder, string name)
+        public static Mesh SaveMesh(MeshBuilder builder, string name) => SaveMesh(builder.ToMesh(name), name);
+
+        /// <summary>Saves (or overwrites in place) a mesh built outside <see cref="MeshBuilder"/>.</summary>
+        public static Mesh SaveMesh(Mesh mesh, string name)
         {
-            var mesh = builder.ToMesh(name);
             string path = $"{MeshFolder}/{name}.asset";
             var existing = AssetDatabase.LoadAssetAtPath<Mesh>(path);
             if (existing != null)
@@ -260,12 +272,20 @@ namespace NeonRift.EditorTools.District
                 light.type = LightType.Spot;
                 light.spotAngle = 125f;
                 light.innerSpotAngle = 55f;
-                light.range = 24f;
-                light.intensity = kind == LampKind.Led ? 150f : 170f;
+                light.range = LampRange;
+                light.intensity = LampIntensity[(int)kind];
                 light.color = LampColours[(int)kind];
-                light.shadows = LightShadows.None;
+                light.shadows = LightShadows.None;   // LightBudget gives the nearest few lamps soft shadows at runtime
+                light.shadowStrength = 0.9f;
+                light.shadowNearPlane = 0.4f;
                 light.renderMode = LightRenderMode.Auto;
                 light.enabled = false;
+                var lightData = lightGo.AddComponent<UnityEngine.Rendering.Universal.UniversalAdditionalLightData>();
+                // The property setter is play-mode only; set the serialized tier (512 px in the shadow atlas).
+                var tier = new SerializedObject(lightData);
+                tier.FindProperty("m_AdditionalLightsShadowResolutionTier").intValue =
+                    UnityEngine.Rendering.Universal.UniversalAdditionalLightData.AdditionalLightsShadowResolutionTierMedium;
+                tier.ApplyModifiedPropertiesWithoutUndo();
                 AddLod(root, 0.012f, p.GetComponent<Renderer>(), h.GetComponent<Renderer>());
                 return SavePrefab(root, root.name);
             }

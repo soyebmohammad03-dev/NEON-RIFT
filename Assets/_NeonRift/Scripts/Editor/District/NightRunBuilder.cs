@@ -615,72 +615,86 @@ namespace NeonRift.EditorTools.District
 
         private static (Volume alert, Volume lockdown) BuildLighting(Context c)
         {
-            // Night grade: the darkness does the work. Low, cool ambient (moonlit sky above, almost nothing from the
-            // ground), a sodium-and-magenta light-pollution band on the horizon and overcast lit from below, so neon,
-            // windows and street lamps carry the image against it. Fog adds depth without washing the streets out.
+            // Night grade: the darkness does the work, but it is a city's darkness. A deep navy zenith, an overcast lit
+            // from below and a low sodium-brown light-pollution band, so towers stand out as silhouettes against a glow
+            // instead of being cut out of black. Fog is the colour of that glow: distant streets and the skyline rings
+            // dissolve into the horizon rather than into a flat purple. Street lamps, shop light and windows carry the
+            // image; neon is the accent.
             var moonRotation = Quaternion.Euler(34f, -35f, 0f);
+            var horizon = new Color(0.036f, 0.032f, 0.038f);
+            var glow = new Color(0.1f, 0.056f, 0.032f);
+            var fog = horizon + glow * 0.8f;
             RenderSettings.skybox = c.Kit.NightSky;
-            c.Kit.NightSky.SetColor("_HorizonColor", new Color(0.075f, 0.04f, 0.075f));
-            c.Kit.NightSky.SetColor("_GlowColor", new Color(0.26f, 0.1f, 0.12f));
-            c.Kit.NightSky.SetColor("_ZenithColor", new Color(0.005f, 0.007f, 0.018f));
-            c.Kit.NightSky.SetFloat("_GlowHeight", 0.14f);
+            c.Kit.NightSky.SetColor("_HorizonColor", horizon);
+            c.Kit.NightSky.SetColor("_GlowColor", glow);
+            c.Kit.NightSky.SetColor("_ZenithColor", new Color(0.004f, 0.006f, 0.014f));
+            c.Kit.NightSky.SetFloat("_GlowHeight", 0.11f);
+            c.Kit.NightSky.SetFloat("_HorizonBlend", 0.3f);
+            c.Kit.NightSky.SetColor("_GroundColor", fog * 0.7f);
             c.Kit.NightSky.SetVector("_MoonDirection", -(moonRotation * Vector3.forward));
-            c.Kit.NightSky.SetColor("_CloudColor", new Color(0.07f, 0.05f, 0.06f));
-            c.Kit.NightSky.SetFloat("_CloudCover", 0.58f);
-            c.Kit.NightSky.SetFloat("_StarDensity", 0.25f);
+            c.Kit.NightSky.SetColor("_MoonColor", new Color(3.2f, 3.3f, 3.6f));
+            c.Kit.NightSky.SetColor("_MoonHaloColor", new Color(0.055f, 0.065f, 0.09f));
+            c.Kit.NightSky.SetFloat("_MoonSize", 0.011f);
+            c.Kit.NightSky.SetColor("_CloudColor", new Color(0.05f, 0.04f, 0.036f));
+            c.Kit.NightSky.SetFloat("_CloudCover", 0.52f);
+            c.Kit.NightSky.SetFloat("_StarDensity", 0.3f);
+            c.Kit.NightSky.SetFloat("_StarBrightness", 0.9f);
+            c.Kit.SkylineBackdrop.SetColor("_HazeColor", fog);
+            c.Kit.SkylineBackdrop.SetColor("_SilhouetteColor", new Color(0.01f, 0.01f, 0.013f));
+            EditorUtility.SetDirty(c.Kit.NightSky);
+            EditorUtility.SetDirty(c.Kit.SkylineBackdrop);
+
+            // Ambient: a little cool light from the sky, warm bounce from lit streets below.
             RenderSettings.ambientMode = AmbientMode.Trilight;
-            RenderSettings.ambientSkyColor = new Color(0.03f, 0.034f, 0.06f);
-            RenderSettings.ambientEquatorColor = new Color(0.035f, 0.026f, 0.032f);
-            RenderSettings.ambientGroundColor = new Color(0.012f, 0.011f, 0.014f);
+            RenderSettings.ambientSkyColor = new Color(0.04f, 0.044f, 0.06f);
+            RenderSettings.ambientEquatorColor = new Color(0.05f, 0.042f, 0.038f);
+            RenderSettings.ambientGroundColor = new Color(0.02f, 0.016f, 0.012f);
             RenderSettings.fog = true;
             RenderSettings.fogMode = FogMode.ExponentialSquared;
-            RenderSettings.fogDensity = 0.0019f;
-            RenderSettings.fogColor = new Color(0.055f, 0.04f, 0.055f);
+            RenderSettings.fogDensity = 0.0017f;
+            RenderSettings.fogColor = fog;
             RenderSettings.defaultReflectionMode = DefaultReflectionMode.Skybox;
-            RenderSettings.reflectionIntensity = 0.45f;
+            RenderSettings.reflectionIntensity = 0.6f;
 
             var moonGo = new GameObject("Moonlight");
             moonGo.transform.SetParent(c.Lighting, false);
             moonGo.transform.rotation = moonRotation;
             var moon = moonGo.AddComponent<Light>();
             moon.type = LightType.Directional;
-            moon.color = new Color(0.62f, 0.7f, 1f);
-            moon.intensity = 0.09f;
+            moon.color = new Color(0.66f, 0.74f, 0.95f);
+            moon.intensity = 0.16f;
             moon.shadows = LightShadows.Soft;
             moon.shadowStrength = 0.85f;
             RenderSettings.sun = moon;
 
             var baseProfile = Profile("NightRun_Base", p =>
             {
-                // Restrained bloom: only genuinely bright sources (neon, lamp heads, signals) bloom.
+                // Restrained bloom: only genuinely bright sources (lamp heads, neon cores, signals, headlights) bloom.
                 var bloom = p.Add<Bloom>(true);
-                bloom.threshold.Override(1.05f);
-                bloom.intensity.Override(0.55f);
-                bloom.scatter.Override(0.68f);
+                bloom.threshold.Override(1f);
+                bloom.intensity.Override(0.38f);
+                bloom.scatter.Override(0.62f);
                 bloom.highQualityFiltering.Override(true);
                 p.Add<Tonemapping>(true).mode.Override(TonemappingMode.ACES);
+                // Fixed exposure (URP has no eye adaptation): tuned so a lamp pool reads mid-grey and shadows stay deep.
                 var colour = p.Add<ColorAdjustments>(true);
-                colour.postExposure.Override(0.55f);
-                colour.contrast.Override(16f);
-                colour.saturation.Override(4f);
-                // Cool shadows, warm highlights: sodium and shop light read warm against a blue-black night.
+                colour.postExposure.Override(0.45f);
+                colour.contrast.Override(12f);
+                colour.saturation.Override(-6f);
+                // Neutral-cool shadows, warm highlights: sodium and shop light read warm against the night.
                 var split = p.Add<SplitToning>(true);
-                split.shadows.Override(new Color(0.36f, 0.44f, 0.55f));
-                split.highlights.Override(new Color(0.62f, 0.52f, 0.42f));
-                split.balance.Override(-15f);
+                split.shadows.Override(new Color(0.44f, 0.47f, 0.52f));
+                split.highlights.Override(new Color(0.58f, 0.53f, 0.47f));
+                split.balance.Override(-10f);
                 var lgg = p.Add<LiftGammaGain>(true);
-                lgg.lift.Override(new Vector4(0.98f, 0.99f, 1.02f, -0.02f));
+                lgg.lift.Override(new Vector4(0.99f, 1f, 1.02f, -0.015f));
                 lgg.gamma.Override(new Vector4(1f, 1f, 1f, 0.02f));
                 var vignette = p.Add<Vignette>(true);
-                vignette.intensity.Override(0.26f);
+                vignette.intensity.Override(0.22f);
                 vignette.smoothness.Override(0.45f);
-                p.Add<ChromaticAberration>(true).intensity.Override(0.035f);
                 var grain = p.Add<FilmGrain>(true);
                 grain.type.Override(FilmGrainLookup.Thin1);
-                grain.intensity.Override(0.1f);
-                var wb = p.Add<WhiteBalance>(true);
-                wb.temperature.Override(-5f);
-                wb.tint.Override(3f);
+                grain.intensity.Override(0.08f);
             });
             var alertProfile = Profile("NightRun_Alert", p =>
             {
@@ -754,7 +768,6 @@ namespace NeonRift.EditorTools.District
             // Real-time lights + baked reflection probes for now; baked GI comes with the mobile lighting pass.
             settings.bakedGI = false;
             settings.realtimeGI = false;
-            settings.autoGenerate = false;
             EditorUtility.SetDirty(settings);
             return settings;
         }
@@ -790,14 +803,14 @@ namespace NeonRift.EditorTools.District
             camGo.transform.SetPositionAndRotation(SpawnPosition + new Vector3(0f, 2f, -6f), Quaternion.identity);
             var camera = camGo.AddComponent<Camera>();
             camera.nearClipPlane = 0.1f;
-            camera.farClipPlane = 2600f;
+            camera.farClipPlane = SkylineBackdrop.RequiredFarClip;
             camera.fieldOfView = 60f;
             camGo.AddComponent<AudioListener>();
             camGo.AddComponent<CinemachineBrain>();
             var data = camGo.AddComponent<UniversalAdditionalCameraData>();
             data.renderPostProcessing = true;
             data.antialiasing = AntialiasingMode.SubpixelMorphologicalAntiAliasing;
-            data.antialiasingQuality = AntialiasingQuality.Medium;
+            data.antialiasingQuality = AntialiasingQuality.High;
             data.stopNaN = true;
             data.dithering = true;
 
@@ -805,7 +818,7 @@ namespace NeonRift.EditorTools.District
             followGo.transform.SetParent(rig.transform, false);
             var cm = followGo.AddComponent<CinemachineCamera>();
             cm.Lens.NearClipPlane = 0.1f;
-            cm.Lens.FarClipPlane = 2600f;
+            cm.Lens.FarClipPlane = SkylineBackdrop.RequiredFarClip;
             cm.Lens.FieldOfView = 60f;
             var chase = followGo.AddComponent<VehicleChaseCamera>();
             Configure(chase, so =>

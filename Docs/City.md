@@ -47,8 +47,10 @@ Used by: the HUD route and minimap, the location readout (street + district), th
 
 ## Lighting
 
-- **Night grade:** low cool ambient, 0.09 moon (soft shadows to 90 m), overcast sky lit from below by the city, sodium/magenta light-pollution band, exp² fog. HDR grading, ACES, bloom threshold 1.05 / intensity 0.55, split toning (cool shadows, warm highlights), SSAO, 4× MSAA + SMAA.
-- **Lamps:** 787 street and flood lamps, each with a disabled spot light. `LightBudget` keeps the 56 nearest (front-weighted) on and fades them. Every lamp also has an emissive head, a ground pool and a haze cone, so distant streets read without lights.
+The night look (sky, fog, skyline rings, lamp levels, Volume grade) and its before/after shots are documented in [Environment.md](Environment.md). Summary:
+
+- **Night grade:** cool sky ambient with warm street bounce, 0.16 moon (soft shadows to 90 m), navy sky with a low sodium-brown light-pollution band, exp² fog in the colour of that glow, three skyline rings beyond the city. HDR grading, ACES, bloom threshold 1.0 / intensity 0.38, split toning, SSAO, 4× MSAA + SMAA High.
+- **Lamps:** 787 street and flood lamps (600–680 cd), each with a disabled spot light. `LightBudget` keeps the 56 nearest (front-weighted) on and fades them, and gives the 2 nearest in front soft shadows. Every lamp also has an emissive head, a ground pool and a haze cone, so distant streets read without lights.
 - **Cars:** `VehicleLights` gives every car headlights and a brake/reverse tail light; the player's left headlight casts shadows.
 - **Reflections:** 62 baked box probes along the arterials and Sector 7 streets (128 px in Sector 7/Spire, 64 px elsewhere).
 

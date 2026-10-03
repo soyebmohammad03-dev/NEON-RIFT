@@ -1,5 +1,5 @@
-// Night sky for the city: zenith-to-horizon gradient, a warm light-pollution band, a slow overcast layer lit from
-// below by the city, a moon with a soft halo (direction from _MoonDirection, set by the district builder from the
+// Night sky for the city: zenith-to-horizon gradient, a warm light-pollution band, a slow two-scale overcast lit from
+// below by the city (with moonlit thin edges), a moon with a soft halo (direction from _MoonDirection, set by the district builder from the
 // moonlight), and sparse stars that only show through gaps in the cloud. Procedural (no textures), URP skybox.
 Shader "NeonRift/NightSky"
 {
@@ -83,7 +83,8 @@ Shader "NeonRift/NightSky"
 
                 // Overcast layer: project onto a plane above the city, drift slowly.
                 float2 uv = d.xz / max(h + 0.12, 0.05) * 1.6 + _Time.y * _CloudSpeed * float2(1.0, 0.35);
-                float n = Fbm(uv);
+                // Two scales: broad weather banks modulate the finer overcast, so the sky has structure, not uniform noise.
+                float n = Fbm(uv) * 0.7 + Fbm(uv * 0.23 + 5.3) * 0.3;
                 float cover = saturate((n - (1.0 - _CloudCover)) * 2.4);
                 cover *= saturate(h * 6.0 + 0.2);
                 // Clouds glow with the city below: brighter and warmer near the horizon, faint overhead.
@@ -95,6 +96,8 @@ Shader "NeonRift/NightSky"
                 float disc = smoothstep(1.0 - _MoonSize, 1.0 - _MoonSize * 0.7, cosAngle);
                 half3 halo = _MoonHaloColor.rgb * pow(saturate(cosAngle), 64.0) + _MoonHaloColor.rgb * 0.4 * pow(saturate(cosAngle), 8.0);
                 cloud += halo * 2.0;
+                // Thin cloud edges near the moon are lit through (silver lining); thick cores stay dark.
+                cloud += _MoonHaloColor.rgb * 3.0 * pow(saturate(cosAngle), 24.0) * saturate(1.0 - cover) * 2.0;
 
                 // Stars: one candidate per cell of a direction grid, hidden by the hazy horizon and the clouds.
                 float3 cell = floor(d * 220.0);

@@ -61,7 +61,7 @@ Assets/
 Docs/                   architecture, decisions, conventions, city, mission, physics, audio
 ```
 
-See [Docs/Architecture.md](Docs/Architecture.md), [Docs/Decisions.md](Docs/Decisions.md) and [Docs/Conventions.md](Docs/Conventions.md).
+Night look and before/after shots: [Docs/Environment.md](Docs/Environment.md). See [Docs/Architecture.md](Docs/Architecture.md), [Docs/Decisions.md](Docs/Decisions.md) and [Docs/Conventions.md](Docs/Conventions.md).
 
 ## Credits and licences
 

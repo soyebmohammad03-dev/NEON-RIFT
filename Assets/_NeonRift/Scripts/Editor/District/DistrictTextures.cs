@@ -134,13 +134,16 @@ namespace NeonRift.EditorTools.District
                     float grain = Fbm(u, v, 96, 2, 11);
                     float stones = Hash(x, y, 5) > 0.99f ? 0.35f : 0f;
                     float patch = Fbm(u, v, 4, 4, 23);
-                    // Puddles: low-frequency blobs over a threshold, soft edges.
-                    float puddle = Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(0.6f, 0.66f, Fbm(u, v, 3, 4, 41)));
+                    // After rain: puddles (low-frequency blobs over a threshold, soft edges) inside damp patches.
+                    float puddle = Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(0.56f, 0.63f, Fbm(u, v, 3, 4, 41)));
+                    float damp = Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(0.4f, 0.6f, Fbm(u, v, 5, 3, 57)));
                     float tone = 0.085f + 0.035f * patch + 0.025f * grain + 0.04f * stones;
-                    tone *= Mathf.Lerp(1f, 0.45f, puddle);
-                    a[y * n + x] = new Color(tone * 0.95f, tone * 0.97f, tone * 1.05f, 1f);
-                    // Damp asphalt is fairly rough (it must not mirror the sky at grazing angles); puddles are glassy.
-                    float smooth = Mathf.Lerp(0.3f + 0.12f * patch - 0.08f * grain, 0.94f, puddle);
+                    tone *= Mathf.Lerp(1f, 0.72f, damp) * Mathf.Lerp(1f, 0.45f, puddle);
+                    a[y * n + x] = new Color(tone * 0.97f, tone * 0.98f, tone * 1.02f, 1f);
+                    // Damp asphalt stays fairly rough (it must not mirror the sky at grazing angles), wet patches catch
+                    // lamp and sign highlights as streaks, and puddles are glassy.
+                    float smooth = Mathf.Lerp(0.34f + 0.1f * patch - 0.08f * grain, 0.62f, damp * (1f - grain * 0.5f));
+                    smooth = Mathf.Lerp(smooth, 0.94f, puddle);
                     m[y * n + x] = new Color(0f, 1f, 0f, smooth);
                     height[y * n + x] = (grain * 0.6f + stones * 0.5f) * (1f - puddle);
                 }
@@ -226,8 +229,8 @@ namespace NeonRift.EditorTools.District
                     {
                         FacadeLook.CurtainWall => cool[(int)(floorLit * 10) % cool.Length],
                         FacadeLook.Industrial => new Color(1f, 0.62f, 0.28f),
-                        FacadeLook.Residential => pick < 0.75f ? warm[(int)(pick * 100) % warm.Length] : pick < 0.93f ? cool[0] : neon[(int)(pick * 100) % neon.Length],
-                        _ => pick < 0.5f ? warm[(int)(pick * 100) % warm.Length] : pick < 0.88f ? cool[(int)(pick * 100) % cool.Length] : neon[(int)(pick * 100) % neon.Length]
+                        FacadeLook.Residential => pick < 0.78f ? warm[(int)(pick * 100) % warm.Length] : pick < 0.97f ? cool[0] : neon[(int)(pick * 100) % neon.Length],
+                        _ => pick < 0.6f ? warm[(int)(pick * 100) % warm.Length] : pick < 0.95f ? cool[(int)(pick * 100) % cool.Length] : neon[(int)(pick * 100) % neon.Length]
                     };
                     float brightness = (0.3f + 0.7f * Hash(cx, cy, 300 + variant)) * (officeFloor ? 0.8f : 1f);
                     float blinds = Hash(cx, cy, 400 + variant);
@@ -355,8 +358,9 @@ namespace NeonRift.EditorTools.District
             int bay = w / 4;
             var a = new Color[w * h];
             var e = new Color[w * h];
-            Color[] interiors = { new(1f, 0.72f, 0.45f), new(0.45f, 0.9f, 1f), new(1f, 0.45f, 0.85f), new(0.75f, 0.6f, 1f) };
-            Color[] bands = { new(0.2f, 0.9f, 1f), new(1f, 0.2f, 0.7f), new(1f, 0.6f, 0.15f), new(0.55f, 0.3f, 1f) };
+            // Shops are lit like shops (warm white, fluorescent, halogen); colour lives in the sign bands.
+            Color[] interiors = { new(1f, 0.74f, 0.48f), new(0.82f, 0.93f, 1f), new(1f, 0.86f, 0.66f), new(0.95f, 0.9f, 0.8f) };
+            Color[] bands = { new(0.2f, 0.9f, 1f), new(1f, 0.18f, 0.32f), new(1f, 0.6f, 0.15f), new(1f, 0.9f, 0.75f) };
             for (int b = 0; b < 4; b++)
             {
                 bool shutter = b == 2;

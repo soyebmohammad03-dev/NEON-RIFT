@@ -188,8 +188,12 @@ namespace NeonRift.EditorTools.Audio
             return (AudioMixer)controller;
         }
 
+        // The mixer controller types are internal to the editor and their assembly moved between Unity versions, so
+        // they are looked up by name across the loaded assemblies (editor-only, run on demand).
+#pragma warning disable UAC0005
         private static Type FindType(string name) =>
             AppDomain.CurrentDomain.GetAssemblies().Select(a => a.GetType(name)).FirstOrDefault(t => t != null)
             ?? throw new InvalidOperationException($"Editor type {name} not found (Unity version change?).");
+#pragma warning restore UAC0005
     }
 }
