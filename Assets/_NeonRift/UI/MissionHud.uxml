@@ -71,11 +71,18 @@
                     <ui:Label text="KM/H" class="nr-speedo__unit" picking-mode="Ignore" />
                 </ui:VisualElement>
             </ui:VisualElement>
-            <ui:VisualElement class="nr-speedo__rpm" picking-mode="Ignore">
-                <ui:VisualElement name="rpm-fill" class="nr-speedo__rpm-fill" picking-mode="Ignore" />
+            <ui:VisualElement class="nr-speedo__rpm-row" picking-mode="Ignore">
+                <ui:VisualElement class="nr-speedo__rpm" picking-mode="Ignore">
+                    <ui:VisualElement name="rpm-fill" class="nr-speedo__rpm-fill" picking-mode="Ignore" />
+                    <ui:VisualElement name="rpm-ticks" class="nr-speedo__rpm-ticks" picking-mode="Ignore" />
+                </ui:VisualElement>
+                <ui:VisualElement name="shift-light" class="nr-speedo__shift" picking-mode="Ignore" />
             </ui:VisualElement>
             <ui:Label name="vehicle-name" class="nr-speedo__vehicle" picking-mode="Ignore" />
         </ui:VisualElement>
+
+        <ui:VisualElement name="letterbox-top" class="nr-letterbox nr-letterbox--top" picking-mode="Ignore" />
+        <ui:VisualElement name="letterbox-bottom" class="nr-letterbox nr-letterbox--bottom" picking-mode="Ignore" />
 
         <ui:VisualElement name="results" class="nr-results nr-hidden">
             <ui:VisualElement class="nr-results__panel">

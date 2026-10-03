@@ -100,6 +100,7 @@ namespace NeonRift.Gameplay
             world.ObjectiveStarted += OnObjectiveStarted;
             player.Car = world.Player;
             if (player.Car != null && !traffic.Contains(player.Car)) traffic.Add(player.Car);
+            foreach (var r in rivals) r.Driver.PlayerCar = player.Car;
             player.FinishTime = -1f;
             foreach (var r in rivals) { r.FinishTime = -1f; r.Driver.Hold(); }
         }

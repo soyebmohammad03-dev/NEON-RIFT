@@ -21,9 +21,13 @@
     left: 56px;
     top: 48px;
     max-width: 640px;
-    padding-left: 18px;
+    padding: 10px 18px 12px 18px;
     border-left-width: 3px;
     border-color: var(--nr-cyan);
+    /* Soft backing: keeps the text readable over lit facades without boxing the HUD in. */
+    background-color: rgba(4, 7, 12, 0.42);
+    border-top-right-radius: 6px;
+    border-bottom-right-radius: 6px;
     transition-property: opacity, translate;
     transition-duration: 0.35s;
 }
@@ -324,6 +328,9 @@
     right: 56px;
     bottom: 44px;
     align-items: flex-end;
+    padding: 6px 14px 10px 18px;
+    background-color: rgba(4, 7, 12, 0.38);
+    border-radius: 8px;
 }
 
 .nr-speedo__row { flex-direction: row; align-items: flex-end; }
@@ -352,10 +359,41 @@
 }
 
 .nr-speedo__rpm {
-    width: 240px;
-    height: 4px;
+    width: 260px;
+    height: 9px;
+    margin-top: 4px;
     background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 2px;
+    overflow: hidden;
 }
+
+/* Segment gaps drawn over the fill: 12 segments, the last two are the redline zone. */
+.nr-speedo__rpm-ticks {
+    position: absolute;
+    left: 0; top: 0; right: 0; bottom: 0;
+    flex-direction: row;
+}
+
+.nr-speedo__rpm-tick {
+    flex-grow: 1;
+    border-right-width: 2px;
+    border-color: rgba(4, 7, 12, 0.9);
+}
+
+.nr-speedo__rpm-tick--red { background-color: rgba(255, 50, 90, 0.18); }
+
+.nr-speedo__shift {
+    width: 10px;
+    height: 10px;
+    border-radius: 5px;
+    margin-left: 8px;
+    margin-bottom: 1px;
+    background-color: rgba(255, 255, 255, 0.08);
+}
+
+.nr-speedo__shift--on { background-color: rgb(255, 60, 100); }
+
+.nr-speedo__rpm-row { flex-direction: row; align-items: center; }
 
 .nr-speedo__rpm-fill {
     height: 100%;
@@ -429,12 +467,39 @@
 .nr-results__buttons .nr-button { min-width: 220px; }
 
 /* ---------------- Race standings (top right) ---------------- */
+/* Letterbox bars for cinematic beats (the theft). */
+.nr-letterbox {
+    position: absolute;
+    left: 0; right: 0;
+    height: 0;
+    background-color: rgb(0, 0, 0);
+    transition-property: height;
+    transition-duration: 0.45s;
+    transition-timing-function: ease-in-out-sine;
+}
+
+.nr-letterbox--top { top: 0; }
+.nr-letterbox--bottom { bottom: 0; }
+.nr-letterbox--on { height: 10%; }
+
+/* During a cinematic beat the driving HUD steps back; banner, toasts and the trace timer stay. */
+.nr-hud--cinematic .nr-objective,
+.nr-hud--cinematic .nr-race,
+.nr-hud--cinematic .nr-speedo,
+.nr-hud--cinematic .nr-nav,
+.nr-hud--cinematic .nr-waypoint {
+    opacity: 0;
+}
+
 .nr-race {
     position: absolute;
     right: 56px;
     top: 40px;
     min-width: 230px;
     align-items: flex-end;
+    padding: 8px 14px 10px 14px;
+    background-color: rgba(4, 7, 12, 0.38);
+    border-radius: 6px;
 }
 
 .nr-race__header {

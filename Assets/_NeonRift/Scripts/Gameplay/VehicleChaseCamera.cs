@@ -59,6 +59,20 @@ namespace NeonRift.Gameplay
         [SerializeField, Range(0.05f, 1f)] private float collisionRadius = 0.25f;
         [SerializeField, Min(0.5f)] private float minDistance = 1.6f;
 
+        [Header("Cornering")]
+        [Tooltip("Camera roll into a corner per g of lateral acceleration, degrees (subtle: it reads as weight, not tilt).")]
+        [SerializeField, Range(0f, 4f)] private float rollPerG = 1.6f;
+        [SerializeField, Range(0f, 6f)] private float maxRoll = 3f;
+        [SerializeField, Range(0.02f, 1f)] private float rollSmoothTime = 0.3f;
+
+        [Header("Cinematic beat")]
+        [Tooltip("How far round from behind the car the camera swings to frame car and subject, degrees.")]
+        [SerializeField, Range(0f, 120f)] private float beatSwing = 55f;
+        [SerializeField, Min(0f)] private float beatRise = 3.4f;
+        [SerializeField, Min(0f)] private float beatPullBack = 5f;
+        [Tooltip("Blend in / out time of a beat, unscaled s.")]
+        [SerializeField, Range(0.05f, 2f)] private float beatBlend = 0.5f;
+
         [Header("Shake and events")]
         [Tooltip("Shake per unit of collision impulse / car mass (m/s of velocity change).")]
         [SerializeField, Range(0f, 0.2f)] private float impactShake = 0.05f;
@@ -75,6 +89,9 @@ namespace NeonRift.Gameplay
         private float followY, followYVelocity;
         private float lag, lagVelocity;
         private float fieldOfView, fieldOfViewVelocity;
+        private float roll, rollVelocity;
+        private float beatStart = -10f, beatEnd = -10f;
+        private Vector3 beatSubject;
 
         public VehicleController Target => target;
 
@@ -110,6 +127,28 @@ namespace NeonRift.Gameplay
             focusWeight = weight;
         }
 
+        /// <summary>
+        /// A short cinematic beat: the camera swings wide and high so the car and <paramref name="subject"/> share the frame,
+        /// then blends back to the chase. Timed on unscaled time, so it works under slow motion.
+        /// </summary>
+        public void CinematicBeat(Vector3 subject, float seconds)
+        {
+            beatSubject = subject;
+            beatStart = Time.unscaledTime;
+            beatEnd = beatStart + Mathf.Max(seconds, beatBlend * 2f);
+        }
+
+        public bool InBeat => Time.unscaledTime < beatEnd;
+
+        private float BeatWeight()
+        {
+            float now = Time.unscaledTime;
+            if (now >= beatEnd || now < beatStart) return 0f;
+            float w = Mathf.Min((now - beatStart) / beatBlend, (beatEnd - now) / beatBlend);
+            w = Mathf.Clamp01(w);
+            return w * w * (3f - 2f * w);
+        }
+
         /// <summary>Jumps straight to the resting pose (after spawn or recovery).</summary>
         public void Snap()
         {
@@ -117,7 +156,7 @@ namespace NeonRift.Gameplay
             var t = target.transform;
             yaw = FlatYaw(t.forward, yaw);
             followY = t.position.y;
-            yawVelocity = followYVelocity = lag = lagVelocity = fieldOfViewVelocity = 0f;
+            yawVelocity = followYVelocity = lag = lagVelocity = fieldOfViewVelocity = roll = rollVelocity = 0f;
             fieldOfView = baseFieldOfView;
             UpdatePose(0f);
         }
@@ -151,6 +190,9 @@ namespace NeonRift.Gameplay
                 followY = heightSmoothTime > 0f ? Mathf.SmoothDamp(followY, t.position.y, ref followYVelocity, heightSmoothTime, Mathf.Infinity, dt) : t.position.y;
                 lag = Mathf.SmoothDamp(lag, telemetry.LongitudinalG * accelerationLag, ref lagVelocity, accelerationLagSmoothTime, Mathf.Infinity, dt);
                 fieldOfView = Mathf.SmoothDamp(fieldOfView, baseFieldOfView + speedFieldOfView * n * n, ref fieldOfViewVelocity, fieldOfViewSmoothTime, Mathf.Infinity, dt);
+                // Lean into the corner: positive lateral g (turning right) rolls the horizon a touch.
+                float targetRoll = Mathf.Clamp(-telemetry.LateralG * rollPerG, -maxRoll, maxRoll) * Mathf.Clamp01(speed / 8f);
+                roll = Mathf.SmoothDamp(roll, targetRoll, ref rollVelocity, rollSmoothTime, Mathf.Infinity, dt);
             }
 
             Vector3 pivot = new Vector3(t.position.x, followY, t.position.z);
@@ -176,6 +218,21 @@ namespace NeonRift.Gameplay
                 Vector3 toFocus = (focusPoint - aimOrigin).normalized * Vector3.Distance(lookAt, position);
                 lookAt = Vector3.Lerp(lookAt, aimOrigin + toFocus, w);
             }
+            float beat = BeatWeight();
+            if (beat > 0f)
+            {
+                // Stand off on the far side of the car from the subject, swung round and raised, aiming between them.
+                Vector3 away = Vector3.ProjectOnPlane(pivot - beatSubject, Vector3.up);
+                if (away.sqrMagnitude < 1f) away = -(Quaternion.Euler(0f, yaw, 0f) * Vector3.forward);
+                away = Quaternion.Euler(0f, beatSwing, 0f) * away.normalized;
+                Vector3 beatPosition = aimOrigin + away * (distance + beatPullBack) + Vector3.up * (height + beatRise);
+                Vector3 toBeat = beatPosition - aimOrigin;
+                if (scene.SphereCast(aimOrigin, collisionRadius, toBeat.normalized, out var beatHit, toBeat.magnitude, obstacleLayers, QueryTriggerInteraction.Ignore))
+                    beatPosition = aimOrigin + toBeat.normalized * Mathf.Max(minDistance, beatHit.distance);
+                Vector3 beatLook = Vector3.Lerp(aimOrigin, beatSubject, 0.4f);
+                position = Vector3.Lerp(position, beatPosition, beat);
+                lookAt = Vector3.Lerp(lookAt, beatLook, beat);
+            }
             if (dt > 0f)
             {
                 shake = Mathf.MoveTowards(shake, 0f, shake * shakeDecay * dt + 0.02f * dt);
@@ -187,7 +244,7 @@ namespace NeonRift.Gameplay
                     position += Quaternion.Euler(0f, yaw, 0f) * jitter;
                 }
             }
-            transform.SetPositionAndRotation(position, Quaternion.LookRotation(lookAt - position, Vector3.up));
+            transform.SetPositionAndRotation(position, Quaternion.LookRotation(lookAt - position, Vector3.up) * Quaternion.Euler(0f, 0f, roll * (1f - beat)));
             if (cinemachineCamera != null) cinemachineCamera.Lens.FieldOfView = fieldOfView;
         }
 

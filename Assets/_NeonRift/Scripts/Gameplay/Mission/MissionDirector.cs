@@ -30,6 +30,12 @@ namespace NeonRift.Gameplay
         [SerializeField] private CityNavigation navigation;
         [Tooltip("Gameplay camera, for shake and framing on mission beats. Optional.")]
         [SerializeField] private VehicleChaseCamera chaseCamera;
+        [Header("Cinematic beat (the theft)")]
+        [Tooltip("World event that triggers the beat. Empty disables it.")]
+        [SerializeField] private string beatEvent = "core.breached";
+        [SerializeField, Min(0.5f)] private float beatSeconds = 2.6f;
+        [Tooltip("Time scale at the height of the beat (1 = no slow motion).")]
+        [SerializeField, Range(0.2f, 1f)] private float beatTimeScale = 0.45f;
         [Tooltip("Rival crews (standings on the HUD, position in the results). Optional.")]
         [SerializeField] private RivalDirector rivals;
         [Tooltip("How often the HUD route to the objective is re-planned, s.")]
@@ -105,6 +111,7 @@ namespace NeonRift.Gameplay
 
         public void End()
         {
+            if (beatEndsAt >= 0f) EndBeat();
             if (Progress == null) return;
             Progress.ObjectiveStarted -= OnObjectiveStarted;
             Progress.ObjectiveCompleted -= OnObjectiveCompleted;
@@ -167,6 +174,7 @@ namespace NeonRift.Gameplay
         {
             if (Progress == null) return;
             float dt = Time.deltaTime;
+            UpdateBeat();
             Progress.Tick(dt);
             RunAnnouncements();
             if (Progress.Phase == MissionPhase.Running) UpdateInteraction(dt);
@@ -298,10 +306,52 @@ namespace NeonRift.Gameplay
                       (phase == MissionPhase.Failed ? $" — {Progress.FailReason}" : string.Empty));
         }
 
+        private float beatEndsAt = -1f;
+        private bool slowMotion;
+
         private void OnWorldEvent(string eventId)
         {
+            if (!string.IsNullOrEmpty(beatEvent) && eventId == beatEvent) StartBeat();
             foreach (var a in Progress.Definition.Announcements)
                 if (a.eventId == eventId) pending.Add((Time.time + a.delay, a));
+        }
+
+        /// <summary>The theft beat: wide camera on car and core, letterbox, brief slow motion (all on unscaled time).</summary>
+        private void StartBeat()
+        {
+            Vector3 subject = alertOrigin != null ? alertOrigin.position : World.AlertOrigin;
+            if (chaseCamera != null) chaseCamera.CinematicBeat(subject + Vector3.up * 4f, beatSeconds);
+            if (hud != null) hud.SetLetterbox(true);
+            beatEndsAt = Time.unscaledTime + beatSeconds;
+            slowMotion = beatTimeScale < 0.999f;
+            Debug.Log($"[Mission] cinematic beat '{beatEvent}' for {beatSeconds:0.0}s at time scale {beatTimeScale:0.00}");
+        }
+
+        private void UpdateBeat()
+        {
+            if (beatEndsAt < 0f) return;
+            float left = beatEndsAt - Time.unscaledTime;
+            if (left <= 0f)
+            {
+                EndBeat();
+                return;
+            }
+            if (slowMotion)
+            {
+                // Ease into slow motion over 0.3 s and back out over the last 0.6 s.
+                float elapsed = beatSeconds - left;
+                float w = Mathf.Clamp01(Mathf.Min(elapsed / 0.3f, left / 0.6f));
+                Time.timeScale = Mathf.Lerp(1f, beatTimeScale, w);
+            }
+            if (left < 0.6f && hud != null) hud.SetLetterbox(false);
+        }
+
+        private void EndBeat()
+        {
+            beatEndsAt = -1f;
+            if (slowMotion) Time.timeScale = 1f;
+            slowMotion = false;
+            if (hud != null) hud.SetLetterbox(false);
         }
 
         private void OnAnnounced(string text, MessageTone tone)

@@ -79,6 +79,8 @@ namespace NeonRift.Gameplay
             $"v {obstacleSpeed:0.0} stuck {stuckTimer:0.0} blocked {blockedTimer:0.0} yield {(Time.time < yieldUntil ? yieldSpeed.ToString("0.0") : "-")} in {vehicle.LastInput.Throttle:0.0}/{vehicle.LastInput.Brake:0.0}/{vehicle.LastInput.Steer:0.0}";
         /// <summary>Every car on the road this driver should respect (player and rivals; its own car is skipped).</summary>
         public IReadOnlyList<VehicleController> Traffic { get; set; }
+        /// <summary>The player's car: rivals give way to it on crossing courses whoever has the right of way.</summary>
+        public VehicleController PlayerCar { get; set; }
 
         public RacerDriver(VehicleController vehicle, RacerProfile profile, CityNavigation navigation)
         {
@@ -238,6 +240,13 @@ namespace NeonRift.Gameplay
             bool trying = vehicle.LastInput.Throttle > 0.3f || blockedTimer > 3f;
             stuckTimer = trying && Mathf.Abs(forwardSpeed) < 1f ? stuckTimer + dt : Mathf.Max(0f, stuckTimer - dt * 2f);
             if (stuckTimer < profile.StuckSeconds) return false;
+            if (carBehind)
+            {
+                // Something is (or is about to be) behind us: hold still rather than back into it, and try again shortly.
+                stuckTimer = profile.StuckSeconds * 0.5f;
+                input = new DrivingInput { Handbrake = true };
+                return true;
+            }
             stuckTimer = 0f;
             if (++reverses > profile.ReversesBeforeReset)
             {
@@ -323,14 +332,24 @@ namespace NeonRift.Gameplay
                     }
                     else if (own.z > -7.5f) carBehind = true;
                 }
+                // Reversing blind into the road is the dangerous move: block it if any car is, or within a second will be,
+                // in a 6 m x 10 m box behind us (cars crossing behind a car park entrance, for example).
+                Vector3 soon = Quaternion.Inverse(rotation) * (r + (v - velocity) * 1f);
+                if ((Mathf.Abs(own.x) < 3f && own.z < 1f && own.z > -10f) || (Mathf.Abs(soon.x) < 3f && soon.z < 1f && soon.z > -10f))
+                    carBehind = true;
 
-                // Closest approach within 1.6 s: if it is a hit and the other car is ahead of us, give way.
+                // Closest approach within our stopping horizon: give way if it is a hit and the other car is ahead of us,
+                // or if it is the player crossing our path (the player never yields, so the AI always does).
                 Vector3 w = v - velocity;
                 w.y = 0f;
                 r.y = 0f;
-                float tca = w.sqrMagnitude > 0.01f ? Mathf.Clamp(-Vector3.Dot(r, w) / w.sqrMagnitude, 0f, 1.6f) : 0f;
+                float horizon = Mathf.Clamp(speed / Mathf.Max(profile.Braking, 1f) + 0.6f, 1.6f, 2.6f);
+                float tca = w.sqrMagnitude > 0.01f ? Mathf.Clamp(-Vector3.Dot(r, w) / w.sqrMagnitude, 0f, horizon) : 0f;
                 float miss = (r + w * tca).magnitude;
-                if (tca > 0.05f && miss < 2.8f && Vector3.Dot(r, forward) > 1f)
+                Vector3 flatV = new(v.x, 0f, v.z), flatOwn = new(velocity.x, 0f, velocity.z);
+                bool crossing = flatV.magnitude > 2f && (flatOwn.magnitude < 1f || Vector3.Angle(flatV, flatOwn) > 25f);
+                bool ahead = Vector3.Dot(r, forward) > 1f;
+                if (tca > 0.05f && miss < 2.8f && (ahead || (crossing && other == PlayerCar && Vector3.Dot(r, forward) > -3f)))
                 {
                     float closing = -Vector3.Dot(r.normalized, w);
                     yieldSpeed = Mathf.Max(0f, Vector3.Dot(v, forward) - 1f);

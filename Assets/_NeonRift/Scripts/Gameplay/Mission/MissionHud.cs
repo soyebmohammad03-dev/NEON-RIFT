@@ -20,6 +20,8 @@ namespace NeonRift.Gameplay
         [SerializeField] private float edgeMargin = 70f;
 
         private VisualElement root, frame, objective, waypoint, waypointArrow, security, heatFill, prompt, promptFill, rpmFill, toasts, banner, results, resultsStats;
+        private VisualElement shiftLight, letterboxTop, letterboxBottom;
+        private const int RpmSegments = 12;
         private Label objectiveStep, objectiveTitle, objectiveDetail, objectiveDistance, waypointLabel, waypointDistance;
         private Label securityState, heatLabel, timer, countdown, promptText, promptHint, speed, gear, vehicleName, bannerTitle, bannerSubtitle, resultsTitle, resultsReason;
         private Button retryButton, continueButton;
@@ -68,6 +70,18 @@ namespace NeonRift.Gameplay
             speed = root.Q<Label>("speed");
             gear = root.Q<Label>("gear");
             rpmFill = root.Q("rpm-fill");
+            shiftLight = root.Q("shift-light");
+            letterboxTop = root.Q("letterbox-top");
+            letterboxBottom = root.Q("letterbox-bottom");
+            var ticks = root.Q("rpm-ticks");
+            if (ticks != null && ticks.childCount == 0)
+                for (int i = 0; i < RpmSegments; i++)
+                {
+                    var tick = new VisualElement { pickingMode = PickingMode.Ignore };
+                    tick.AddToClassList("nr-speedo__rpm-tick");
+                    if (i >= RpmSegments - 2) tick.AddToClassList("nr-speedo__rpm-tick--red");
+                    ticks.Add(tick);
+                }
             vehicleName = root.Q<Label>("vehicle-name");
             results = root.Q("results");
             resultsTitle = root.Q<Label>("results-title");
@@ -114,6 +128,7 @@ namespace NeonRift.Gameplay
             prompt.RemoveFromClassList("nr-prompt--visible");
             results.AddToClassList("nr-hidden");
             banner.RemoveFromClassList("nr-banner--visible");
+            SetLetterbox(false);
             frame.style.opacity = 0f;
             toasts.Clear();
             activeToasts.Clear();
@@ -308,8 +323,19 @@ namespace NeonRift.Gameplay
                 lastGear = g;
                 gear.text = g;
             }
-            rpmFill.style.width = Length.Percent(Mathf.Clamp01(rpm01) * 100f);
+            // Segmented: the fill snaps to whole segments so it reads at a glance instead of shimmering.
+            float segments = Mathf.Ceil(Mathf.Clamp01(rpm01) * RpmSegments - 0.15f) / RpmSegments;
+            rpmFill.style.width = Length.Percent(Mathf.Clamp01(segments) * 100f);
             rpmFill.EnableInClassList("nr-speedo__rpm-fill--redline", rpm01 > 0.92f);
+            if (shiftLight != null) shiftLight.EnableInClassList("nr-speedo__shift--on", gearIndex > 0 && rpm01 > 0.9f);
+        }
+
+        /// <summary>Cinematic bars in or out (they animate through USS transitions).</summary>
+        public void SetLetterbox(bool on)
+        {
+            root?.Q("hud-root")?.EnableInClassList("nr-hud--cinematic", on);
+            letterboxTop?.EnableInClassList("nr-letterbox--on", on);
+            letterboxBottom?.EnableInClassList("nr-letterbox--on", on);
         }
 
         public void Toast(string text, MessageTone tone)

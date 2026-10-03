@@ -105,6 +105,19 @@ Adding a mechanic: create an `InteractionDefinition` (or a new `IMissionWorldCom
 
 `VehicleChaseCamera` (unchanged architecture) is tuned for the city in the scene: 6.2 m back, 2.05 m high, 60° base FOV +12° at top speed, 0.26 s look-ahead (max 8 m), sphere-cast collision against `Drivable` and `Environment`. Look-ahead now leads forward travel only (fades in over 0–3 m/s): with raw velocity, reversing pulled the aim point towards the camera and pitched it onto the roof.
 
+## Camera and HUD (phase 7)
+
+- **Cornering:** the chase camera banks into corners by 1.6° per g of lateral acceleration (max 3°, eased over 0.3 s, faded out below 8 m/s). It reads as weight, not tilt. Existing behaviour is unchanged: look-ahead, speed FOV, acceleration pull-back, collision, impact and speed shake.
+- **Theft beat:** on `core.breached` (`MissionDirector` fields: event, 2.6 s, time scale 0.45), the camera swings 55° round and 3.4 m up on the far side of the car from the Data Core and aims between them; letterbox bars slide in; time eases to 0.45 and back. Everything runs on unscaled time and is restored on mission end. The driving HUD (objective, race board, speedo, minimap, waypoint) steps back during the beat; banner, toasts and the trace timer stay. Verified in Play Mode: time scale 0.45 during the beat, 1.00 afterwards.
+- **Camera clipping:** food-cart and night-market canopies now have colliders (well above car height) so the camera no longer passes through them.
+- **HUD readability:** soft dark backing behind the objective, race board and speedometer; a segmented 12-step RPM bar with a two-segment redline zone and a shift light.
+
+| Driving HUD | Theft beat (blending in) |
+|---|---|
+| ![](Screenshots/CameraHud/hud_lowtown.jpg) | ![](Screenshots/CameraHud/theft_beat.jpg) |
+
+**Rival fix during this phase:** in fast-timing runs the Terzo turned into the S7 car park across the scripted player's path, and once reversed out into it (2 of 5 runs had contacts up to 18.9 m/s). Rivals now give way to the player on any crossing course within their stopping horizon, and never reverse while a car is, or within a second will be, in a 6 × 10 m box behind them. The next four runs had 0 player collisions and 0 reversals (one rival-to-rival touch). None of them hit the fast ~102 s timing, so that exact case is improved but not re-verified.
+
 ## Validation
 
 - EditMode: `MissionTests` (state machine, heat/timer rules, failure, data validity, scene wiring).

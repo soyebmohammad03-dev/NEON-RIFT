@@ -416,6 +416,8 @@ namespace NeonRift.EditorTools.District
                         foreach (float s in new[] { -1.8f, 1.8f })
                             m[kit.Metal].OrientedBox(p + rot * new Vector3(s, 1.25f, -0.5f), new Vector3(0.06f, 2.5f, 0.06f), rot, 1f);
                         Col(cols, p + Vector3.up * 0.5f, new Vector3(3.6f, 1f, 1.2f), rot, environment);
+                        // Canopy: well above a car, but it stops the chase camera passing through the awning.
+                        Col(cols, p + Vector3.up * 2.55f + rot * Vector3.forward * 0.4f, new Vector3(3.9f, 0.2f, 2.4f), rot * Quaternion.Euler(-10f, 0f, 0f), environment);
                     }
                 }
             for (float z = a.yMin + 1f; z < a.yMax; z += 7f)

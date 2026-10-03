@@ -256,6 +256,7 @@ namespace NeonRift.EditorTools.District
             for (int i = 0; i < 4; i++)
                 m.Unshadowed(kit.Lantern).Cylinder(p + side * Vector3.right * (-0.9f + i * 0.6f) + Vector3.up * 1.75f, 0.13f, 0.28f, 8, true);
             Box(col, p + Vector3.up * 0.55f, new Vector3(1f, 1.1f, 2f), rot);
+            Box(col, p + Vector3.up * 2.1f, new Vector3(1.5f, 0.2f, 2.4f), rot);   // canopy (stops the chase camera)
         }
 
         /// <summary>Bus shelter: glass box, roof, lit advert panel (a screen that turns into a warning in a lockdown).</summary>
