@@ -34,6 +34,7 @@ namespace NeonRift.Gameplay
         public VehicleChaseCamera ChaseCamera => chaseCamera;
         public MissionDirector Director => director;
         public RivalDirector Rivals => rivals;
+        public VehicleSpawnPoint SpawnPoint => spawnPoint;
 
         public void Enter(GameContext gameContext)
         {
@@ -58,6 +59,10 @@ namespace NeonRift.Gameplay
             context.Controls.Driving.Pause.performed += OnPause;
             context.Controls.Driving.ResetVehicle.performed += OnResetVehicle;
             context.Controls.Driving.Enable();
+            string devices = PlayerDrivingInput.DescribeDevices(out bool canDrive);
+            if (canDrive) Debug.Log($"[Input] Driving controls enabled. Devices: {devices}");
+            else Debug.LogWarning($"[Input] Driving controls enabled but no keyboard or gamepad is connected (devices: {devices}). " +
+                                  "In the editor this means the Input System backend lost its devices; restart the editor.");
 
             var mission = context.Session.SelectedMission;
             if (rivals != null && mission != null && PlayerVehicle != null) rivals.Spawn(context.Session.Rivals, mission.MaxRivals);

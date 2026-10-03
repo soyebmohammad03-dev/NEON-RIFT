@@ -39,6 +39,7 @@ namespace NeonRift.Gameplay
             var text = new System.Text.StringBuilder(512);
             text.AppendLine($"<b>{vehicle.Profile.name}</b>  {t.SpeedKph,5:0} km/h  gear {gear}{(t.IsShifting ? "*" : " ")}  {t.EngineRpm,5:0} rpm");
             text.AppendLine($"thr {t.Throttle:0.00} (in {t.ThrottleInput:0.00})  brk {t.Brake:0.00}  steer {t.SteerAngle,5:0.0}°  TC {t.TractionLimit:0.00}  clutch {t.Clutch:0.00}");
+            text.AppendLine($"input  thr {t.ThrottleInput:0.00}  brk {t.BrakeInput:0.00}  steer {t.SteerInput,5:0.00}  hb {(t.Handbrake ? "ON" : "off")}");
             text.AppendLine($"long {t.LongitudinalG,5:0.00} g  lat {t.LateralG,5:0.00} g  yaw {t.YawRate,6:0.0}°/s  slip {t.MaxSlip:0.00}");
             text.AppendLine("wheel  load N   comp   rpm    slipR   slipA°  grip");
             foreach (var w in vehicle.Wheels)
@@ -47,8 +48,8 @@ namespace NeonRift.Gameplay
                 text.AppendLine($"<color={colour}>{w.Position,-10} {w.Load,6:0} {w.CompressionRatio,5:0.00} {w.Rpm,6:0} {w.SlipRatio,7:0.00} {w.SlipAngle,7:0.0} {w.SurfaceGrip,4:0.00}</color>");
             }
             text.Append("F3 hide  ·  R recover");
-            GUI.Box(new Rect(10, 10, 520, 190), GUIContent.none);
-            GUI.Label(new Rect(18, 14, 510, 185), text.ToString(), style);
+            GUI.Box(new Rect(10, 10, 520, 208), GUIContent.none);
+            GUI.Label(new Rect(18, 14, 510, 203), text.ToString(), style);
         }
     }
 }

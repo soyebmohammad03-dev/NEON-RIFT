@@ -11,7 +11,10 @@
         "NeonRift.Gameplay",
         "NeonRift.Core",
         "NeonRift.Audio",
-        "NeonRift.World"
+        "NeonRift.World",
+        "NeonRift.Input",
+        "Unity.InputSystem",
+        "Unity.InputSystem.TestFramework"
     ],
     "includePlatforms": [
         "Editor"

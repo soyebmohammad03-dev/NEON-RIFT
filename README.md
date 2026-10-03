@@ -30,11 +30,18 @@ More in [Docs/Screenshots](Docs/Screenshots).
 | Throttle | W / ↑ | Right trigger |
 | Brake (hold at a stop to reverse) | S / ↓ | Left trigger |
 | Steer | A D / ← → | Left stick |
-| Handbrake | Space | A / Cross |
-| Interact (hold: hack, extract) · Retry on results | E | X / Square |
+| Handbrake | Space | B / Circle |
+| Interact (hold: hack, extract) · Retry on results | E | A / Cross |
 | Recover (right the car) | R | Select |
 | Back to title | Esc | Start |
 | Telemetry overlay (dev builds) | F3 | — |
+
+In the editor, keyboard input only reaches the game while the Game view has focus (click it once). When a
+mission starts, the console logs `[Input] Driving controls enabled. Devices: ...`. If it warns that no keyboard
+or gamepad is connected, the editor's Input System backend has lost its devices: restart the editor. That was
+the cause of the "WASD does nothing" report in October 2026. `Logs/InputPlaytest.txt` is written by
+`InputPlaytest.RunStandardScript` (Editor/Validation), which drives the real Keyboard device through a timed
+script in Play Mode.
 
 ## What's in it
 

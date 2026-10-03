@@ -316,7 +316,7 @@ namespace NeonRift.Input
                 {
                     ""name"": """",
                     ""id"": ""a8c53c8f-7991-440c-b888-23178a2aca19"",
-                    ""path"": ""<Gamepad>/buttonSouth"",
+                    ""path"": ""<Gamepad>/buttonEast"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": ""Gamepad"",
@@ -382,7 +382,7 @@ namespace NeonRift.Input
                 {
                     ""name"": """",
                     ""id"": ""f07d348c-cd3c-46f9-b14a-c4440e46773f"",
-                    ""path"": ""<Gamepad>/buttonWest"",
+                    ""path"": ""<Gamepad>/buttonSouth"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": ""Gamepad"",

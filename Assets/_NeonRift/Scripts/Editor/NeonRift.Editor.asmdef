@@ -13,7 +13,9 @@
         "UnityEngine.TestRunner",
         "NeonRift.Audio",
         "Unity.RenderPipelines.Core.Runtime",
-        "Unity.RenderPipelines.Universal.Runtime"
+        "Unity.RenderPipelines.Universal.Runtime",
+        "Unity.InputSystem",
+        "NeonRift.Input"
     ],
     "includePlatforms": [
         "Editor"
