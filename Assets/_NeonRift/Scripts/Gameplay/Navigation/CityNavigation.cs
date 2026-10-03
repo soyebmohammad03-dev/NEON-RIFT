@@ -76,6 +76,13 @@ namespace NeonRift.Gameplay
         public bool Plan(Vector3 from, Vector3 to, RoadPath result) =>
             EnsureGraph() != null && graph.FindPath(from, to, costFunction, result);
 
+        /// <summary>Plans with a caller's extra per-edge cost on top of the gate costs (e.g. an AI's blocked-edge memory).</summary>
+        public bool Plan(Vector3 from, Vector3 to, RoadPath result, RoadGraph.EdgeCost extraCost)
+        {
+            if (extraCost == null) return Plan(from, to, result);
+            return EnsureGraph() != null && graph.FindPath(from, to, e => costFunction(e) + extraCost(e), result);
+        }
+
         public bool IsBlocked(int edge) => EnsureGraph() != null && float.IsPositiveInfinity(EdgeCost(edge));
 
         public string StreetAt(Vector3 position) =>

@@ -207,6 +207,8 @@ namespace NeonRift.Gameplay
                 report.AppendLine($"  result {progress.Phase}, elapsed {progress.Elapsed:0.0}s, heat {progress.Heat:0.00}, security {progress.Security}, " +
                                   $"objective {progress.ObjectiveIndex}/{progress.Definition.Objectives.Count}, interactions {interactions}, " +
                                   $"collisions {collisions} (max impact {maxImpact:0.0} m/s)");
+            var rivals = FindAnyObjectByType<RivalDirector>();
+            if (rivals != null && rivals.HasRivals) report.Append(rivals.DescribeAi());
             report.Append(log);
             Report = report.ToString();
             Debug.Log(Report);

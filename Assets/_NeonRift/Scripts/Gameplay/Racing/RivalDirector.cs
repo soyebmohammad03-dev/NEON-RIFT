@@ -32,6 +32,8 @@ namespace NeonRift.Gameplay
             public float Remaining = float.MaxValue;
             public float FinishTime = -1f;
             public bool IsPlayer;
+            /// <summary>Body contacts with another car this mission (rival AI quality metric).</summary>
+            public int VehicleContacts;
             /// <summary>True once this objective's goal has been handed to the driver (arrival before that is the previous leg's).</summary>
             public bool OnLeg;
             public bool Finished => FinishTime >= 0f;
@@ -43,6 +45,7 @@ namespace NeonRift.Gameplay
         [SerializeField, Min(0.05f)] private float standingsInterval = 0.25f;
 
         private readonly List<Racer> rivals = new();
+        private readonly List<VehicleController> traffic = new();
         private readonly List<Racer> standings = new();
         private readonly Racer player = new() { Name = "YOU", IsPlayer = true };
         private readonly RoadPath scratch = new();
@@ -72,10 +75,13 @@ namespace NeonRift.Gameplay
                 if (def == null || slot.spawn == null || slot.profile == null) continue;
                 var car = slot.spawn.Spawn(def, $"Rival_{def.Id}");
                 if (car == null) continue;
-                var driver = new RacerDriver(car, slot.profile, navigation);
+                var driver = new RacerDriver(car, slot.profile, navigation) { Traffic = traffic };
                 foreach (var receiver in car.GetComponentsInChildren<IVehicleInputReceiver>()) receiver.SetInputSource(driver);
                 if (car.TryGetComponent(out VehicleAudio audio)) audio.SetPlayerView(false);
-                rivals.Add(new Racer { Name = $"{slot.profile.DisplayName} · {def.DisplayName.ToUpperInvariant()}", Definition = def, Car = car, Driver = driver });
+                var racer = new Racer { Name = $"{slot.profile.DisplayName} · {def.DisplayName.ToUpperInvariant()}", Definition = def, Car = car, Driver = driver };
+                car.Collided += c => { if (c.Other != null && c.Other.GetComponentInParent<VehicleController>() != null) racer.VehicleContacts++; };
+                rivals.Add(racer);
+                traffic.Add(car);
             }
             Debug.Log($"[Rivals] spawned {rivals.Count} rival(s).");
         }
@@ -84,6 +90,7 @@ namespace NeonRift.Gameplay
         {
             foreach (var r in rivals) if (r.Car != null) Destroy(r.Car.gameObject);
             rivals.Clear();
+            traffic.Clear();
             standings.Clear();
         }
 
@@ -92,6 +99,7 @@ namespace NeonRift.Gameplay
             world = missionWorld;
             world.ObjectiveStarted += OnObjectiveStarted;
             player.Car = world.Player;
+            if (player.Car != null && !traffic.Contains(player.Car)) traffic.Add(player.Car);
             player.FinishTime = -1f;
             foreach (var r in rivals) { r.FinishTime = -1f; r.Driver.Hold(); }
         }
@@ -174,6 +182,16 @@ namespace NeonRift.Gameplay
                 return a.Remaining.CompareTo(b.Remaining);
             });
             PlayerPosition = standings.IndexOf(player) + 1;
+        }
+
+        /// <summary>One line per rival: AI quality counters for validation reports.</summary>
+        public string DescribeAi()
+        {
+            var sb = new System.Text.StringBuilder();
+            foreach (var r in rivals)
+                sb.AppendLine($"  rival {r.Name}: car contacts {r.VehicleContacts}, reversals {r.Driver.Reversals}, resets {r.Driver.Recoveries}, " +
+                              $"yields {r.Driver.Yields}, state {r.Driver.State}, at goal {r.Driver.AtGoal}, remaining {(r.Finished ? 0f : r.Remaining):0} m");
+            return sb.ToString();
         }
 
         /// <summary>Final position when the player extracts: rivals already out are ahead.</summary>

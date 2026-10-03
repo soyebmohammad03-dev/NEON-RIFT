@@ -38,13 +38,24 @@ Timeout fails the mission ("TRACE COMPLETE"). Results panel: **E** retry, **Esc*
 
 ## Rival crews
 
-The two catalog cars the player did not pick spawn behind the player on W Avenue (`RivalDirector`, driver profiles `Data/Racing/Racer_Vex` and `Racer_Kade`).
+The two catalog cars the player did not pick spawn in a column in the clear lane to the player's left on W Avenue (`RivalDirector`, driver profiles `Data/Racing/Racer_Vex` and `Racer_Kade`). They start about 3 s into the mission, usually while the player is still on the grid, so they must never be boxed in behind the player.
 
 | Objective | Rivals (`rivalGoalId`, delay) |
 |---|---|
 | `reach_core` | Race to the S7 car park off the Access Road (`core_staging`, 0.6 s) and wait there |
 | `hack_core` | Hold |
 | `escape` | Race to the Rift Gate tunnel (`extraction`, 1.2 s) |
+
+### Rival driving (`RacerDriver`)
+
+Rivals drive through the same `IVehicleInputSource` → `VehicleController` path as the player. Nothing teleports them while they drive. Every 0.1 s each driver:
+
+- sweeps five lateral lines ahead with sphere casts (walls, props, gates);
+- **path occupancy:** walks its own upcoming path (the racing line at each candidate offset, so it is exact through corners) and finds the first point where another car's body (a 3.8 m segment) comes within 2.2 m. That distance becomes the line's clearance, and the line the car is actually on also caps its speed (braking-distance fail-safe);
+- **side risk:** cars alongside (−6..+5 m along the route) rule out lines that would side-swipe them;
+- **yield:** a car predicted to pass within 2.8 m in the next 1.6 s (closest approach) and ahead of us makes this driver match its speed for 0.5 s.
+
+**Stuck:** when there is no progress while it is trying (or it waits behind something stationary for more than 3 s), the driver backs out with opposite lock, but never into a car behind it. Each reversal makes that road edge cost +250 m in the driver's own plans for 25 s, and from the second reversal it re-plans around the edge. After three failed reversals it resets: out of the player's view, onto its line a few metres back; in view, it is only righted in place. `RivalDirector.DescribeAi()` reports per-rival car contacts, reversals, resets and yields. `NightRunValidator` appends it to its report, and `[Rivals]` log lines name where and why a rival reversed.
 
 Standings come from route distance to the current objective over the road graph. The HUD shows position, the gap to the next car and the field. Results show the finishing position (rivals already extracted are ahead). Rivals re-plan when gates change, so a sealed checkpoint sends them another way.
 
@@ -111,6 +122,15 @@ Results at the vertical-slice commit (SLS AMG, validation driver at 0.72 g corne
 
 Audio during lockdown: 6/6 sirens playing, ambience on the Ambience group, vehicle audio continuous. EditMode: 73/73.
 
+
+### Rival AI validation (October 2026)
+
+| Check | Result |
+|---|---|
+| `BoulevardInAlleyOut` ×3 | **Completed** every time (113–118 s), 0 player collisions. Rivals: **0 car contacts, 0 reversals, 0 resets** (before the grid fix, the Terzo reversed once at the start in every run, boxed in behind the player) |
+| `AlleyInExpresswayOut` ×3 | Rivals 0 contacts, 0 reversals. The validation driver still loses the expressway checkpoint race, as designed |
+| Player parked in the rivals' lane on W Avenue (2.9, −180) | Both rivals passed at 109–170 km/h: 0 contacts, 0 reversals, 3 yields |
+| Player parked across the apex of the W Ave → N Boulevard right turn (6, 300) | Before path occupancy: the GT3 touched it (1 contact). After: 0 contacts. The GT3 stopped 0.6 m short, reversed once and drove round; the Terzo went round without stopping |
 
 ### City build validation (five-district city, rivals on)
 

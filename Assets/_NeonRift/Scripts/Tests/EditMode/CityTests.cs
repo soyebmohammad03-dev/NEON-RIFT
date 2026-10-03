@@ -100,6 +100,22 @@ namespace NeonRift.Tests
         }
 
         [Test]
+        public void RememberedBlockedEdge_IsRoutedAround()
+        {
+            // RacerDriver adds a finite penalty to an edge it got stuck on; the grid always offers a detour.
+            var network = Network();
+            var graph = new RoadGraph(network);
+            var first = new RoadPath();
+            var second = new RoadPath();
+            Vector3 start = new(3.5f, 0f, -292f), goal = new(160f, 0f, 300f);
+            Assert.IsTrue(graph.FindPath(start, goal, null, first));
+            int blocked = first.Edges[first.Edges.Count / 2];
+            Assert.IsTrue(graph.FindPath(start, goal, e => e == blocked ? 250f : 0f, second));
+            CollectionAssert.DoesNotContain(second.Edges, blocked);
+            Assert.Less(second.Length - first.Length, 250f, "the detour is cheaper than pushing through the blocked edge");
+        }
+
+        [Test]
         public void Skyway_IsElevatedAndReachable()
         {
             var network = Network();

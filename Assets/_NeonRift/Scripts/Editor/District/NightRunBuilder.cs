@@ -917,8 +917,8 @@ namespace NeonRift.EditorTools.District
             }
             var slots = new[]
             {
-                new RivalDirector.Slot { spawn = Spawn("RivalSpawn_A", new Vector3(1.9f, 0f, -301f)), profile = vex },
-                new RivalDirector.Slot { spawn = Spawn("RivalSpawn_B", new Vector3(5.3f, 0f, -309f)), profile = kade },
+                new RivalDirector.Slot { spawn = Spawn("RivalSpawn_A", new Vector3(-1.8f, 0f, -296f)), profile = vex },
+                new RivalDirector.Slot { spawn = Spawn("RivalSpawn_B", new Vector3(-1.8f, 0f, -305f)), profile = kade },
             };
             RaceMarker Marker(string id, Vector3[] points)
             {
