@@ -1,0 +1,88 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f3165135b17b0442ca6c54896582ced7, type: 3}
+  m_Name: Interaction_CoreSecurity
+  m_EditorClassIdentifier: NeonRift.Gameplay::NeonRift.Gameplay.InteractionDefinition
+  verb: HACK
+  deviceName: S7-CORE // PERIMETER SECURITY NODE
+  holdSeconds: 0
+  maxSpeedKph: 8
+  decayPerSecond: 0.5
+  heatOnComplete: 0
+  heatReason: TERMINAL ACCESS LOGGED
+  completeMessage: LOCAL SECURITY OFFLINE
+  tension: 0.25
+  steps:
+  - label: CONNECTING
+    detail: Handshake with the perimeter node
+    kind: 0
+    duration: 1.1
+    checkpoint: 0
+    window: 0.24
+    windowCentre: 0.62
+    maxMisses: 3
+    missHeat: 0.04
+    interference: []
+    responseSeconds: 2.5
+    rollback: 0.1
+    eventOnStart: 
+    eventOnComplete: 
+    cues: []
+  - label: AUTHENTICATING
+    detail: "Spoofing a maintenance credential \u2014 hold E"
+    kind: 1
+    duration: 1.8
+    checkpoint: 0
+    window: 0.24
+    windowCentre: 0.62
+    maxMisses: 3
+    missHeat: 0.04
+    interference: []
+    responseSeconds: 2.5
+    rollback: 0.1
+    eventOnStart: 
+    eventOnComplete: 
+    cues: []
+  - label: BYPASSING
+    detail: Slip the token past the intrusion filter
+    kind: 2
+    duration: 1.5
+    checkpoint: 0
+    window: 0.26
+    windowCentre: 0.64
+    maxMisses: 3
+    missHeat: 0.04
+    interference: []
+    responseSeconds: 2.5
+    rollback: 0.1
+    eventOnStart: 
+    eventOnComplete: 
+    cues: []
+  - label: SECURITY OVERRIDE
+    detail: "Cameras, floods and chamber locks \u2192 crew control"
+    kind: 0
+    duration: 1
+    checkpoint: 0
+    window: 0.24
+    windowCentre: 0.62
+    maxMisses: 3
+    missHeat: 0.04
+    interference: []
+    responseSeconds: 2.5
+    rollback: 0.1
+    eventOnStart: 
+    eventOnComplete: 
+    cues: []
+  lockoutSeconds: 4
+  failHeat: 0.1
+  failMessage: "INTRUSION FILTER LOCKOUT \xB7 TRACE LOGGED"
+  eventsOnFail: []

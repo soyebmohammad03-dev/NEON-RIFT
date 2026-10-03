@@ -22,27 +22,42 @@ MonoBehaviour:
   - id: reach_core
     kind: 0
     targetId: core_compound
-    title: REACH THE DATA CORE
+    title: INFILTRATE THE DATA CORE FACILITY
     detail: 'Boulevard: long and clean.  Service alley: short, but its gate logs intrusions.'
     securityLevel: 0
     timeLimit: 0
     timeoutReason: TIME EXPIRED
+    startDelay: 0
     eventsOnStart: []
-    eventsOnComplete: []
+    eventsOnComplete:
+    - core.arrive
     rivalGoalId: core_staging
     rivalStartDelay: 0.6
+  - id: disable_security
+    kind: 1
+    targetId: core_security_terminal
+    title: DISABLE FACILITY SECURITY
+    detail: Stop at the security terminal west of the core and hack it. The compound cameras are live.
+    securityLevel: 0
+    timeLimit: 0
+    timeoutReason: TIME EXPIRED
+    startDelay: 0
+    eventsOnStart: []
+    eventsOnComplete: []
+    rivalGoalId: 
+    rivalStartDelay: 0
   - id: hack_core
     kind: 1
     targetId: core_uplink
-    title: BREACH THE DATA CORE
-    detail: Stop on the uplink ring and hold E to extract the core.
+    title: EXTRACT THE DATA CORE
+    detail: Stop on the uplink ring and press E. Keep the link stable until the package is out.
     securityLevel: 0
     timeLimit: 0
     timeoutReason: 
+    startDelay: 0
     eventsOnStart: []
     eventsOnComplete:
-    - core.breached
-    - lockdown
+    - core.acquired
     rivalGoalId: 
     rivalStartDelay: 0
   - id: escape
@@ -53,7 +68,10 @@ MonoBehaviour:
     securityLevel: 2
     timeLimit: 80
     timeoutReason: "TRACE COMPLETE \u2014 YOU WERE FOUND"
+    startDelay: 2.4
     eventsOnStart:
+    - core.breached
+    - lockdown
     - escape.start
     eventsOnComplete: []
     rivalGoalId: extraction
@@ -75,10 +93,40 @@ MonoBehaviour:
     tone: 3
     delay: 0.2
     banner: 0
-  - eventId: core.breached
-    text: THEFT DETECTED|SECTOR 7 LOCKDOWN INITIATED
+  - eventId: core.arrive
+    text: "FACILITY SECURITY ACTIVE  \xB7  INTRUDER SCAN RUNNING"
+    tone: 1
+    delay: 0.3
+    banner: 0
+  - eventId: core.security.off
+    text: "LOCAL SECURITY OFFLINE  \xB7  CORE CHAMBER OPENING"
+    tone: 3
+    delay: 0.4
+    banner: 0
+  - eventId: core.extract.begin
+    text: "EXTRACTION RUNNING  \xB7  HOLD POSITION"
+    tone: 0
+    delay: 0.2
+    banner: 0
+  - eventId: grid.anomaly
+    text: "S7 GRID: ANOMALOUS DATA FLOW  \xB7  NODES REROUTING"
+    tone: 1
+    delay: 0.1
+    banner: 0
+  - eventId: core.extract.trace
+    text: "COUNTER-INTRUSION ONLINE  \xB7  CAMERAS REBOOTING"
     tone: 2
-    delay: 0.15
+    delay: 0.1
+    banner: 0
+  - eventId: core.acquired
+    text: "DATA ACQUIRED|S7 CORE PACKAGE \xB7 2.4 TB SECURED"
+    tone: 3
+    delay: 0.1
+    banner: 1
+  - eventId: core.breached
+    text: SECURITY BREACH DETECTED|SECTOR 7 LOCKDOWN INITIATED
+    tone: 2
+    delay: 0.05
     banner: 1
   - eventId: escape.start
     text: 'EXTRACTION: RIFT GATE, SOUTH-EAST TUNNEL'

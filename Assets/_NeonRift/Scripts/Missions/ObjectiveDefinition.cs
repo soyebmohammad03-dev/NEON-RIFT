@@ -26,6 +26,8 @@ namespace NeonRift.Missions
         [SerializeField, Min(0f)] private float timeLimit;
         [Tooltip("Shown as the failure reason when the time limit runs out.")]
         [SerializeField] private string timeoutReason = "TIME EXPIRED";
+        [Tooltip("Seconds between the previous objective completing and this one starting (a beat for the story; nothing is current meanwhile).")]
+        [SerializeField, Min(0f)] private float startDelay;
         [Tooltip("World events fired when the objective starts.")]
         [SerializeField] private string[] eventsOnStart = Array.Empty<string>();
         [Tooltip("World events fired when the objective is completed.")]
@@ -49,13 +51,16 @@ namespace NeonRift.Missions
         public string[] EventsOnComplete => eventsOnComplete ?? Array.Empty<string>();
         public string RivalGoalId => rivalGoalId;
         public float RivalStartDelay => rivalStartDelay;
+        public float StartDelay => startDelay;
 
         public ObjectiveDefinition() { }
 
         public ObjectiveDefinition(string id, ObjectiveKind kind, string targetId, string title, string detail,
                                    SecurityLevel securityLevel = SecurityLevel.Calm, float timeLimit = 0f, string timeoutReason = "TIME EXPIRED",
-                                   string[] eventsOnStart = null, string[] eventsOnComplete = null, string rivalGoalId = null, float rivalStartDelay = 0f)
+                                   string[] eventsOnStart = null, string[] eventsOnComplete = null, string rivalGoalId = null, float rivalStartDelay = 0f,
+                                   float startDelay = 0f)
         {
+            this.startDelay = startDelay;
             this.rivalGoalId = rivalGoalId;
             this.rivalStartDelay = rivalStartDelay;
             this.id = id;

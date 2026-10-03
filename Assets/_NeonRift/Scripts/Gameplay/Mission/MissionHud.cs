@@ -28,6 +28,11 @@ namespace NeonRift.Gameplay
         private VisualElement race, raceRows, navigator;
         private Label racePosition, raceCount, raceGap, navDistrict, navStreet, navRoute;
         private CityMinimap minimap;
+        private TerminalReadout terminal;
+        private VisualElement stamp, extractFrame;
+        private Label stampText;
+        private float stampHideAt;
+        private bool objectivePending;
         /// <summary>The navigator's map (dev tooling reads its state).</summary>
         public CityMinimap Minimap => minimap;
         private float nextMinimapRepaint;
@@ -100,6 +105,10 @@ namespace NeonRift.Gameplay
             navDistrict = root.Q<Label>("nav-district");
             navStreet = root.Q<Label>("nav-street");
             navRoute = root.Q<Label>("nav-route");
+            terminal = new TerminalReadout(root.Q("terminal"));
+            stamp = root.Q("objective-complete");
+            stampText = root.Q<Label>("objective-complete-text");
+            extractFrame = root.Q("extract-frame");
             var frameElement = root.Q("minimap-frame");
             frameElement.Clear();
             minimap = new CityMinimap();
@@ -138,6 +147,41 @@ namespace NeonRift.Gameplay
             SetTimer(false, 0f);
             SetCountdown(null, 0f);
             SetRace(false, 0, 0, null, null);
+            SetTerminal(null);
+            SetExtractionFrame(0);
+            stamp?.RemoveFromClassList("nr-stamp--on");
+            stampHideAt = 0f;
+            objectivePending = false;
+        }
+
+        // ---------------- Interactions ----------------
+
+        /// <summary>Multi-stage interaction readout for <paramref name="interactable"/> (null hides it). Call every frame while shown.</summary>
+        public void SetTerminal(Interactable interactable)
+        {
+            terminal?.Show(interactable);
+            root?.Q("hud-root")?.EnableInClassList("nr-hud--terminal", interactable != null);
+        }
+
+        public void FlashTerminal(Interactable.Feedback feedback) => terminal?.Flash(feedback);
+
+        /// <summary>Screen-edge treatment while data is pulled: 0 off, 1 extracting, 2 warning (interference).</summary>
+        public void SetExtractionFrame(int mode)
+        {
+            if (extractFrame == null) return;
+            extractFrame.EnableInClassList("nr-hud-extract--on", mode == 1);
+            extractFrame.EnableInClassList("nr-hud-extract--warn", mode == 2);
+        }
+
+        /// <summary>"OBJECTIVE COMPLETE"-style stamp over the objective panel for a moment.</summary>
+        public void StampObjective(string text, float seconds)
+        {
+            if (stamp == null) return;
+            stampText.text = text;
+            stamp.AddToClassList("nr-stamp--on");
+            // The finished objective steps aside for the stamp; the next SetObjective brings the panel back.
+            Show(objective, false);
+            stampHideAt = Time.unscaledTime + seconds;
         }
 
         // ---------------- Navigator ----------------
@@ -207,7 +251,9 @@ namespace NeonRift.Gameplay
 
         public void SetObjective(int step, int total, string title, string detail, bool lockdown)
         {
-            Show(objective, !string.IsNullOrEmpty(title));
+            // While the "objective complete" stamp is up, the next objective waits underneath it.
+            objectivePending = stampHideAt > 0f && !string.IsNullOrEmpty(title);
+            Show(objective, !objectivePending && !string.IsNullOrEmpty(title));
             objectiveStep.text = $"OBJECTIVE {step}/{total}";
             objectiveTitle.text = title;
             objectiveDetail.text = detail;
@@ -218,7 +264,11 @@ namespace NeonRift.Gameplay
             lastDistance = -1;
         }
 
-        public void HideObjective() => Show(objective, false);
+        public void HideObjective()
+        {
+            objectivePending = false;
+            Show(objective, false);
+        }
 
         public void SetObjectiveDistance(float metres)
         {
@@ -393,6 +443,23 @@ namespace NeonRift.Gameplay
         private void Update()
         {
             float now = Time.unscaledTime;
+            if (stampHideAt > 0f && now >= stampHideAt)
+            {
+                stamp.RemoveFromClassList("nr-stamp--on");
+                stampHideAt = 0f;
+                if (objectivePending)
+                {
+                    // Let the stamp fade out before the next objective slides in.
+                    objectivePending = false;
+                    objective.AddToClassList("nr-objective--refresh");
+                    objective.schedule.Execute(() =>
+                    {
+                        if (stampHideAt > 0f) return;
+                        Show(objective, true);
+                        objective.schedule.Execute(() => objective.RemoveFromClassList("nr-objective--refresh")).StartingIn(40);
+                    }).StartingIn(280);
+                }
+            }
             if (bannerHideAt > 0f && now >= bannerHideAt)
             {
                 banner.RemoveFromClassList("nr-banner--visible");

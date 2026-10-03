@@ -15,7 +15,7 @@ namespace NeonRift.Gameplay
         [SerializeField, Range(0.5f, 2f)] private float interactPitchMin = 0.9f;
         [SerializeField, Range(0.5f, 3f)] private float interactPitchMax = 1.6f;
 
-        private AudioSource ambience, interact, cues, stingers;
+        private AudioSource ambience, interact, cues, stingers, tension;
 
         public MissionAudioSet Set => set;
 
@@ -27,6 +27,14 @@ namespace NeonRift.Gameplay
             if (interact == null) interact = Create("Interact", mixer != null ? mixer.Sfx : null);
             if (cues == null) cues = Create("Cues", mixer != null ? mixer.UI : null);
             if (stingers == null) stingers = Create("Stingers", mixer != null ? mixer.Sfx : null);
+            if (tension == null) tension = Create("Tension", mixer != null ? mixer.Sfx : null);
+            if (set.TensionLoop != null && !tension.isPlaying)
+            {
+                tension.clip = set.TensionLoop;
+                tension.loop = true;
+                tension.volume = 0f;
+                tension.Play();
+            }
 
             if (set.Ambience != null && !ambience.isPlaying)
             {
@@ -52,6 +60,30 @@ namespace NeonRift.Gameplay
             (cue is Cue.Lockdown or Cue.Success or Cue.Failure ? stingers : cues).PlayOneShot(clip, volume);
         }
 
+        /// <summary>Stage feedback of a multi-stage interaction (blips, denials, interference).</summary>
+        public void Play(Interactable.Feedback feedback)
+        {
+            if (set == null || cues == null) return;
+            var clip = set.Feedback(feedback);
+            if (clip != null) (feedback is Interactable.Feedback.Failed or Interactable.Feedback.Interference ? stingers : cues).PlayOneShot(clip, 0.9f);
+        }
+
+        /// <summary>Plays the set's stinger for a world event, if it has one (data acquired, breach detected …).</summary>
+        public void OnWorldEvent(string eventId)
+        {
+            if (set == null || stingers == null) return;
+            foreach (var s in set.EventStingers)
+                if (s.eventId == eventId && s.clip != null) stingers.PlayOneShot(s.clip, s.volume > 0f ? s.volume : 1f);
+        }
+
+        /// <summary>Tension bed under long interactions: <paramref name="level"/> 0..1 sets volume, <paramref name="progress"/> lifts pitch.</summary>
+        public void SetTension(float level, float progress)
+        {
+            if (tension == null || set == null) return;
+            tension.volume = Mathf.MoveTowards(tension.volume, level * set.TensionVolume, Time.deltaTime * (level > tension.volume ? 0.8f : 0.5f));
+            tension.pitch = Mathf.Lerp(0.85f, 1.25f, progress);
+        }
+
         /// <summary>Interaction loop level (0 = silent) and progress 0..1 (raises pitch).</summary>
         public void SetInteract(float level, float progress)
         {
@@ -63,6 +95,7 @@ namespace NeonRift.Gameplay
         public void StopLoops()
         {
             if (interact != null) interact.volume = 0f;
+            if (tension != null) tension.volume = 0f;
         }
 
         private AudioSource Create(string sourceName, UnityEngine.Audio.AudioMixerGroup group)

@@ -20,6 +20,8 @@ namespace NeonRift.Gameplay
         [SerializeField] private Light[] beaconLights = Array.Empty<Light>();
         [SerializeField] private float spinDegreesPerSecond = 300f;
         [SerializeField, Min(1f)] private float waveSpeed = 140f;
+        [Tooltip("Starts the beacons early on these events (a facility's own alarm); sirens still wait for the security level.")]
+        [SerializeField] private string[] beaconsOn = Array.Empty<string>();
 
         private MissionWorld world;
         private float[] delays;
@@ -31,19 +33,38 @@ namespace NeonRift.Gameplay
         {
             world = missionWorld;
             world.SecurityChanged += OnSecurityChanged;
+            world.EventRaised += OnWorldEvent;
             SetActive(world.Security >= activeFrom);
         }
 
+        private void OnWorldEvent(string eventId)
+        {
+            if (enabled || !MissionWorld.Matches(beaconsOn, eventId)) return;
+            delays = null;
+            time = 0f;
+            SetActive(true);
+            foreach (var s in sirens) if (s != null) s.Stop();
+            early = true;
+        }
+
+        private bool early;
+
         public void Unbind()
         {
-            if (world != null) world.SecurityChanged -= OnSecurityChanged;
+            if (world != null)
+            {
+                world.SecurityChanged -= OnSecurityChanged;
+                world.EventRaised -= OnWorldEvent;
+            }
             world = null;
+            early = false;
             SetActive(false);
         }
 
         private void OnSecurityChanged(SecurityLevel level)
         {
-            if (level < activeFrom || enabled) return;
+            if (level < activeFrom || (enabled && !early)) return;
+            early = false;
             delays = new float[sirens.Length];
             for (int i = 0; i < sirens.Length; i++)
                 if (sirens[i] != null) delays[i] = Vector3.Distance(sirens[i].transform.position, world.AlertOrigin) / waveSpeed;
@@ -78,6 +99,8 @@ namespace NeonRift.Gameplay
             beacons = spinning ?? Array.Empty<Transform>();
             beaconLights = lights ?? Array.Empty<Light>();
         }
+
+        public void EditorConfigureEvents(string[] earlyBeacons) => beaconsOn = earlyBeacons ?? Array.Empty<string>();
 #endif
     }
 }

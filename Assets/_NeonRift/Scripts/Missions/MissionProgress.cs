@@ -13,6 +13,7 @@ namespace NeonRift.Missions
     {
         private readonly MissionDefinition definition;
         private float timerStart;
+        private float startIn = -1f;
 
         public MissionPhase Phase { get; private set; } = MissionPhase.NotStarted;
         public int ObjectiveIndex { get; private set; } = -1;
@@ -28,6 +29,8 @@ namespace NeonRift.Missions
         public float TimerDuration => timerStart;
         public string FailReason { get; private set; } = string.Empty;
         public MissionDefinition Definition => definition;
+        /// <summary>Between objectives: the next one is waiting out its start delay.</summary>
+        public bool WaitingForObjective => startIn >= 0f;
 
         /// <summary>Objective that just started (null when the mission ends).</summary>
         public event Action<ObjectiveDefinition> ObjectiveStarted;
@@ -56,6 +59,12 @@ namespace NeonRift.Missions
         {
             if (Phase != MissionPhase.Running || dt <= 0f) return;
             Elapsed += dt;
+            if (startIn >= 0f)
+            {
+                startIn -= dt;
+                if (startIn < 0f) StartObjective(Current);
+                return;
+            }
             if (!HasTimer) return;
             TimeRemaining = Mathf.Max(0f, TimeRemaining - dt);
             if (TimeRemaining <= 0f) Fail(Current?.TimeoutReason ?? "TIME EXPIRED");
@@ -69,7 +78,7 @@ namespace NeonRift.Missions
 
         /// <summary>True if <paramref name="targetId"/> is what the current objective is waiting for.</summary>
         public bool IsCurrentTarget(string targetId) =>
-            Phase == MissionPhase.Running && Current != null && Current.TargetId == targetId;
+            Phase == MissionPhase.Running && !WaitingForObjective && Current != null && Current.TargetId == targetId;
 
         /// <summary>Adds heat (clamped to 1). A running timer loses the matching time straight away.</summary>
         public void AddHeat(float amount, string reason)
@@ -101,7 +110,7 @@ namespace NeonRift.Missions
         private bool TryComplete(ObjectiveKind kind, string targetId)
         {
             var objective = Current;
-            if (Phase != MissionPhase.Running || objective == null || objective.Kind != kind || objective.TargetId != targetId) return false;
+            if (Phase != MissionPhase.Running || WaitingForObjective || objective == null || objective.Kind != kind || objective.TargetId != targetId) return false;
             HasTimer = false;
             ObjectiveCompleted?.Invoke(objective);
             Fire(objective.EventsOnComplete);
@@ -120,6 +129,18 @@ namespace NeonRift.Missions
                 ObjectiveStarted?.Invoke(null);
                 return;
             }
+            if (next.StartDelay > 0f)
+            {
+                HasTimer = false;
+                startIn = next.StartDelay;
+                return;
+            }
+            StartObjective(next);
+        }
+
+        private void StartObjective(ObjectiveDefinition next)
+        {
+            startIn = -1f;
             if (next.SecurityLevel > Security) Raise(next.SecurityLevel);
             HasTimer = next.TimeLimit > 0f;
             if (HasTimer)

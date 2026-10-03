@@ -140,9 +140,15 @@ namespace NeonRift.Tests
             CollectionAssert.IsEmpty(mission.Validate());
             Assert.AreEqual("NightRun", mission.SceneName);
             Assert.IsFalse(mission.DevelopmentOnly);
-            CollectionAssert.AreEqual(new[] { ObjectiveKind.Reach, ObjectiveKind.Interact, ObjectiveKind.Reach }, mission.Objectives.Select(o => o.Kind).ToArray());
-            Assert.AreEqual(SecurityLevel.Lockdown, mission.Objectives[2].SecurityLevel);
-            Assert.Greater(mission.Objectives[2].TimeLimit, 0f);
+            // Infiltrate → disable facility security → extract the core → (beat) → escape.
+            CollectionAssert.AreEqual(new[] { ObjectiveKind.Reach, ObjectiveKind.Interact, ObjectiveKind.Interact, ObjectiveKind.Reach },
+                                      mission.Objectives.Select(o => o.Kind).ToArray());
+            var escape = mission.Objectives[3];
+            Assert.AreEqual(SecurityLevel.Lockdown, escape.SecurityLevel);
+            Assert.Greater(escape.TimeLimit, 0f);
+            Assert.Greater(escape.StartDelay, 1f, "DATA ACQUIRED needs a beat before SECURITY BREACH DETECTED.");
+            CollectionAssert.Contains(escape.EventsOnStart, NightRunBuilder.EventLockdown);
+            CollectionAssert.Contains(mission.Objectives[2].EventsOnComplete, NightRunBuilder.EventCoreAcquired);
             var config = AssetDatabase.LoadAssetAtPath<GameConfig>(AssetDatabase.GUIDToAssetPath(AssetDatabase.FindAssets("t:GameConfig")[0]));
             Assert.AreEqual(mission, config.DefaultMission, "Car Select should launch Night Run.");
         }
@@ -219,6 +225,23 @@ namespace NeonRift.Tests
                     Assert.AreEqual(trigger, t.gameObject.layer, $"{t.name} must be on the Trigger layer.");
                 Assert.Greater(roots.SelectMany(r => r.GetComponentsInChildren<SecurityLightGroup>(true)).Count(), 5);
                 Assert.AreEqual(1, roots.SelectMany(r => r.GetComponentsInChildren<SecurityPostEffects>(true)).Count());
+
+                // The heist: the terminal and the uplink are multi-stage, and the chamber and terminal screens perform them.
+                var all = roots.SelectMany(r => r.GetComponentsInChildren<Interactable>(true)).ToList();
+                var coreTerminal = all.Single(i => i.Id == NightRunBuilder.CoreTerminalId);
+                var uplink = all.Single(i => i.Id == NightRunBuilder.CoreUplinkId);
+                Assert.IsTrue(coreTerminal.Definition.IsSequence && uplink.Definition.IsSequence);
+                Assert.IsTrue(uplink.Definition.Steps.Any(s => s.Kind == InteractionStepKind.Sustain && s.Interference.Length > 0), "Extraction needs interference.");
+                Assert.IsTrue(coreTerminal.Definition.Steps.Any(s => s.Kind == InteractionStepKind.Timing), "The bypass needs a skill stage.");
+                var chamber = roots.SelectMany(r => r.GetComponentsInChildren<DataCoreChamber>(true)).Single();
+                var cso = new SerializedObject(chamber);
+                Assert.AreEqual(uplink, cso.FindProperty("uplink").objectReferenceValue);
+                foreach (var field in new[] { "cable", "chaseCamera", "hum", "stream", "openClip", "hologramRoot" })
+                    Assert.IsNotNull(cso.FindProperty(field).objectReferenceValue, $"DataCoreChamber.{field} is not set.");
+                Assert.AreEqual(6, cso.FindProperty("sleevePanels").arraySize);
+                Assert.Greater(cso.FindProperty("pulses").arraySize, 10);
+                var displays = roots.SelectMany(r => r.GetComponentsInChildren<TerminalDisplay>(true)).ToList();
+                Assert.IsTrue(displays.Any(d => new SerializedObject(d).FindProperty("source").objectReferenceValue == coreTerminal));
             }
             finally
             {

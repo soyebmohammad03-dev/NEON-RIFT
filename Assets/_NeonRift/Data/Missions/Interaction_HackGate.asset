@@ -13,9 +13,16 @@ MonoBehaviour:
   m_Name: Interaction_HackGate
   m_EditorClassIdentifier: NeonRift.Gameplay::NeonRift.Gameplay.InteractionDefinition
   verb: HACK
+  deviceName: 
   holdSeconds: 2.5
   maxSpeedKph: 10
   decayPerSecond: 0.6
   heatOnComplete: 0.35
   heatReason: GATE BREACH LOGGED
   completeMessage: GATE OVERRIDDEN
+  tension: 0
+  steps: []
+  lockoutSeconds: 4
+  failHeat: 0.1
+  failMessage: "LOCKOUT \xB7 TRACE LOGGED"
+  eventsOnFail: []

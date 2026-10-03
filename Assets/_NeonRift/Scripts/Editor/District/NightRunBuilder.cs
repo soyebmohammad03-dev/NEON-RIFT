@@ -25,7 +25,7 @@ namespace NeonRift.EditorTools.District
     /// (Mission_NightRun + interaction definitions + audio set) and the project wiring (GameConfig, build scenes).
     /// Re-runnable: the scene is regenerated from code each time; assets are updated in place so GUIDs stay stable.
     /// </summary>
-    public static class NightRunBuilder
+    public static partial class NightRunBuilder
     {
         public const string ScenePath = "Assets/_NeonRift/Scenes/NightRun.unity";
         public const string MissionPath = "Assets/_NeonRift/Data/Missions/Mission_NightRun.asset";
@@ -59,6 +59,7 @@ namespace NeonRift.EditorTools.District
             public Transform Gameplay, Security, Lighting;
             public int Environment, Trigger, Drivable;
             public readonly List<Light> MissionLights = new();
+            public DataCoreChamber Chamber;
             public readonly StringBuilder Log = new();
         }
 
@@ -84,7 +85,7 @@ namespace NeonRift.EditorTools.District
             c.Log.Append(MissionAudioGenerator.Generate(out c.Audio));
             c.Kit = new DistrictKit(DistrictTextures.Generate());
             var catalog = AssetDatabase.LoadAssetAtPath<BuildingCatalog>(AssetDatabase.GUIDToAssetPath(AssetDatabase.FindAssets("t:BuildingCatalog")[0]));
-            var mission = CreateMissionData(out var hackGate, out var uplink);
+            var mission = CreateMissionData(out var hackGate, out var uplink, out var coreTerminal);
 
             var environment = Root(c, "Environment");
             c.Lighting = Root(c, "Lighting").transform;
@@ -95,7 +96,7 @@ namespace NeonRift.EditorTools.District
             c.District = new NightRunDistrict(c.Kit, catalog);
             c.District.Build(environment.transform);
 
-            var core = BuildCompound(c, uplink, out var coreUplink);
+            var core = BuildCompound(c, uplink, coreTerminal, out var coreUplink);
             var alleyGate = BuildAlleyGate(c, hackGate);
             var compoundGate = BuildBarrier(c, "CompoundGate", "COMPOUND GATE", new Vector3(160f, 0f, 194.4f), 0f, 12f, 2, closedAtStart: false,
                          closeOn: new[] { EventLockdown }, openOn: null, delay: 12f, heatPenalty: 4f, minDelay: 7f, warning: 1.5f, travel: 2f);
@@ -119,6 +120,7 @@ namespace NeonRift.EditorTools.District
             BuildSecurityCameras(c);
 
             var (entry, director, camera, chase) = BuildMissionRig(c, core, volumes, navigation);
+            if (c.Chamber != null) c.Chamber.EditorSetChaseCamera(chase);
             BuildCitySystems(c, camera);
             BuildDevTools(c, entry);
             c.Log.Append(NeonRift.EditorTools.Intro.IntroBuilder.Build(c.Scene));
@@ -155,13 +157,14 @@ namespace NeonRift.EditorTools.District
 
         // ---------------- Mission data ----------------
 
-        private static MissionDefinition CreateMissionData(out InteractionDefinition hackGate, out InteractionDefinition uplink)
+        private static MissionDefinition CreateMissionData(out InteractionDefinition hackGate, out InteractionDefinition uplink, out InteractionDefinition coreTerminal)
         {
             VehiclePrefabBuilder.EnsureFolder(DataFolder);
             hackGate = Asset<InteractionDefinition>($"{DataFolder}/Interaction_HackGate.asset");
             hackGate.EditorConfigure("HACK", 2.5f, 10f, 0.6f, 0.35f, "GATE BREACH LOGGED", "GATE OVERRIDDEN");
             uplink = Asset<InteractionDefinition>($"{DataFolder}/Interaction_DataCoreUplink.asset");
-            uplink.EditorConfigure("EXTRACT", 4f, 8f, 0.35f, 0f, "CORE ACCESS LOGGED", "DATA CORE SECURED");
+            ConfigureUplinkDefinition(uplink);
+            coreTerminal = CoreTerminalDefinition();
             EditorUtility.SetDirty(hackGate);
             EditorUtility.SetDirty(uplink);
 
@@ -173,22 +176,31 @@ namespace NeonRift.EditorTools.District
                 "NightRun",
                 new List<ObjectiveDefinition>
                 {
-                    new("reach_core", ObjectiveKind.Reach, CoreZoneId, "REACH THE DATA CORE",
+                    new("reach_core", ObjectiveKind.Reach, CoreZoneId, "INFILTRATE THE DATA CORE FACILITY",
                         "Boulevard: long and clean.  Service alley: short, but its gate logs intrusions.",
-                        rivalGoalId: RivalStagingId, rivalStartDelay: 0.6f),
-                    new("hack_core", ObjectiveKind.Interact, CoreUplinkId, "BREACH THE DATA CORE",
-                        "Stop on the uplink ring and hold E to extract the core.", SecurityLevel.Calm, 0f, null,
-                        null, new[] { EventBreached, EventLockdown }),
+                        eventsOnComplete: new[] { EventCoreArrive }, rivalGoalId: RivalStagingId, rivalStartDelay: 0.6f),
+                    new("disable_security", ObjectiveKind.Interact, CoreTerminalId, "DISABLE FACILITY SECURITY",
+                        "Stop at the security terminal west of the core and hack it. The compound cameras are live."),
+                    new("hack_core", ObjectiveKind.Interact, CoreUplinkId, "EXTRACT THE DATA CORE",
+                        "Stop on the uplink ring and press E. Keep the link stable until the package is out.", SecurityLevel.Calm, 0f, null,
+                        null, new[] { EventCoreAcquired }),
                     new("escape", ObjectiveKind.Reach, ExtractionId, "ESCAPE TO THE RIFT GATE",
                         "The district is sealing. Beat the checkpoints, take the skyway, or hack your way out.", SecurityLevel.Lockdown, 80f,
-                        "TRACE COMPLETE — YOU WERE FOUND", new[] { EventEscape }, rivalGoalId: RivalExtractionId, rivalStartDelay: 1.2f)
+                        "TRACE COMPLETE — YOU WERE FOUND", new[] { EventBreached, EventLockdown, EventEscape }, rivalGoalId: RivalExtractionId,
+                        rivalStartDelay: 1.2f, startDelay: 2.4f)
                 },
                 new[] { EventStart }, new[] { "mission.complete" }, new[] { "mission.failed" },
                 new List<MissionAnnouncement>
                 {
                     new(EventStart, "SECTOR 7 GRID ONLINE  ·  FOLLOW THE CYAN BEACON", MessageTone.Info, 4.5f),
                     new(EventAlleyOpen, "ALLEY GATE OPEN", MessageTone.Success, 0.2f),
-                    new(EventBreached, "THEFT DETECTED|SECTOR 7 LOCKDOWN INITIATED", MessageTone.Danger, 0.15f, banner: true),
+                    new(EventCoreArrive, "FACILITY SECURITY ACTIVE  ·  INTRUDER SCAN RUNNING", MessageTone.Warning, 0.3f),
+                    new(EventCoreSecurityOff, "LOCAL SECURITY OFFLINE  ·  CORE CHAMBER OPENING", MessageTone.Success, 0.4f),
+                    new(EventExtractBegin, "EXTRACTION RUNNING  ·  HOLD POSITION", MessageTone.Info, 0.2f),
+                    new(EventGridAnomaly, "S7 GRID: ANOMALOUS DATA FLOW  ·  NODES REROUTING", MessageTone.Warning, 0.1f),
+                    new(EventExtractTrace, "COUNTER-INTRUSION ONLINE  ·  CAMERAS REBOOTING", MessageTone.Danger, 0.1f),
+                    new(EventCoreAcquired, "DATA ACQUIRED|S7 CORE PACKAGE · 2.4 TB SECURED", MessageTone.Success, 0.1f, banner: true),
+                    new(EventBreached, "SECURITY BREACH DETECTED|SECTOR 7 LOCKDOWN INITIATED", MessageTone.Danger, 0.05f, banner: true),
                     new("escape.start", "EXTRACTION: RIFT GATE, SOUTH-EAST TUNNEL", MessageTone.Info, 4f),
                     new("escape.start", "ALLEY GATE CAN BE RE-HACKED  ·  COSTS HEAT", MessageTone.Warning, 7f),
                     new("escape.start", "CREW: SKYWAY GATE OPEN  ·  HARBOR ROUTE CLEAR", MessageTone.Success, 2.5f),
@@ -212,7 +224,7 @@ namespace NeonRift.EditorTools.District
 
         // ---------------- Data Core compound ----------------
 
-        private static Transform BuildCompound(Context c, InteractionDefinition uplinkDefinition, out Interactable uplink)
+        private static Transform BuildCompound(Context c, InteractionDefinition uplinkDefinition, InteractionDefinition terminalDefinition, out Interactable uplink)
         {
             var kit = c.Kit;
             var root = new GameObject("DataCoreCompound").transform;
@@ -304,7 +316,7 @@ namespace NeonRift.EditorTools.District
             trigger.size = new Vector3(30f, 6f, 30f);
             uplink = uplinkGo.AddComponent<Interactable>();
             var uplinkBeacon = Beacon(c, uplinkGo.transform, Vector3.zero, kit.BeaconCyan, 3f);
-            uplink.EditorConfigure(CoreUplinkId, uplinkDefinition, "DATA CORE", 9f, true, null, null, null, null,
+            uplink.EditorConfigure(CoreUplinkId, uplinkDefinition, "DATA CORE UPLINK", 9f, true, null, null, null, null,
                                    new[] { ringRenderer.GetComponent<Renderer>() }, uplinkBeacon);
 
             // Reach zone: the whole compound.
@@ -317,8 +329,6 @@ namespace NeonRift.EditorTools.District
             var zone = zoneGo.AddComponent<MissionZone>();
             zone.EditorConfigure(CoreZoneId, "DATA CORE", 12f, Beacon(c, zoneGo.transform, CorePosition, kit.BeaconCyan, 3f));
 
-            var visual = core.gameObject.AddComponent<DataCoreVisual>();
-            visual.EditorConfigure(uplink, rings.ToArray(), glow.ToArray(), coreLight);
 
             // Corner towers with lockdown beacons, and floodlights on the core.
             var alarm = new GameObject("CompoundAlarm").transform;
@@ -339,8 +349,14 @@ namespace NeonRift.EditorTools.District
             alarmComponent.EditorConfigure(new AudioSource[0], heads.ToArray(), beaconLights.ToArray());
             c.MissionLights.AddRange(beaconLights);
 
-            Light(c, root, "Flood_NW", LightType.Spot, new Vector3(112f, 9f, 188f), Quaternion.LookRotation(CorePosition + Vector3.up * 6f - new Vector3(112f, 9f, 188f)), new Color(0.7f, 0.9f, 1f), 1800f, 140f, 40f);
-            Light(c, root, "Flood_SE", LightType.Spot, new Vector3(208f, 9f, 66f), Quaternion.LookRotation(CorePosition + Vector3.up * 6f - new Vector3(208f, 9f, 66f)), new Color(0.7f, 0.9f, 1f), 1800f, 140f, 40f);
+            var floods = new[]
+            {
+                Light(c, root, "Flood_NW", LightType.Spot, new Vector3(112f, 9f, 188f), Quaternion.LookRotation(CorePosition + Vector3.up * 6f - new Vector3(112f, 9f, 188f)), new Color(0.7f, 0.9f, 1f), 1800f, 140f, 40f),
+                Light(c, root, "Flood_SE", LightType.Spot, new Vector3(208f, 9f, 66f), Quaternion.LookRotation(CorePosition + Vector3.up * 6f - new Vector3(208f, 9f, 66f)), new Color(0.7f, 0.9f, 1f), 1800f, 140f, 40f),
+            };
+            alarmComponent.EditorConfigureEvents(new[] { EventExtractTrace });
+            BuildCoreTerminal(c, root, terminalDefinition, core);
+            BuildChamber(c, core, uplink, rings.ToArray(), glow.ToArray(), coreLight, floods);
             return core;
         }
 
@@ -578,7 +594,9 @@ namespace NeonRift.EditorTools.District
                 var go = new GameObject($"Group_{pair.Key}");
                 go.transform.SetParent(parent, false);
                 go.transform.position = c.District.BlockCentres.TryGetValue(pair.Key, out var centre) ? centre : CorePosition;
-                go.AddComponent<SecurityLightGroup>().EditorConfigure(new[] { pair.Value }, null);
+                var group = go.AddComponent<SecurityLightGroup>();
+                group.EditorConfigure(new[] { pair.Value }, null);
+                if (pair.Key == "Compound") group.EditorConfigureEvents(new[] { EventCoreArrive }, new[] { EventCoreSecurityOff });
             }
         }
 
@@ -1005,8 +1023,12 @@ namespace NeonRift.EditorTools.District
         {
             var root = Root(c, "CitySystems").transform;
             root.gameObject.AddComponent<LightBudget>().EditorConfigure(c.District.Lamps.ToArray(), camera.transform, 56);
-            root.gameObject.AddComponent<TrafficSignalNetwork>().EditorConfigure(c.District.Props.SignalRenderers);
-            root.gameObject.AddComponent<LockdownScreens>().EditorConfigure(c.District.Screens.ToArray(), c.Kit.WarningScreen);
+            var signals = root.gameObject.AddComponent<TrafficSignalNetwork>();
+            signals.EditorConfigure(c.District.Props.SignalRenderers);
+            signals.EditorConfigureEvents(new[] { EventGridAnomaly });
+            var screens = root.gameObject.AddComponent<LockdownScreens>();
+            screens.EditorConfigure(c.District.Screens.ToArray(), c.Kit.WarningScreen);
+            screens.EditorConfigureEvents(new[] { EventGridAnomaly });
         }
 
         /// <summary>Security cameras on poles at the risky spots: they log heat once security is raised.</summary>
@@ -1056,7 +1078,13 @@ namespace NeonRift.EditorTools.District
                 col.height = 5.6f;
                 col.center = new Vector3(0f, 2.8f, 0f);
                 go.layer = c.Environment;
-                go.AddComponent<SecurityCamera>().EditorConfigure(pivot, l.GetComponent<Renderer>(), mask, 0.08f);
+                var cam = go.AddComponent<SecurityCamera>();
+                cam.EditorConfigure(pivot, l.GetComponent<Renderer>(), mask, 0.08f);
+                // The compound's own cameras: live as soon as an intruder is inside, offline once its security is
+                // hacked (they watch the core), back on when the counter-intrusion reboots them mid-extraction.
+                bool compound = at.x > 100f && at.x < 220f && at.z > 55f && at.z < 210f;
+                if (compound) cam.EditorConfigureEvents(new[] { EventCoreArrive }, new[] { EventCoreSecurityOff }, new[] { EventExtractTrace },
+                                                        c.Chamber != null ? c.Chamber.transform : null);
             }
         }
 
@@ -1133,7 +1161,7 @@ namespace NeonRift.EditorTools.District
             var alleyNorth = new[] { V(162, -80), V(162, -66), V(158.2f, -58), V(158.2f, -47), V(161.5f, -38), V(161.5f, 12), V(162.3f, 30), V(160.5f, 50), V(160, 66) };
             var alleyRoute = Route(routes, "Route_AlleyIn_ExpresswayOut", new List<Vector2> { V(3.5f, -292), V(3.5f, -103) }
                 .Concat(new[] { V(162, -103) }).Concat(alleyNorth)
-                .Concat(new[] { V(160, 108), V(168.5f, 117), V(168.5f, 138), V(160, 147), V(160, 296.5f), V(315.5f, 296.5f), V(315.5f, -420), V(320, -455), V(320, -470) }).ToList());
+                .Concat(new[] { V(160, 108), V(151.5f, 117), V(151.5f, 138), V(160, 147), V(160, 296.5f), V(315.5f, 296.5f), V(315.5f, -420), V(320, -455), V(320, -470) }).ToList());
             // Southbound takes the same line: the chicane, not the lanes, decides where the car can be.
             var alleySouth = alleyNorth.Reverse().ToArray();
             var boulevardRoute = Route(routes, "Route_BoulevardIn_AlleyOut", new List<Vector2>

@@ -13,9 +13,99 @@ MonoBehaviour:
   m_Name: Interaction_DataCoreUplink
   m_EditorClassIdentifier: NeonRift.Gameplay::NeonRift.Gameplay.InteractionDefinition
   verb: EXTRACT
-  holdSeconds: 4
-  maxSpeedKph: 8
+  deviceName: S7-CORE // EXTRACTION UPLINK
+  holdSeconds: 0
+  maxSpeedKph: 6
   decayPerSecond: 0.35
   heatOnComplete: 0
   heatReason: CORE ACCESS LOGGED
-  completeMessage: DATA CORE SECURED
+  completeMessage: EXTRACTION COMPLETE
+  tension: 1
+  steps:
+  - label: CONNECT EXTRACTION DEVICE
+    detail: "Docking arm to the car \u2014 stay stopped"
+    kind: 0
+    duration: 2.2
+    checkpoint: 1
+    window: 0.24
+    windowCentre: 0.62
+    maxMisses: 3
+    missHeat: 0.04
+    interference: []
+    responseSeconds: 2.5
+    rollback: 0.1
+    eventOnStart: core.extract.connect
+    eventOnComplete: 
+    cues: []
+  - label: INITIALIZE EXTRACTION
+    detail: Mapping the core's partition table
+    kind: 0
+    duration: 1.6
+    checkpoint: 0
+    window: 0.24
+    windowCentre: 0.62
+    maxMisses: 3
+    missHeat: 0.04
+    interference: []
+    responseSeconds: 2.5
+    rollback: 0.1
+    eventOnStart: core.extract.init
+    eventOnComplete: 
+    cues: []
+  - label: STABILIZE DATA LINK
+    detail: Lock the carrier as the cursor crosses the window
+    kind: 2
+    duration: 1.3
+    checkpoint: 1
+    window: 0.22
+    windowCentre: 0.4
+    maxMisses: 0
+    missHeat: 0.03
+    interference: []
+    responseSeconds: 2.5
+    rollback: 0.1
+    eventOnStart: core.extract.stabilize
+    eventOnComplete: 
+    cues: []
+  - label: DATA EXTRACTION
+    detail: "Pulling the S7 package \u2014 answer interference with E"
+    kind: 3
+    duration: 14
+    checkpoint: 1
+    window: 0.24
+    windowCentre: 0.62
+    maxMisses: 3
+    missHeat: 0.04
+    interference:
+    - 0.38
+    - 0.74
+    responseSeconds: 2.6
+    rollback: 0.12
+    eventOnStart: 
+    eventOnComplete: 
+    cues:
+    - at: 0.03
+      eventId: core.extract.begin
+    - at: 0.5
+      eventId: grid.anomaly
+    - at: 0.8
+      eventId: core.extract.trace
+  - label: EXTRACTION COMPLETE
+    detail: Sealing the package
+    kind: 0
+    duration: 0.9
+    checkpoint: 0
+    window: 0.24
+    windowCentre: 0.62
+    maxMisses: 3
+    missHeat: 0.04
+    interference: []
+    responseSeconds: 2.5
+    rollback: 0.1
+    eventOnStart: 
+    eventOnComplete: 
+    cues: []
+  lockoutSeconds: 3
+  failHeat: 0
+  failMessage: LINK COLLAPSED
+  eventsOnFail: []

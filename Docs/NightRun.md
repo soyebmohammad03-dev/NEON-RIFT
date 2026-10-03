@@ -8,11 +8,53 @@ Rebuild everything (scene, textures, meshes, mission data, audio, probes): **Neo
 
 | # | Objective (data) | Target | Security | What happens |
 |---|---|---|---|---|
-| 1 | `reach_core` — REACH THE DATA CORE | zone `core_compound` | Calm (Alert if heat) | Cyan beacon on the core; choose boulevard or alley |
-| 2 | `hack_core` — BREACH THE DATA CORE | interactable `core_uplink` | — | Stop on the uplink ring, hold **E** for 4 s. Rings spin up. Fires `core.breached`, `lockdown` |
-| 3 | `escape` — ESCAPE TO THE RIFT GATE | zone `extraction` | Lockdown, 80 s trace (−25 s per 1.0 heat) | Gates seal, lights turn red from the core outward, sirens, lockdown grade |
+| 1 | `reach_core`: INFILTRATE THE DATA CORE FACILITY | zone `core_compound` | Calm (Alert if heat) | Boulevard or alley. Entering fires `core.arrive`: floods sweep, compound strips go amber, the compound cameras go live, a red scan ring hunts up the column, holograms turn amber, the facility hum starts |
+| 2 | `disable_security`: DISABLE FACILITY SECURITY | interactable `core_security_terminal` (kiosk west of the core) | — | CONNECTING (auto) → AUTHENTICATING (hold E) → BYPASSING (timing, 3 misses = lockout + heat) → SECURITY OVERRIDE. Fires `core.security.off`: cameras offline (they turn to watch the core), floods stand down, the chamber opens |
+| 3 | `hack_core`: EXTRACT THE DATA CORE | interactable `core_uplink` (ring round the core) | — | CONNECT EXTRACTION DEVICE → INITIALIZE → STABILIZE DATA LINK (timing) → DATA EXTRACTION (14 s, interference at 38 % and 74 %) → EXTRACTION COMPLETE. Fires `core.acquired`: **DATA ACQUIRED** banner and stinger |
+| 4 | `escape`: ESCAPE TO THE RIFT GATE | zone `extraction` | Lockdown, 80 s trace (−25 s per 1.0 heat) | Starts 2.4 s after the data is acquired (`startDelay`) with `core.breached`, `lockdown`, `escape.start`: **SECURITY BREACH DETECTED** banner and breach stinger, the theft camera beat, gates seal, lights turn red from the core outward, sirens, lockdown grade |
 
 Timeout fails the mission ("TRACE COMPLETE"). Results panel: **E** retry, **Esc** continue (car select).
+
+## The Data Core heist
+
+The multi-stage interactions are described in [Interactions.md](Interactions.md). The Data Core's presentation is `DataCoreChamber` (it replaced `DataCoreVisual`). It reads world events and the uplink's `InteractionRun`, and owns no rules.
+
+- **Armoured sleeve:** six curved panels around the column with cyan seams. On `core.security.off` they unlock one after another (a small outward kick) and sink into the pedestal over 3.2 s. A hydraulic one-shot plays, the column's light floods out, and the rings spin up.
+- **Machinery:** two arms on carriages that ride a rail round the pedestal to the car's side.
+  - The connector arm (two-bone IK, elbow up) reaches for the roof during CONNECT, docks with a clunk, and lowers a glowing data cable onto the car.
+  - The scanner arm holds a beam that sweeps the car front to back.
+- **Extraction:**
+  - Pulses travel core → arm → cable → car, from 2.5 to 16 per second as progress climbs.
+  - The core shifts from cyan through hot white-blue to magenta.
+  - Amber strobes start at 30 % and speed up.
+  - Scan rings sweep faster, and the holograms show the stage strip and progress.
+  - The 3D data-stream loop and the 2D tension bed build.
+  - Interference: pulses freeze, and the link, cable, pulses and core flash red while the holograms tear.
+  - The camera holds a slow, wide framing of the car and the core (`VehicleChaseCamera.SetFraming`) while the chamber opens and while data is pulled. The player keeps control of the car.
+- **City reacting** (stage cues):
+  - At 50 %, `grid.anomaly`: every traffic signal stutters amber and street screens within 420 m glitch to the warning.
+  - At 80 %, `core.extract.trace`: the compound cameras reboot (they log heat again) and the compound beacons start spinning.
+- **Acquired / breached:** the cable releases and the core collapses to an ember. 2.4 s later the breach turns it to the alarm colour, and the floods turn red.
+
+| Facility alerted | Bypass (timing) | Chamber open, arm connecting |
+|---|---|---|
+| ![](Screenshots/Heist/core_arrive.jpg) | ![](Screenshots/Heist/stage_BYPASSING.jpg) | ![](Screenshots/Heist/stage_CONNECT_EXTRACTION_DEVICE.jpg) |
+
+| Extraction | Interference | Counter-intrusion (80 %) |
+|---|---|---|
+| ![](Screenshots/Heist/core_extract_begin.jpg) | ![](Screenshots/Heist/interference.jpg) | ![](Screenshots/Heist/core_extract_trace.jpg) |
+
+| Data acquired | Breach detected (theft beat) |
+|---|---|
+| ![](Screenshots/Heist/core_acquired.jpg) | ![](Screenshots/Heist/core_breached.jpg) |
+
+**Validation (Play Mode, `MissionPlaytest` + `NightRunValidator`, BoulevardInAlleyOut, SLS AMG):** completed in 125.5 s with 0 collisions.
+- Terminal: 4.8 s.
+- Uplink: 20.9 s, with both interference events answered after a 0.8 s reaction delay.
+- `grid.anomaly` and `core.extract.trace` fired on cue.
+- 2.4 s beat, then lockdown, alley re-hack, Rift Gate.
+
+The same run without the reaction delay (instant answers) completed too: three runs in all.
 
 ## Routes and consequences
 
@@ -76,10 +118,11 @@ Standings come from route distance to the current objective over the road graph.
 | `MissionWorld` | Gameplay | Per-attempt hub handed to scene components: player, security, heat, world events (string ids), countdowns, announcements. No singletons |
 | `IMissionWorldComponent` | Gameplay | Anything in the scene that takes part; found and bound by the director |
 | `MissionZone` | Gameplay | Reach targets (trigger layer), beacon while current |
-| `Interactable` + `InteractionDefinition` | Gameplay | Reusable "stop and hold Interact" mechanic: verb, hold time, max speed, heat, message; raises/enables/disables/re-arms on world events |
+| `Interactable` + `InteractionDefinition` | Gameplay | Reusable "stop and work the device" mechanic: stages (auto, hold, timing, sustain), max speed, heat, lockout; raises/enables/disables/re-arms on world events |
 | `SecurityBarrier` | Gameplay | Event-driven gates: countdown (heat-scaled) → strobe + klaxon → kinematic panels slide (push cars, never teleport) → slam |
 | `SecurityLightGroup` | Gameplay | Kerb/crown neon per block; lockdown wave spreads from the theft at 140 m/s |
-| `SecurityAlarm`, `SecurityPostEffects`, `DataCoreVisual` | Gameplay | Sirens + rotating beacons, lockdown colour grade, core presentation |
+| `SecurityAlarm`, `SecurityPostEffects`, `DataCoreChamber` | Gameplay | Sirens + rotating beacons, lockdown colour grade, the Data Core heist presentation |
+| `InteractionRun` + `TerminalDisplay` + `TerminalReadout` | Missions / Gameplay | Multi-stage interactions, device screens, HUD readout ([Interactions.md](Interactions.md)) |
 | `MissionHud` + `MissionHud.uxml/.uss` | Gameplay / UI | Objective + distance, waypoint (edge-clamped), security state + heat, trace timer, seal countdowns, prompt + progress, toasts, banners, speed/gear/rpm, results |
 | `MissionAudio` + `MissionAudioSet` | Gameplay | Ambience bed, hack loop, cues; routed into the existing mixer groups |
 | `NightRunValidator` | Gameplay (dev) | Plays the real mission end to end through the input interfaces and reports a timeline |

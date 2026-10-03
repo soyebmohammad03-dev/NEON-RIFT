@@ -5,16 +5,20 @@ using UnityEngine;
 namespace NeonRift.Gameplay
 {
     /// <summary>
-    /// A world object the player uses from the car (terminals, uplinks, payloads): stop inside its trigger and
-    /// hold Interact. Its kind comes from an <see cref="InteractionDefinition"/>; what it does is data too —
-    /// on completion it raises world events that barriers, lights and objectives react to. It can be enabled,
-    /// disabled or re-armed by world events, so one terminal can open a gate now and again after a lockdown.
-    /// The hold itself is run by the <see cref="MissionDirector"/> for the one interactable in focus.
+    /// A world object the player uses from the car (terminals, uplinks, payloads): stop inside its trigger and work
+    /// through its stages with Interact. Its kind comes from an <see cref="InteractionDefinition"/> (one hold, or a
+    /// multi-stage sequence run by <see cref="InteractionRun"/>); what it does is data too — stages and completion
+    /// raise world events that barriers, lights, machinery and objectives react to. It can be enabled, disabled or
+    /// re-armed by world events, so one terminal can open a gate now and again after a lockdown. Too many failed
+    /// stages lock it out for a while and log heat. The <see cref="MissionDirector"/> operates the one in focus.
     /// </summary>
     [RequireComponent(typeof(Collider))]
     public sealed class Interactable : MonoBehaviour, IMissionWorldComponent, IMissionTarget
     {
         public enum State { Locked, Available, Completed }
+
+        /// <summary>Moments presentation reacts to (audio cues, screen flashes, HUD).</summary>
+        public enum Feedback { Started, StepStarted, StepCompleted, Miss, Interference, Resynced, LinkDropped, Completed, Failed, Cancelled }
 
         [SerializeField] private string id;
         [SerializeField] private InteractionDefinition definition;
@@ -34,10 +38,11 @@ namespace NeonRift.Gameplay
         [Header("Presentation")]
         [Tooltip("Emissive parts that show the state (locked / available / in use / done).")]
         [SerializeField] private Renderer[] indicators = Array.Empty<Renderer>();
-        [SerializeField, ColorUsage(false, true)] private Color availableColor = new(0.15f, 1.2f, 1.6f);
-        [SerializeField, ColorUsage(false, true)] private Color activeColor = new(3f, 3f, 3.4f);
-        [SerializeField, ColorUsage(false, true)] private Color completedColor = new(0.3f, 2.8f, 0.9f);
-        [SerializeField, ColorUsage(false, true)] private Color lockedColor = new(2.6f, 0.15f, 0.25f);
+        // Kept moderate: indicators can be large (the uplink ring), and neon is an accent, not a floodlight.
+        [SerializeField, ColorUsage(false, true)] private Color availableColor = new(0.05f, 0.42f, 0.6f);
+        [SerializeField, ColorUsage(false, true)] private Color activeColor = new(0.18f, 0.62f, 0.85f);
+        [SerializeField, ColorUsage(false, true)] private Color completedColor = new(0.06f, 0.5f, 0.2f);
+        [SerializeField, ColorUsage(false, true)] private Color lockedColor = new(0.3f, 0.02f, 0.04f);
         [Tooltip("Shown while this is the current objective.")]
         [SerializeField] private GameObject beacon;
 
@@ -46,6 +51,8 @@ namespace NeonRift.Gameplay
         private Material indicatorMaterial;
         private int overlaps;
         private bool enabledByEvents;
+        private float lockoutUntil = -1f;
+        private bool wasActive;
 
         public string Id => id;
         public InteractionDefinition Definition => definition;
@@ -54,10 +61,16 @@ namespace NeonRift.Gameplay
         public Vector3 WaypointPosition => transform.position + Vector3.up * waypointHeight;
         public State Current { get; private set; } = State.Locked;
         public bool PlayerInside => overlaps > 0;
-        /// <summary>Hold progress, 0..1.</summary>
-        public float Progress { get; private set; }
-        public bool InUse { get; private set; }
+        /// <summary>The stage runner (null until bound).</summary>
+        public InteractionRun Run { get; private set; }
+        /// <summary>Overall progress, 0..1.</summary>
+        public float Progress => Current == State.Completed ? 1f : Run != null ? Run.Overall : 0f;
+        /// <summary>The interaction is under way (a stage is running).</summary>
+        public bool InUse => Run != null && Run.Running;
+        public bool LockedOut => lockoutUntil >= 0f;
+        public float LockoutRemaining => LockedOut ? Mathf.Max(0f, lockoutUntil - Time.time) : 0f;
         public event Action<Interactable> StateChanged;
+        public event Action<Interactable, Feedback> FeedbackRaised;
 
         private void Awake()
         {
@@ -81,7 +94,8 @@ namespace NeonRift.Gameplay
             world = missionWorld;
             world.EventRaised += OnWorldEvent;
             enabledByEvents = startsEnabled;
-            Progress = 0f;
+            lockoutUntil = -1f;
+            CreateRun();
             Refresh(force: true);
         }
 
@@ -90,7 +104,7 @@ namespace NeonRift.Gameplay
             if (world != null) world.EventRaised -= OnWorldEvent;
             world = null;
             overlaps = 0;
-            InUse = false;
+            Run = null;
         }
 
         public void SetObjectiveActive(bool active)
@@ -105,40 +119,93 @@ namespace NeonRift.Gameplay
             var next = Current == State.Completed ? State.Completed : IsUsable() ? State.Available : State.Locked;
             if (next == Current && !force) return;
             Current = next;
-            if (next != State.Available) { Progress = 0f; InUse = false; }
+            if (next == State.Locked && Run != null && Run.State != InteractionRun.RunState.Completed) Run.Reset();
             ApplyIndicator();
             StateChanged?.Invoke(this);
         }
 
-        /// <summary>Advances the hold by <paramref name="dt"/>. Returns true on the frame it completes.</summary>
-        public bool Hold(bool held, float speedKph, float dt)
+        /// <summary>
+        /// Operates the interaction for one frame: <paramref name="held"/> is the Interact button. The player counts as
+        /// engaged while inside the zone and slower than the definition's limit. Returns true on the frame it completes.
+        /// </summary>
+        public bool Operate(bool held, float speedKph, float dt)
         {
-            if (Current != State.Available || definition == null) return false;
-            bool canHold = held && speedKph <= definition.MaxSpeedKph;
-            bool wasInUse = InUse;
-            InUse = canHold;
-            if (canHold) Progress += definition.HoldSeconds > 0f ? dt / definition.HoldSeconds : 1f;
-            else Progress = Mathf.Max(0f, Progress - definition.DecayPerSecond * dt);
-            if (InUse != wasInUse) ApplyIndicator();
-            if (Progress < 1f) return false;
+            if (Current != State.Available || definition == null || Run == null) return false;
+            bool engaged = PlayerInside && speedKph <= definition.MaxSpeedKph;
+            Run.Tick(dt, held, engaged);
+            bool active = Run.Running;
+            if (active != wasActive)
+            {
+                wasActive = active;
+                ApplyIndicator();
+            }
+            return Current == State.Completed;
+        }
 
-            Progress = 1f;
-            InUse = false;
+        private void CreateRun()
+        {
+            Run = null;
+            if (definition == null) return;
+            Run = new InteractionRun(definition.Steps, definition.DecayPerSecond);
+            Run.Event += e => { if (world != null) world.Raise(e); };
+            Run.StepStarted += i => { if (i > 0) Notify(Feedback.StepStarted); else Notify(Feedback.Started); };
+            Run.StepCompleted += _ => Notify(Feedback.StepCompleted);
+            Run.Missed += (step, heat) =>
+            {
+                if (world != null && heat > 0f) world.AddHeat(heat, "COUNTERMEASURE TRIPPED");
+                Notify(Feedback.Miss);
+            };
+            Run.InterferenceStarted += () => Notify(Feedback.Interference);
+            Run.InterferenceResolved += ok => Notify(ok ? Feedback.Resynced : Feedback.LinkDropped);
+            Run.Cancelled += reason =>
+            {
+                if (world != null) world.Announce($"{displayName}: {reason}", MessageTone.Warning);
+                Notify(Feedback.Cancelled);
+            };
+            Run.Failed += _ => OnFailed();
+            Run.Completed += OnCompleted;
+        }
+
+        private void OnCompleted()
+        {
             Current = State.Completed;
+            wasActive = false;
             ApplyIndicator();
             StateChanged?.Invoke(this);
+            Notify(Feedback.Completed);
+            if (world == null) return;
+            if (definition.HeatOnComplete > 0f) world.AddHeat(definition.HeatOnComplete, definition.HeatReason);
+            foreach (var e in raiseOnComplete) world.Raise(e);
+            world.NotifyInteractionCompleted(this);
+        }
+
+        private void OnFailed()
+        {
+            lockoutUntil = Time.time + definition.LockoutSeconds;
+            wasActive = false;
+            Notify(Feedback.Failed);
             if (world != null)
             {
-                if (definition.HeatOnComplete > 0f) world.AddHeat(definition.HeatOnComplete, definition.HeatReason);
-                foreach (var e in raiseOnComplete) world.Raise(e);
-                world.NotifyInteractionCompleted(this);
+                world.Announce($"{displayName}: {definition.FailMessage}", MessageTone.Danger);
+                if (definition.FailHeat > 0f) world.AddHeat(definition.FailHeat, "HACK TRACED");
+                foreach (var e in definition.EventsOnFail) world.Raise(e);
             }
-            return true;
+            Refresh();
         }
+
+        private void Update()
+        {
+            if (lockoutUntil < 0f || Time.time < lockoutUntil) return;
+            lockoutUntil = -1f;
+            Run?.Reset();
+            Refresh();
+        }
+
+        private void Notify(Feedback feedback) => FeedbackRaised?.Invoke(this, feedback);
 
         private bool IsUsable()
         {
-            if (world == null || world.Phase != MissionPhase.Running || !enabledByEvents) return false;
+            if (world == null || world.Phase != MissionPhase.Running || !enabledByEvents || LockedOut) return false;
             // Interactables that an objective points at only work while that objective is current.
             return !world.IsMissionTarget(id) || world.IsObjectiveTarget(id);
         }
@@ -150,7 +217,7 @@ namespace NeonRift.Gameplay
             if (MissionWorld.Matches(rearmOn, eventId) && Current == State.Completed)
             {
                 Current = State.Locked;
-                Progress = 0f;
+                Run?.Reset();
             }
             Refresh();
         }

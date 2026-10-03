@@ -20,13 +20,22 @@ namespace NeonRift.Gameplay
         [SerializeField] private LayerMask occluders;
         [SerializeField, ColorUsage(false, true)] private Color idleColour = new(0.1f, 0.9f, 0.4f);
         [SerializeField, ColorUsage(false, true)] private Color trackingColour = new(4f, 0.15f, 0.12f);
+        [SerializeField, ColorUsage(false, true)] private Color offlineColour = new(0.02f, 0.02f, 0.02f);
+        [Header("Events")]
+        [Tooltip("Arms the camera even while the grid is calm (a facility's own security).")]
+        [SerializeField] private string[] armOn = System.Array.Empty<string>();
+        [Tooltip("Takes the camera offline (a hacked security system) until a re-arm event.")]
+        [SerializeField] private string[] disarmOn = System.Array.Empty<string>();
+        [SerializeField] private string[] rearmOn = System.Array.Empty<string>();
+        [Tooltip("While offline the head turns to watch this point instead (e.g. the core), if set.")]
+        [SerializeField] private Transform offlineWatch;
 
         private static readonly int EmissionColor = Shader.PropertyToID("_EmissionColor");
         private MissionWorld world;
         private Material material;
         private Quaternion restRotation;
         private float exposure, cooldownUntil;
-        private bool tracking;
+        private bool tracking, forcedArm, offline;
 
         public bool Tracking => tracking;
 
@@ -49,14 +58,29 @@ namespace NeonRift.Gameplay
         public void Bind(MissionWorld missionWorld)
         {
             world = missionWorld;
+            world.EventRaised += OnWorldEvent;
             exposure = 0f;
             cooldownUntil = 0f;
+            forcedArm = offline = false;
+            tracking = true;
             SetTracking(false);
             enabled = true;
         }
 
+        private void OnWorldEvent(string eventId)
+        {
+            if (MissionWorld.Matches(armOn, eventId)) forcedArm = true;
+            if (MissionWorld.Matches(disarmOn, eventId)) { offline = true; tracking = true; SetTracking(false); }
+            if (MissionWorld.Matches(rearmOn, eventId)) { offline = false; forcedArm = true; tracking = true; SetTracking(false); }
+        }
+
+        /// <summary>True while the camera is armed (would log heat if it saw the player).</summary>
+        public bool Armed => world != null && !offline && (forcedArm || world.Security != SecurityLevel.Calm) && world.Phase == MissionPhase.Running;
+        public bool Offline => offline;
+
         public void Unbind()
         {
+            if (world != null) world.EventRaised -= OnWorldEvent;
             world = null;
             enabled = false;
         }
@@ -64,12 +88,13 @@ namespace NeonRift.Gameplay
         private void Update()
         {
             if (world == null || world.PlayerBody == null) return;
-            bool armed = world.Security != SecurityLevel.Calm && world.Phase == MissionPhase.Running;
+            bool armed = Armed;
             bool seen = armed && Sees(world.PlayerBody.position + Vector3.up * 0.8f);
             SetTracking(seen);
             if (head != null)
             {
-                var target = seen ? Quaternion.LookRotation(world.PlayerBody.position - head.position) : head.parent.rotation * restRotation;
+                var rest = offline && offlineWatch != null ? Quaternion.LookRotation(offlineWatch.position - head.position) : head.parent.rotation * restRotation;
+                var target = seen ? Quaternion.LookRotation(world.PlayerBody.position - head.position) : rest;
                 head.rotation = Quaternion.RotateTowards(head.rotation, target, 120f * Time.deltaTime);
             }
             exposure = seen ? exposure + Time.deltaTime : Mathf.Max(0f, exposure - Time.deltaTime);
@@ -95,7 +120,7 @@ namespace NeonRift.Gameplay
         {
             if (tracking == on && material != null) return;
             tracking = on;
-            if (material != null) material.SetColor(EmissionColor, on ? trackingColour : idleColour);
+            if (material != null) material.SetColor(EmissionColor, offline ? offlineColour : on ? trackingColour : idleColour);
         }
 
 #if UNITY_EDITOR
@@ -105,6 +130,14 @@ namespace NeonRift.Gameplay
             led = ledRenderer;
             occluders = blocking;
             heat = heatPerDetection;
+        }
+
+        public void EditorConfigureEvents(string[] arm, string[] disarm, string[] rearm, Transform watchWhileOffline)
+        {
+            armOn = arm ?? System.Array.Empty<string>();
+            disarmOn = disarm ?? System.Array.Empty<string>();
+            rearmOn = rearm ?? System.Array.Empty<string>();
+            offlineWatch = watchWhileOffline;
         }
 #endif
     }

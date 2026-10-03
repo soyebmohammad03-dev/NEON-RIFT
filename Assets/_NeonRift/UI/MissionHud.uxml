@@ -1,6 +1,7 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements">
     <ui:VisualElement name="hud-root" class="nr-hud" picking-mode="Ignore">
         <ui:VisualElement name="lockdown-frame" class="nr-hud-frame" picking-mode="Ignore" />
+        <ui:VisualElement name="extract-frame" class="nr-hud-extract" picking-mode="Ignore" />
 
         <ui:VisualElement name="waypoint" class="nr-waypoint" picking-mode="Ignore">
             <ui:VisualElement name="waypoint-arrow" class="nr-waypoint__arrow" picking-mode="Ignore" />
@@ -43,6 +44,12 @@
             <ui:Label name="nav-street" class="nr-nav__street" picking-mode="Ignore" />
             <ui:VisualElement name="minimap-frame" class="nr-minimap" picking-mode="Ignore" />
             <ui:Label name="nav-route" class="nr-nav__route" picking-mode="Ignore" />
+        </ui:VisualElement>
+
+        <ui:VisualElement name="terminal" picking-mode="Ignore" />
+
+        <ui:VisualElement name="objective-complete" class="nr-stamp" picking-mode="Ignore">
+            <ui:Label name="objective-complete-text" text="OBJECTIVE COMPLETE" class="nr-stamp__text" picking-mode="Ignore" />
         </ui:VisualElement>
 
         <ui:VisualElement name="toasts" class="nr-toasts" picking-mode="Ignore" />

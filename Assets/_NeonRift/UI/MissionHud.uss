@@ -591,3 +591,101 @@
 .nr-nav--lockdown .nr-nav__route {
     color: rgb(255, 90, 160);
 }
+
+/* ---------------- Terminal readout (multi-stage interactions), left centre ---------------- */
+.nr-term {
+    position: absolute;
+    left: 56px;
+    top: 218px;
+    width: 450px;
+    padding: 10px 14px 10px 14px;
+    background-color: rgba(3, 8, 12, 0.82);
+    border-left-width: 3px;
+    border-top-width: 1px;
+    border-color: rgba(84, 232, 255, 0.55);
+    border-top-right-radius: 4px;
+    border-bottom-right-radius: 4px;
+    transition-property: opacity, translate, background-color, border-color;
+    transition-duration: 0.3s, 0.3s, 0.12s, 0.12s;
+}
+.nr-term--enter { opacity: 0; translate: -30px 0; }
+.nr-term--flash-good { background-color: rgba(20, 90, 60, 0.85); border-color: rgb(80, 255, 160); }
+.nr-term--flash-bad { background-color: rgba(120, 10, 30, 0.88); border-color: rgb(255, 60, 100); }
+.nr-term--flash-warn { background-color: rgba(110, 70, 10, 0.88); border-color: var(--nr-amber); }
+.nr-term--lockout { border-color: rgb(255, 60, 100); }
+.nr-term--done { border-color: rgb(80, 255, 160); }
+
+.nr-term__header { flex-direction: row; justify-content: space-between; }
+.nr-term__device { font-size: 12px; letter-spacing: 3px; color: var(--nr-text-dim); }
+.nr-term__state { font-size: 12px; letter-spacing: 3px; -unity-font-style: bold; color: var(--nr-cyan); }
+.nr-term--lockout .nr-term__state { color: rgb(255, 90, 120); }
+.nr-term--done .nr-term__state { color: rgb(120, 255, 180); }
+.nr-term__title { font-size: 22px; letter-spacing: 4px; -unity-font-style: bold; color: var(--nr-text); margin-top: 2px; margin-bottom: 6px; }
+
+.nr-term__rows { margin-bottom: 8px; }
+.nr-term__row { flex-direction: row; height: 19px; align-items: center; opacity: 0.45; }
+.nr-term__row--active { opacity: 1; }
+.nr-term__row--done { opacity: 0.8; }
+.nr-term__row-index { width: 34px; min-width: 34px; font-size: 12px; letter-spacing: 0; -unity-text-align: middle-left; color: var(--nr-text-dim); }
+.nr-term__row-label { flex-grow: 1; font-size: 14px; letter-spacing: 3px; color: var(--nr-text); }
+.nr-term__row-status { width: 40px; font-size: 13px; -unity-font-style: bold; -unity-text-align: middle-right; color: var(--nr-text-dim); }
+.nr-term__row--active .nr-term__row-label { color: var(--nr-cyan); -unity-font-style: bold; }
+.nr-term__row--active .nr-term__row-status { color: var(--nr-cyan); }
+.nr-term__row--done .nr-term__row-status { color: rgb(120, 255, 180); }
+
+.nr-term__stage { padding: 8px 10px; background-color: rgba(84, 232, 255, 0.06); border-left-width: 2px; border-color: var(--nr-cyan); }
+.nr-term__stage-label { font-size: 24px; letter-spacing: 4px; -unity-font-style: bold; color: var(--nr-cyan); }
+.nr-term--lockout .nr-term__stage-label { color: rgb(255, 90, 120); }
+.nr-term--done .nr-term__stage-label { color: rgb(120, 255, 180); }
+.nr-term__stage-detail { font-size: 13px; color: var(--nr-text-dim); white-space: normal; }
+.nr-term__bar { height: 4px; margin-top: 6px; background-color: rgba(255, 255, 255, 0.1); }
+.nr-term__bar-fill { height: 100%; width: 0%; background-color: var(--nr-cyan); }
+
+.nr-term__timing { height: 26px; margin-top: 10px; background-color: rgba(255, 255, 255, 0.07); border-width: 1px; border-color: rgba(84, 232, 255, 0.3); }
+.nr-term__timing-window { position: absolute; top: 0; bottom: 0; background-color: rgba(84, 232, 255, 0.28); border-left-width: 2px; border-right-width: 2px; border-color: var(--nr-cyan); }
+.nr-term__timing--hot .nr-term__timing-window { background-color: rgba(120, 255, 190, 0.5); border-color: rgb(140, 255, 200); }
+.nr-term__timing-cursor { position: absolute; top: -4px; bottom: -4px; width: 4px; margin-left: -2px; background-color: rgb(255, 255, 255); }
+
+.nr-term__alarm { margin-top: 8px; padding: 4px 8px; background-color: rgba(255, 176, 64, 0.85); }
+.nr-term__alarm-text { font-size: 15px; letter-spacing: 2px; -unity-font-style: bold; color: rgb(20, 10, 0); }
+.nr-term__instruction { font-size: 13px; letter-spacing: 2px; color: var(--nr-text); margin-top: 8px; }
+
+.nr-term__stream { font-size: 11px; letter-spacing: 2px; color: rgba(84, 232, 255, 0.55); margin-top: 8px; white-space: normal; }
+.nr-term__foot { flex-direction: row; align-items: center; margin-top: 8px; }
+.nr-term__overall { flex-grow: 1; height: 6px; background-color: rgba(255, 255, 255, 0.1); }
+.nr-term__overall-fill { height: 100%; width: 0%; background-color: var(--nr-cyan); }
+.nr-term--done .nr-term__overall-fill { background-color: rgb(80, 255, 160); }
+.nr-term__percent { width: 56px; font-size: 18px; -unity-font-style: bold; -unity-text-align: middle-right; color: var(--nr-text); }
+
+/* ---------------- Objective complete stamp ---------------- */
+.nr-stamp {
+    position: absolute;
+    left: 56px;
+    top: 48px;
+    padding: 10px 18px;
+    background-color: rgba(10, 60, 40, 0.85);
+    border-left-width: 3px;
+    border-color: rgb(80, 255, 160);
+    opacity: 0;
+    translate: -20px 0;
+    transition-property: opacity, translate;
+    transition-duration: 0.25s;
+}
+.nr-stamp--on { opacity: 1; translate: 0 0; }
+.nr-stamp__text { font-size: 26px; letter-spacing: 6px; -unity-font-style: bold; color: rgb(140, 255, 200); }
+
+/* Extraction treatment: a cinematic edge glow while data is pulled. */
+.nr-hud-extract {
+    position: absolute;
+    left: 0; top: 0; right: 0; bottom: 0;
+    border-width: 4px;
+    border-color: rgba(84, 232, 255, 0.0);
+    transition-property: border-color;
+    transition-duration: 0.4s;
+}
+.nr-hud-extract--on { border-color: rgba(84, 232, 255, 0.45); }
+.nr-hud-extract--warn { border-color: rgba(255, 176, 64, 0.65); }
+
+/* While a terminal readout is up the objective keeps only its title, so the two never overlap. */
+.nr-hud--terminal .nr-objective__detail,
+.nr-hud--terminal .nr-objective__distance { display: none; }

@@ -24,3 +24,19 @@ MonoBehaviour:
   message: {fileID: 8300000, guid: d36150e9b3878440f9023ac45d1fa89a, type: 3}
   success: {fileID: 8300000, guid: a564cff56d66b4180a30628cb146b02a, type: 3}
   failure: {fileID: 8300000, guid: 68cd7da6e54cf48f889c6a92a2c89c92, type: 3}
+  stepStart: {fileID: 8300000, guid: c6b97279c8c7a4273be42788dc99bb4c, type: 3}
+  stepDone: {fileID: 8300000, guid: 06e25e48ffd5f43bf8d0a19a6aa3a096, type: 3}
+  miss: {fileID: 8300000, guid: 40cdae6d244c644c5bc49f0fd0e5e628, type: 3}
+  interference: {fileID: 8300000, guid: 729fb481165fe4b31a60b93468066ced, type: 3}
+  resync: {fileID: 8300000, guid: 8de2677438c6a4ea0beac4a6798874a9, type: 3}
+  lockout: {fileID: 8300000, guid: 4a13286b8544c42c984fb13696e574b3, type: 3}
+  cancel: {fileID: 8300000, guid: d3ed9977091874123846419ab5779fc1, type: 3}
+  tensionLoop: {fileID: 8300000, guid: e816e90b9d94942d6a61a85c2a3f1488, type: 3}
+  tensionVolume: 0.7
+  eventStingers:
+  - eventId: core.acquired
+    clip: {fileID: 8300000, guid: 235923f25a1b641dcbd2888ef4ac56fa, type: 3}
+    volume: 0.9
+  - eventId: core.breached
+    clip: {fileID: 8300000, guid: 5dc08ced53a9f4e699749188ebd37ebb, type: 3}
+    volume: 1

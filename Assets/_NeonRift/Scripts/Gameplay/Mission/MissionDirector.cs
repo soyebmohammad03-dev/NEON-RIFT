@@ -51,7 +51,8 @@ namespace NeonRift.Gameplay
         private GameContext context;
         private Camera viewCamera;
         private IMissionTarget activeTarget;
-        private Interactable focused;
+        private Interactable focused, terminalShown, lastTerminal;
+        private float terminalHoldUntil;
         private float resultsAt = -1f;
         private int lastTickSecond = -1;
         private readonly RoadPath route = new();
@@ -128,7 +129,9 @@ namespace NeonRift.Gameplay
                 if (c is UnityEngine.Object o && o != null) c.Unbind();
             components.Clear();
             targets.Clear();
+            foreach (var i in interactables) if (i != null) i.FeedbackRaised -= OnInteractionFeedback;
             interactables.Clear();
+            focused = terminalShown = lastTerminal = null;
             pending.Clear();
             if (hud != null)
             {
@@ -162,7 +165,11 @@ namespace NeonRift.Gameplay
                     {
                         if (!targets.TryAdd(t.Id, t)) Debug.LogError($"[Mission] Duplicate target id '{t.Id}'.", (UnityEngine.Object)t);
                     }
-                    if (c is Interactable i) interactables.Add(i);
+                    if (c is Interactable i)
+                    {
+                        interactables.Add(i);
+                        i.FeedbackRaised += OnInteractionFeedback;
+                    }
                 }
             foreach (var objective in Progress.Definition.Objectives)
                 if (objective != null && !targets.ContainsKey(objective.TargetId))
@@ -178,7 +185,11 @@ namespace NeonRift.Gameplay
             Progress.Tick(dt);
             RunAnnouncements();
             if (Progress.Phase == MissionPhase.Running) UpdateInteraction(dt);
-            else if (missionAudio != null) missionAudio.SetInteract(0f, 0f);
+            else if (missionAudio != null)
+            {
+                missionAudio.SetInteract(0f, 0f);
+                missionAudio.SetTension(0f, 0f);
+            }
             UpdateHud();
             UpdateResults();
             if (parked && Player != null)
@@ -193,12 +204,17 @@ namespace NeonRift.Gameplay
 
         private void UpdateInteraction(float dt)
         {
+            // A run under way keeps the focus even if the car drifts out (the run cancels itself after a grace period).
             focused = null;
+            terminalShown = null;
             float best = float.MaxValue;
             Vector3 p = Player != null ? Player.transform.position : Vector3.zero;
             foreach (var i in interactables)
             {
-                if (!i.PlayerInside || i.Current != Interactable.State.Available) continue;
+                if (i.InUse && i.Current == Interactable.State.Available) { focused = i; break; }
+                if (!i.PlayerInside) continue;
+                if (i.LockedOut) { terminalShown = i; continue; }
+                if (i.Current != Interactable.State.Available) continue;
                 float d = (i.transform.position - p).sqrMagnitude;
                 if (d < best) { best = d; focused = i; }
             }
@@ -208,10 +224,35 @@ namespace NeonRift.Gameplay
             if (focused != null)
             {
                 var current = focused;
-                current.Hold(held, kph, dt);
-                if (missionAudio != null) missionAudio.SetInteract(current.InUse ? 1f : 0f, current.Progress);
+                current.Operate(held, kph, dt);
+                if (current.Definition != null && current.Definition.IsSequence) terminalShown = current;
+                if (missionAudio != null)
+                {
+                    missionAudio.SetInteract(current.InUse ? 1f : 0f, current.Progress);
+                    float tension = current.Definition != null ? current.Definition.Tension : 0f;
+                    missionAudio.SetTension(current.InUse ? tension * (0.35f + 0.65f * current.Progress) : 0f, current.Progress);
+                }
             }
-            else if (missionAudio != null) missionAudio.SetInteract(0f, 0f);
+            else if (missionAudio != null)
+            {
+                missionAudio.SetInteract(0f, 0f);
+                missionAudio.SetTension(0f, 0f);
+            }
+            // Keep the readout up briefly after completion so the result reads.
+            if (terminalShown == null && lastTerminal != null && Time.time < terminalHoldUntil) terminalShown = lastTerminal;
+            if (terminalShown != null) lastTerminal = terminalShown;
+        }
+
+        private void OnInteractionFeedback(Interactable source, Interactable.Feedback feedback)
+        {
+            if (hud != null) hud.FlashTerminal(feedback);
+            if (missionAudio != null) missionAudio.Play(feedback);
+            if (feedback == Interactable.Feedback.Completed)
+            {
+                lastTerminal = source;
+                terminalHoldUntil = Time.time + 1.6f;
+            }
+            if (feedback == Interactable.Feedback.Interference && chaseCamera != null) chaseCamera.Kick(0.12f);
         }
 
         private void OnInteractionCompleted(Interactable interactable)
@@ -252,8 +293,11 @@ namespace NeonRift.Gameplay
                       (Progress.HasTimer ? $" ({Progress.TimeRemaining:0.0}s)" : string.Empty));
         }
 
-        private void OnObjectiveCompleted(ObjectiveDefinition objective) =>
+        private void OnObjectiveCompleted(ObjectiveDefinition objective)
+        {
             Debug.Log($"[Mission] objective '{objective.Id}' complete at {Progress.Elapsed:0.0}s");
+            if (hud != null && Progress.ObjectiveIndex < Progress.Definition.Objectives.Count - 1) hud.StampObjective("OBJECTIVE COMPLETE", 1.4f);
+        }
 
         private void OnSecurityChanged(SecurityLevel level)
         {
@@ -312,6 +356,7 @@ namespace NeonRift.Gameplay
         private void OnWorldEvent(string eventId)
         {
             if (!string.IsNullOrEmpty(beatEvent) && eventId == beatEvent) StartBeat();
+            if (missionAudio != null) missionAudio.OnWorldEvent(eventId);
             foreach (var a in Progress.Definition.Announcements)
                 if (a.eventId == eventId) pending.Add((Time.time + a.delay, a));
         }
@@ -411,14 +456,18 @@ namespace NeonRift.Gameplay
             UpdateNavigator(running);
             UpdateRace(running);
 
-            if (running && focused != null && focused.Definition != null)
+            if (running && focused != null && focused.Definition != null && !(focused.Definition.IsSequence && focused.InUse))
             {
                 var d = focused.Definition;
                 bool tooFast = Player != null && Player.Telemetry.SpeedKph > d.MaxSpeedKph;
                 string hint = tooFast ? "STOP THE CAR TO INTERACT" : focused.InUse ? "KEEP HOLDING" : null;
-                hud.SetPrompt(true, $"HOLD  {d.Verb}  ·  {focused.DisplayName}", focused.Progress, hint, tooFast);
+                string verb = d.IsSequence ? "PRESS" : "HOLD";
+                hud.SetPrompt(true, $"{verb}  {d.Verb}  ·  {focused.DisplayName}", focused.Progress, hint, tooFast);
             }
             else hud.SetPrompt(false, null, 0f, null, false);
+            hud.SetTerminal(running ? terminalShown : null);
+            var run = running && focused != null && focused.InUse ? focused.Run : null;
+            hud.SetExtractionFrame(run != null && run.Current != null && run.Current.Kind == InteractionStepKind.Sustain ? (run.InterferencePending ? 2 : 1) : 0);
         }
 
         private void UpdateNavigator(bool running)

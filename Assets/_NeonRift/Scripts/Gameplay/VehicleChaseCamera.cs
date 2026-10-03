@@ -65,6 +65,14 @@ namespace NeonRift.Gameplay
         [SerializeField, Range(0f, 6f)] private float maxRoll = 3f;
         [SerializeField, Range(0.02f, 1f)] private float rollSmoothTime = 0.3f;
 
+        [Header("Sustained framing (long interactions)")]
+        [Tooltip("Swing round from straight behind the car, away from the subject, degrees.")]
+        [SerializeField, Range(0f, 120f)] private float frameSwing = 38f;
+        [SerializeField, Min(0f)] private float frameRise = 3.6f;
+        [SerializeField, Min(0f)] private float framePullBack = 5.5f;
+        [Tooltip("Blend in / out time of the framing, unscaled s.")]
+        [SerializeField, Range(0.1f, 4f)] private float frameBlend = 1.4f;
+
         [Header("Cinematic beat")]
         [Tooltip("How far round from behind the car the camera swings to frame car and subject, degrees.")]
         [SerializeField, Range(0f, 120f)] private float beatSwing = 55f;
@@ -92,6 +100,9 @@ namespace NeonRift.Gameplay
         private float roll, rollVelocity;
         private float beatStart = -10f, beatEnd = -10f;
         private Vector3 beatSubject;
+        private Vector3 frameSubject;
+        private bool framing;
+        private float frameWeight;
 
         public VehicleController Target => target;
 
@@ -139,6 +150,19 @@ namespace NeonRift.Gameplay
         }
 
         public bool InBeat => Time.unscaledTime < beatEnd;
+
+        /// <summary>
+        /// Holds a slow, wide framing of the car and <paramref name="subject"/> while <paramref name="on"/> (an extraction,
+        /// a machine opening): the camera eases out to the far side of the car, raised, and drifts gently while aiming
+        /// between the two. Blends in and out over <see cref="frameBlend"/>; the player keeps full control of the car.
+        /// </summary>
+        public void SetFraming(bool on, Vector3 subject)
+        {
+            framing = on;
+            if (on) frameSubject = subject;
+        }
+
+        public float FramingWeight => frameWeight;
 
         private float BeatWeight()
         {
@@ -217,6 +241,22 @@ namespace NeonRift.Gameplay
                 float w = focusWeight * Mathf.Clamp01(remaining / 0.6f);
                 Vector3 toFocus = (focusPoint - aimOrigin).normalized * Vector3.Distance(lookAt, position);
                 lookAt = Vector3.Lerp(lookAt, aimOrigin + toFocus, w);
+            }
+            float frameStep = dt > 0f ? Time.unscaledDeltaTime / frameBlend : 0f;
+            frameWeight = Mathf.MoveTowards(frameWeight, framing ? 1f : 0f, frameStep);
+            if (frameWeight > 0f)
+            {
+                Vector3 away = Vector3.ProjectOnPlane(pivot - frameSubject, Vector3.up);
+                if (away.sqrMagnitude < 1f) away = -(Quaternion.Euler(0f, yaw, 0f) * Vector3.forward);
+                float swing = frameSwing + Mathf.Sin(Time.unscaledTime * 0.15f) * 14f;
+                away = Quaternion.Euler(0f, swing, 0f) * away.normalized;
+                Vector3 framePosition = aimOrigin + away * (distance + framePullBack) + Vector3.up * (height + frameRise);
+                Vector3 toFrame = framePosition - aimOrigin;
+                if (scene.SphereCast(aimOrigin, collisionRadius, toFrame.normalized, out var frameHit, toFrame.magnitude, obstacleLayers, QueryTriggerInteraction.Ignore))
+                    framePosition = aimOrigin + toFrame.normalized * Mathf.Max(minDistance, frameHit.distance);
+                float w = frameWeight * frameWeight * (3f - 2f * frameWeight);
+                position = Vector3.Lerp(position, framePosition, w);
+                lookAt = Vector3.Lerp(lookAt, Vector3.Lerp(aimOrigin, frameSubject, 0.45f), w);
             }
             float beat = BeatWeight();
             if (beat > 0f)

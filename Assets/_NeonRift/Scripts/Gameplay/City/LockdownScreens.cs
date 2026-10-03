@@ -15,10 +15,15 @@ namespace NeonRift.Gameplay
         [SerializeField] private Renderer[] screens = Array.Empty<Renderer>();
         [SerializeField] private Material warning;
         [SerializeField, Min(1f)] private float waveSpeed = 140f;
+        [Tooltip("Grid anomaly: screens near the origin stutter between their advert and the warning.")]
+        [SerializeField] private string[] glitchOn = Array.Empty<string>();
+        [SerializeField, Min(10f)] private float glitchRadius = 420f;
 
         private Material[] original;
         private readonly List<(float time, int index)> pending = new();
         private MissionWorld world;
+        private readonly List<int> glitching = new();
+        private float nextGlitch;
 
         private void Awake()
         {
@@ -31,18 +36,33 @@ namespace NeonRift.Gameplay
         {
             world = missionWorld;
             world.SecurityChanged += OnSecurityChanged;
+            world.EventRaised += OnWorldEvent;
             Restore();
+        }
+
+        private void OnWorldEvent(string eventId)
+        {
+            if (!MissionWorld.Matches(glitchOn, eventId) || world.Security == SecurityLevel.Lockdown) return;
+            glitching.Clear();
+            for (int i = 0; i < screens.Length; i++)
+                if (screens[i] != null && Vector3.Distance(screens[i].bounds.center, world.AlertOrigin) < glitchRadius) glitching.Add(i);
+            enabled = glitching.Count > 0;
         }
 
         public void Unbind()
         {
-            if (world != null) world.SecurityChanged -= OnSecurityChanged;
+            if (world != null)
+            {
+                world.SecurityChanged -= OnSecurityChanged;
+                world.EventRaised -= OnWorldEvent;
+            }
             world = null;
         }
 
         private void OnSecurityChanged(SecurityLevel level)
         {
             if (level != SecurityLevel.Lockdown) { Restore(); return; }
+            StopGlitch();
             pending.Clear();
             for (int i = 0; i < screens.Length; i++)
                 if (screens[i] != null)
@@ -50,8 +70,15 @@ namespace NeonRift.Gameplay
             enabled = true;
         }
 
+        private void StopGlitch()
+        {
+            foreach (int i in glitching) if (screens[i] != null) screens[i].sharedMaterial = original[i];
+            glitching.Clear();
+        }
+
         private void Restore()
         {
+            StopGlitch();
             pending.Clear();
             enabled = false;
             for (int i = 0; i < screens.Length; i++) if (screens[i] != null) screens[i].sharedMaterial = original[i];
@@ -59,6 +86,19 @@ namespace NeonRift.Gameplay
 
         private void Update()
         {
+            if (glitching.Count > 0 && Time.time >= nextGlitch)
+            {
+                nextGlitch = Time.time + 0.09f;
+                // A few screens at a time flip, so the stutter ripples rather than strobing in sync.
+                for (int k = 0; k < glitching.Count; k++)
+                {
+                    int i = glitching[k];
+                    if (screens[i] == null) continue;
+                    float h = Mathf.Repeat(Mathf.Sin((Time.time * 7.1f + i * 12.9898f)) * 43758.5453f, 1f);
+                    screens[i].sharedMaterial = h < 0.22f ? warning : original[i];
+                }
+                return;
+            }
             for (int k = pending.Count - 1; k >= 0; k--)
             {
                 if (Time.time < pending[k].time) continue;
@@ -74,6 +114,8 @@ namespace NeonRift.Gameplay
             screens = screenRenderers ?? Array.Empty<Renderer>();
             warning = warningMaterial;
         }
+
+        public void EditorConfigureEvents(string[] glitchEvents) => glitchOn = glitchEvents ?? Array.Empty<string>();
 #endif
     }
 }

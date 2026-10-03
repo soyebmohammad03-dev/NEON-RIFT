@@ -24,6 +24,7 @@ namespace NeonRift.EditorTools.Audio
         public struct Clips
         {
             public AudioClip Siren, Klaxon, Motor, Slam;
+            public HeistAudioGenerator.Clips Heist;
             public MissionAudioSet Set;
         }
 
@@ -59,6 +60,14 @@ namespace NeonRift.EditorTools.Audio
                 AssetDatabase.CreateAsset(set, SetPath);
             }
             set.EditorConfigure(ambience, hack, objective, complete, heat, lockdown, tick, message, success, failure);
+            var heist = HeistAudioGenerator.Generate(Save, log);
+            clips.Heist = heist;
+            set.EditorConfigureStages(heist.StepStart, heist.StepDone, heist.Miss, heist.Interference, heist.Resync, heist.Lockout, heist.Cancel,
+                heist.Tension, new[]
+                {
+                    new MissionAudioSet.EventStinger { eventId = "core.acquired", clip = heist.Acquired, volume = 0.9f },
+                    new MissionAudioSet.EventStinger { eventId = "core.breached", clip = heist.Breach, volume = 1f },
+                });
             EditorUtility.SetDirty(set);
             AssetDatabase.SaveAssets();
             clips.Set = set;

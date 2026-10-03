@@ -31,6 +31,10 @@ namespace NeonRift.Gameplay
         [SerializeField, Min(1f)] private float waveSpeed = 140f;
         [SerializeField, Min(0.01f)] private float fadeSeconds = 0.35f;
         [SerializeField, Min(0.1f)] private float pulseHz = 1.2f;
+        [Tooltip("Local alert (a facility reacting to an intruder) without raising the city's security level.")]
+        [SerializeField] private string[] alertOn = Array.Empty<string>();
+        [Tooltip("Back to the city's current look (e.g. the facility's security was disabled).")]
+        [SerializeField] private string[] calmOn = Array.Empty<string>();
 
         private static readonly int EmissionColor = Shader.PropertyToID("_EmissionColor");
         private MissionWorld world;
@@ -59,6 +63,7 @@ namespace NeonRift.Gameplay
         {
             world = missionWorld;
             world.SecurityChanged += OnSecurityChanged;
+            world.EventRaised += OnWorldEvent;
             from = to = Look(world.Security);
             Apply(to, 0f);
             enabled = to.pulse > 0f;
@@ -66,8 +71,28 @@ namespace NeonRift.Gameplay
 
         public void Unbind()
         {
-            if (world != null) world.SecurityChanged -= OnSecurityChanged;
+            if (world != null)
+            {
+                world.SecurityChanged -= OnSecurityChanged;
+                world.EventRaised -= OnWorldEvent;
+            }
             world = null;
+        }
+
+        private void OnWorldEvent(string eventId)
+        {
+            if (world == null || world.Security == SecurityLevel.Lockdown) return;
+            if (MissionWorld.Matches(alertOn, eventId)) FadeTo(alert);
+            else if (MissionWorld.Matches(calmOn, eventId)) FadeTo(Look(world.Security));
+        }
+
+        private void FadeTo(LevelLook look)
+        {
+            from = Current();
+            to = look;
+            delay = 0f;
+            time = 0f;
+            enabled = true;
         }
 
         private void OnSecurityChanged(SecurityLevel level)
@@ -122,6 +147,12 @@ namespace NeonRift.Gameplay
         {
             renderers = strips ?? Array.Empty<Renderer>();
             lights = groupLights ?? Array.Empty<Light>();
+        }
+
+        public void EditorConfigureEvents(string[] localAlert, string[] localCalm)
+        {
+            alertOn = localAlert ?? Array.Empty<string>();
+            calmOn = localCalm ?? Array.Empty<string>();
         }
 #endif
     }

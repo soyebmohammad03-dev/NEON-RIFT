@@ -18,12 +18,14 @@ namespace NeonRift.Gameplay
         [SerializeField, Min(0f)] private float allRedSeconds = 1.5f;
         [SerializeField, Range(0f, 0.2f)] private float offLevel = 0.03f;
         [SerializeField, Min(0.2f)] private float lockdownFlashHz = 1.4f;
+        [Tooltip("Grid anomaly (the heist pulling data): every signal flashes amber until the lockdown.")]
+        [SerializeField] private string[] anomalyOn = Array.Empty<string>();
 
         private static readonly int EmissionColor = Shader.PropertyToID("_EmissionColor");
         private Material[] materials;
         private Color[] colours;
         private MissionWorld world;
-        private bool lockdown;
+        private bool lockdown, anomaly;
 
         private void Awake()
         {
@@ -48,14 +50,25 @@ namespace NeonRift.Gameplay
         {
             world = missionWorld;
             world.SecurityChanged += OnSecurityChanged;
+            world.EventRaised += OnWorldEvent;
             lockdown = world.Security == SecurityLevel.Lockdown;
+            anomaly = false;
+        }
+
+        private void OnWorldEvent(string eventId)
+        {
+            if (MissionWorld.Matches(anomalyOn, eventId)) anomaly = true;
         }
 
         public void Unbind()
         {
-            if (world != null) world.SecurityChanged -= OnSecurityChanged;
+            if (world != null)
+            {
+                world.SecurityChanged -= OnSecurityChanged;
+                world.EventRaised -= OnWorldEvent;
+            }
             world = null;
-            lockdown = false;
+            lockdown = anomaly = false;
         }
 
         private void OnSecurityChanged(SecurityLevel level) => lockdown = level == SecurityLevel.Lockdown;
@@ -67,6 +80,14 @@ namespace NeonRift.Gameplay
             {
                 bool on = Mathf.Repeat(Time.time * lockdownFlashHz, 1f) < 0.5f;
                 Set(on, false, false, on, false, false);
+                return;
+            }
+            if (anomaly)
+            {
+                // Irregular amber stutter: the grid is being rerouted under the player's feet.
+                float u = Time.time * 2.3f;
+                bool on = Mathf.Repeat(u, 1f) < 0.5f ^ Mathf.Repeat(u * 0.37f, 1f) < 0.12f;
+                Set(false, on, false, false, on, false);
                 return;
             }
             float half = greenSeconds + amberSeconds + allRedSeconds;
@@ -91,6 +112,7 @@ namespace NeonRift.Gameplay
 
 #if UNITY_EDITOR
         public void EditorConfigure(Renderer[] lensRenderers) => lenses = lensRenderers;
+        public void EditorConfigureEvents(string[] anomalyEvents) => anomalyOn = anomalyEvents ?? Array.Empty<string>();
 #endif
     }
 }

@@ -33,6 +33,8 @@ namespace NeonRift.Gameplay
         [SerializeField] private float settleSeconds = 1.6f;
         [Tooltip("Abort if the car makes no progress for this long while driving, s.")]
         [SerializeField] private float stallSeconds = 8f;
+        [Tooltip("Human reaction time before answering interference, s.")]
+        [SerializeField] private float reactionSeconds = 0.8f;
         [Tooltip("Adds a position/speed sample to the report this often while driving (0 = off), s.")]
         [SerializeField] private float traceInterval;
 
@@ -51,6 +53,7 @@ namespace NeonRift.Gameplay
         private Interactable holding;
         private DrivingRoute route;
         private float nextTrace;
+        private float interferenceSeen = -1f;
 
         public bool Running => stage is not (Stage.Idle or Stage.Done);
         public string Report { get; private set; } = string.Empty;
@@ -76,6 +79,13 @@ namespace NeonRift.Gameplay
             director.Progress.PhaseChanged += p => Note($"phase → {p}{(p == MissionPhase.Failed ? $" ({director.Progress.FailReason})" : string.Empty)}");
             director.World.EventRaised += e => Note($"event '{e}'");
             director.World.Announced += (t, tone) => Note($"hud [{tone}] {t}");
+            foreach (var i in FindObjectsByType<Interactable>(FindObjectsSortMode.None))
+                i.FeedbackRaised += (source, f) =>
+                {
+                    if (f is Interactable.Feedback.StepStarted or Interactable.Feedback.Started or Interactable.Feedback.Miss or Interactable.Feedback.Interference
+                        or Interactable.Feedback.Resynced or Interactable.Feedback.LinkDropped or Interactable.Feedback.Failed or Interactable.Feedback.Cancelled)
+                        Note($"{source.Id}: {f}{(source.Run?.Current != null ? $" [{source.Run.Current.Label}]" : string.Empty)}");
+                };
             vehicle.Collided += c =>
             {
                 collisions++;
@@ -149,7 +159,15 @@ namespace NeonRift.Gameplay
                 case Stage.Holding:
                     // Like a player: off the brake (holding it at a standstill selects reverse), handbrake on, hold Interact.
                     input.Current = Hold();
-                    held = true;
+                    // A competent player: start the run, hold on Hold stages, press inside Timing windows, answer interference.
+                    held = holding == null || holding.Run == null || holding.Run.SuggestedInput();
+                    var run = holding != null ? holding.Run : null;
+                    if (run != null && run.InterferencePending)
+                    {
+                        if (interferenceSeen < 0f) interferenceSeen = Time.time;
+                        held = Time.time - interferenceSeen >= reactionSeconds;
+                    }
+                    else interferenceSeen = -1f;
                     if (holding == null || holding.Current == Interactable.State.Completed)
                     {
                         held = false;
@@ -158,7 +176,7 @@ namespace NeonRift.Gameplay
                         Enter(Stage.Waiting);
                     }
                     else if (!holding.PlayerInside) Finish($"left the {holding.Id} zone before finishing");
-                    else if (stageTime > 15f) Finish("interaction did not complete");
+                    else if (stageTime > 60f) Finish("interaction did not complete");
                     break;
                 case Stage.Waiting:
                 case Stage.Parked:
