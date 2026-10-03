@@ -132,6 +132,8 @@ Audio during lockdown: 6/6 sirens playing, ambience on the Ambience group, vehic
 | Player parked in the rivals' lane on W Avenue (2.9, −180) | Both rivals passed at 109–170 km/h: 0 contacts, 0 reversals, 3 yields |
 | Player parked across the apex of the W Ave → N Boulevard right turn (6, 300) | Before path occupancy: the GT3 touched it (1 contact). After: 0 contacts. The GT3 stopped 0.6 m short, reversed once and drove round; the Terzo went round without stopping |
 
+After the city detail rebuild: `BoulevardInAlleyOut` ×3 all **Completed**. Two were clean. One faster run (103 s instead of 118 s) had the scripted player and the Terzo meet at the S7 car-park entrance (148, 256) while the Terzo was pulling in to park: 3 contacts (max 15.2 m/s), 1 Terzo reversal. This is **intermittent and timing-dependent**, and still open.
+
 ### City build validation (five-district city, rivals on)
 
 | Check | Result |

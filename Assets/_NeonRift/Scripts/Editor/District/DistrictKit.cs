@@ -29,7 +29,9 @@ namespace NeonRift.EditorTools.District
                         Indicator, BarrierWarning, TunnelWall, NightSky, BeaconCyan, BeaconMagenta, Steam, Reflector;
         public Material[] Facades, NeonStrips, Signs, Billboards, Containers;
         public Material Kerb, DarkPlastic, Glass, StreetSign, MarkingYellow, Lantern, LanternWarm, WarningScreen, AviationRed, Holo,
-                        CameraLed, RollerDoor, WallPack, ConcreteDark, Foliage, SkylineBackdrop;
+                        CameraLed, RollerDoor, WallPack, ConcreteDark, Foliage, SkylineBackdrop, Canopy;
+        /// <summary>Shop awning fabrics: oxblood, bottle green, navy, sand.</summary>
+        public Material[] Awnings;
         /// <summary>Signal lenses: [0..2] = north–south red/amber/green, [3..5] = east–west red/amber/green.</summary>
         public Material[] SignalLenses;
 
@@ -94,7 +96,7 @@ namespace NeonRift.EditorTools.District
 
             BeaconCyan = Glow("District_BeaconCyan", new Color(0.25f, 1.6f, 2.6f), t.GlowGradient, 1.2f);
             BeaconMagenta = Glow("District_BeaconMagenta", new Color(2.4f, 0.3f, 2f), t.GlowGradient, 1.2f);
-            Steam = Glow("District_Steam", new Color(0.09f, 0.07f, 0.12f), t.GlowSoft, 0f);
+            Steam = Glow("District_Steam", new Color(0.075f, 0.07f, 0.075f), t.GlowSoft, 0f);
 
             NightSky = Material("District_NightSky", Shader.Find("NeonRift/NightSky"));
             SkylineBackdrop = Material("District_SkylineBackdrop", Shader.Find("NeonRift/SkylineBackdrop"));
@@ -114,6 +116,13 @@ namespace NeonRift.EditorTools.District
             RollerDoor = Lit("District_RollerDoor", new Color(0.22f, 0.23f, 0.24f), 0.45f, 0.6f, t.ContainerAlbedo, t.ContainerNormal, 0.6f);
             WallPack = Lit("District_WallPack", new Color(0.4f, 0.3f, 0.15f), 0.5f, 0f, emission: new Color(4f, 2.2f, 0.8f));
             Foliage = Lit("District_Foliage", new Color(0.02f, 0.05f, 0.03f), 0.35f, 0f);
+            // Street-tree canopy: a little self-light so trees read as green masses under the lamps, not black boxes.
+            Canopy = Lit("District_Canopy", new Color(0.05f, 0.1f, 0.055f), 0.2f, 0f, emission: new Color(0.008f, 0.02f, 0.01f));
+            Color[] awning = { new(0.3f, 0.05f, 0.05f), new(0.04f, 0.15f, 0.08f), new(0.05f, 0.07f, 0.17f), new(0.45f, 0.38f, 0.26f) };
+            string[] awningNames = { "Oxblood", "Green", "Navy", "Sand" };
+            Awnings = new Material[awning.Length];
+            for (int i = 0; i < awning.Length; i++)
+                Awnings[i] = Lit($"District_Awning{awningNames[i]}", awning[i], 0.25f, 0f, emission: awning[i] * 0.06f);
 
             Color[] containerTints = { new(0.55f, 0.18f, 0.08f), new(0.1f, 0.22f, 0.4f), new(0.12f, 0.3f, 0.18f), new(0.38f, 0.38f, 0.4f), new(0.55f, 0.42f, 0.1f) };
             Containers = new Material[containerTints.Length];

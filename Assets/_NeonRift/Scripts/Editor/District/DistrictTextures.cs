@@ -26,7 +26,9 @@ namespace NeonRift.EditorTools.District
             "W AVENUE", "N BOULEVARD", "MARKET ST", "SOUTH ST", "SPIRE AVE", "SPIRE BLVD", "SKYLINE DR", "LANTERN ST",
             "DOCK RD", "FREIGHT LN", "YARD RD", "KILN ST", "LOWTOWN RD", "RING RD", "LANTERN X", "FISH ALLEY",
             "LOCKDOWN", "SECTOR SEALED", "TURN BACK", "DANGER", "CONSTRUCTION", "NIGHT MARKET", "PHARMACY", "PACHINKO",
-            "KARAOKE", "SUSHI", "BAR", "CYBERWARE", "TATTOO", "24/7", "DOCK 4", "CARGO", "SPIRE", "ZONE B", "60", "STOP"
+            "KARAOKE", "SUSHI", "BAR", "CYBERWARE", "TATTOO", "24/7", "DOCK 4", "CARGO", "SPIRE", "ZONE B", "60", "STOP",
+            // Regulatory kerb signs.
+            "30", "NO PARKING", "BUS", "LOADING", "ONE WAY"
         };
         public const int SignAtlasWidth = 1024;
         public const int SignAtlasHeight = 4096;

@@ -177,6 +177,7 @@ namespace NeonRift.EditorTools.District
             var lines = meshes.Unshadowed(kit.Marking);
             var yellow = meshes.Unshadowed(kit.MarkingYellow);
             var manholes = meshes.Unshadowed(kit.Metal);
+            var steam = meshes.Unshadowed(kit.Steam);
             const float y = 0.012f;
             foreach (var road in CityLayout.Roads)
             {
@@ -220,11 +221,48 @@ namespace NeonRift.EditorTools.District
                     else if (road.Class != RoadClass.Alley) Dashes(lines, W, s0, s1, 0f);
                     if (j0) { Zebra(lines, W, s0 + 0.5f, hw); StopLine(lines, W, s0 + 4.2f, hw, -1f); }
                     if (j1) { Zebra(lines, W, s1 - 3.5f, hw); StopLine(lines, W, s1 - 4.2f, hw, 1f); }
-                    // Manholes and drain grates.
+                    // Kerbside use on ordinary streets: a loading bay or a run of parking bays on either kerb.
+                    var zoneHere = CityLayout.ZoneAt((p0 + p1) * 0.5f);
+                    if (road.Class == RoadClass.Street && zoneHere is Zone.Kowloon or Zone.Lowtown or Zone.Harbor && s1 - s0 > 40f)
+                        foreach (float sg in new[] { -1f, 1f })
+                        {
+                            double roll = rng.NextDouble();
+                            float edge = hw - 0.35f, inner = hw - 2.6f;
+                            if (roll < 0.3)
+                            {
+                                // Loading bay: yellow box with a diagonal hatch, mid-block.
+                                float a0 = (s0 + s1) * 0.5f - 7f, a1 = a0 + 14f;
+                                yellow.Strip(W(a0, sg * inner), W(a1, sg * inner), 0.12f);
+                                yellow.Strip(W(a0, sg * edge), W(a0, sg * inner), 0.12f);
+                                yellow.Strip(W(a1, sg * edge), W(a1, sg * inner), 0.12f);
+                                for (float h = a0 + 1f; h + 2f <= a1; h += 2.2f) yellow.Strip(W(h, sg * edge), W(h + 2f, sg * inner), 0.1f);
+                                LoadingBays++;
+                            }
+                            else if (roll < 0.6)
+                            {
+                                // Parking bays: a lane line and a tick every 6 m.
+                                float a0 = s0 + 12f, a1 = s1 - 12f;
+                                lines.Strip(W(a0, sg * inner), W(a1, sg * inner), 0.1f);
+                                for (float t = a0; t <= a1; t += 6f) lines.Strip(W(t, sg * edge), W(t, sg * inner), 0.1f);
+                                ParkingRuns++;
+                            }
+                        }
+                    // Manholes and drain grates; in Kowloon and Lowtown some manholes steam.
                     for (float s = s0 + 17f; s < s1 - 10f; s += 47f + (float)rng.NextDouble() * 30f)
                     {
                         var m = W(s, (float)(rng.NextDouble() - 0.5) * hw);
                         manholes.Cylinder(m + Vector3.down * 0.008f, 0.38f, 0.004f, 14, true);
+                        var mz = CityLayout.ZoneAt(new Vector2(m.x, m.z));
+                        if (mz is Zone.Kowloon or Zone.Lowtown && rng.NextDouble() < 0.3)
+                        {
+                            for (int q = 0; q < 2; q++)
+                            {
+                                var turn = Quaternion.Euler(0f, q * 90f + (float)rng.NextDouble() * 30f, 0f);
+                                steam.Panel(m + Vector3.up * 1.4f, turn, 1.8f, 2.8f, new Rect(0f, 0f, 1f, 1f));
+                                steam.Panel(m + Vector3.up * 3.6f, turn * Quaternion.Euler(0f, 45f, 0f), 2.8f, 3.6f, new Rect(0f, 0f, 1f, 1f));
+                            }
+                            SteamVents++;
+                        }
                     }
                     for (float s = s0 + 8f; s < s1 - 4f; s += 24f)
                         foreach (float sg in new[] { -1f, 1f })
@@ -345,6 +383,13 @@ namespace NeonRift.EditorTools.District
         private T Pick<T>(IReadOnlyList<T> list) => list[rng.Next(list.Count)];
 
         /// <summary>Continuous podium street wall along one side: ground floor, lit upper floors, crown strip, signs, plant.</summary>
+        private enum ShopDetail { None, Awning, Shutter }
+
+        public int Awnings { get; private set; }
+        public int LoadingBays { get; private set; }
+        public int ParkingRuns { get; private set; }
+        public int SteamVents { get; private set; }
+
         private void BuildStreetWall(Zone zone, ZoneStyle style, CityLayout.Side side, BlockMeshes meshes, MeshBuilder security, Transform colliders)
         {
             Vector3 along = (side.End - side.Start).normalized;
@@ -377,6 +422,7 @@ namespace NeonRift.EditorTools.District
                 Vector2 offset = new(Range(0f, 1f), Range(0f, 1f));
                 var tile = DistrictTextures.FacadeTile;
                 const float ground = 4.5f;
+                var shopDetail = ShopDetail.None;
 
                 // Ground floor: shopfronts, or plain wall with roller doors and wall packs in industrial zones.
                 if (style.Industrial || !Chance(style.ShopChance))
@@ -393,16 +439,40 @@ namespace NeonRift.EditorTools.District
                         meshes.Unshadowed(kit.WallPack).OrientedBox(front + Vector3.up * 3.4f + side.Normal * 0.12f, new Vector3(0.4f, 0.2f, 0.16f), rotation, 1f);
                 }
                 else
+                {
                     meshes[kit.Shopfront].Box(front, rotation, new Vector3(seg, ground, depth), new Vector2(18f, 4.5f), new Vector2(Range(0f, 1f), 0f),
                                               setback > 0f ? roof : null, new Vector2(8f, 8f));
+                    shopDetail = Chance(0.12f) ? ShopDetail.Shutter : zone != Zone.Spire && Chance(0.38f) ? ShopDetail.Awning : ShopDetail.None;
+                    if (shopDetail == ShopDetail.Shutter)
+                    {
+                        // Closed for the night: shutter down over the glass, one wall pack left on.
+                        meshes[kit.RollerDoor].OrientedBox(front + Vector3.up * 1.7f + side.Normal * 0.05f, new Vector3(seg - 1.2f, 3.4f, 0.06f), rotation, 1f);
+                        meshes[kit.Metal].OrientedBox(front + Vector3.up * 3.55f + side.Normal * 0.16f, new Vector3(seg - 1f, 0.32f, 0.3f), rotation, 1f);
+                    }
+                    else if (shopDetail == ShopDetail.Awning)
+                    {
+                        // Fabric awning, pitched down to the street, with a valance; replaces the neon awning strip.
+                        var fabric = kit.Awnings[rng.Next(kit.Awnings.Length)];
+                        float w = seg - 1.4f, reach = Range(1.4f, 2f);
+                        var pitch = rotation * Quaternion.Euler(20f, 0f, 0f);
+                        Vector3 root = front + Vector3.up * 4.1f + side.Normal * 0.05f;
+                        meshes[fabric].OrientedBox(root + pitch * new Vector3(0f, 0f, reach * 0.5f), new Vector3(w, 0.05f, reach), pitch, 1f);
+                        Vector3 lip = root + pitch * new Vector3(0f, 0f, reach);
+                        meshes[fabric].OrientedBox(lip + Vector3.down * 0.17f, new Vector3(w, 0.34f, 0.03f), rotation, 1f);
+                        Awnings++;
+                    }
+                }
+                if (zone is Zone.Spire or Zone.Sector7 && Chance(0.22f))
+                    Props.Cctv(meshes, front + Vector3.up * 4.9f + along * (seg * 0.5f - 0.8f) + side.Normal * 0.1f,
+                               front + side.Normal * 8f + along * (Chance(0.5f) ? 15f : -15f));
                 Vector3 upperFront = front + Vector3.up * ground - side.Normal * setback;
                 float upper = height - ground;
                 fb.Box(upperFront, rotation, new Vector3(seg, upper, depth - setback), tile, offset, roof, new Vector2(8f, 8f), vStart: ground);
 
                 // Crown strip in the security colour (turns red in a lockdown).
                 security.OrientedBox(upperFront + Vector3.up * (upper - 0.15f) + side.Normal * 0.1f, new Vector3(seg, 0.18f, 0.18f), rotation, 1f);
-                // Awning neon over the shopfronts.
-                if (!style.Industrial && Chance(style.NeonChance))
+                // Awning neon over the shopfronts (not where a fabric awning or a shutter is).
+                if (!style.Industrial && shopDetail == ShopDetail.None && Chance(style.NeonChance))
                     meshes.Unshadowed(kit.NeonStrips[rng.Next(kit.NeonStrips.Length)])
                           .OrientedBox(front + Vector3.up * 4.4f + side.Normal * 0.35f, new Vector3(seg - 1.5f, 0.1f, 0.7f), rotation, 1f);
 

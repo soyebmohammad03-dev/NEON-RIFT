@@ -132,6 +132,8 @@ namespace NeonRift.EditorTools.District
 
             c.Log.AppendLine($"  podiums {c.District.Podiums}, towers {c.District.Towers}, lamps {c.District.RealtimeLights} (budgeted), signals {c.District.Props.Signals}, " +
                              $"screens {c.District.Screens.Count}, mission lights {c.MissionLights.Count}");
+            c.Log.AppendLine($"  street detail: kerb signs {c.District.Props.KerbSignCount}, CCTV {c.District.Props.CctvCount}, awnings {c.District.Awnings}, " +
+                             $"loading bays {c.District.LoadingBays}, parking runs {c.District.ParkingRuns}, steam vents {c.District.SteamVents}");
             c.Log.AppendLine($"  scene saved: {ScenePath}");
             return c.Log.ToString();
         }

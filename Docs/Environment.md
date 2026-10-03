@@ -117,8 +117,29 @@ Post-processing (ACES, bloom 1.0/0.38, split toning, SMAA + MSAA, SSAO) was revi
 
 The extra SetPass calls and draws are the new facade, crown, wash and rooftop materials and the haze pass. Removing the clusters cut shadow casters. LODs are the next task (Phase 6).
 
+# City detail (phase 5)
+
+Street detail added to the existing generators (merged meshes per block, no unique models), aimed at what the racing camera sees:
+
+| Detail | Where | Count |
+|---|---|---|
+| Street trees | Irregular canopies of 5–7 clumps on a forked trunk, faintly self-lit green (`District_Canopy`), replacing two black cubes | Spire planters |
+| Fabric awnings | 38 % of non-Spire shopfront segments: pitched awning with valance in oxblood, green, navy or sand; replaces the neon awning strip there | 185 |
+| Closed shops | 12 % of shopfronts have the shutter down with a box housing | — |
+| Regulatory kerb signs | 60 km/h on arterials, 30 elsewhere, NO PARKING, LOADING in the harbor, on 2.75 m poles facing the lane beside the kerb; kept 14 m away from junctions | 380 |
+| CCTV | Box cameras with a sun hood and red record LED on every other signal pole (aimed at the junction) and on 22 % of Spire / Sector 7 podiums | 113 |
+| Loading bays | Yellow box with a diagonal hatch, mid-block on Kowloon, Lowtown and Harbor streets | 14 |
+| Parking bays | Lane line with a tick every 6 m | 11 runs |
+| Steam vents | 30 % of Kowloon and Lowtown manholes steam (two crossed soft plumes, `District_Steam`) | 25 |
+
+Already present and unchanged: lane, edge and centre lines, crosswalks, stop lines, manholes and drain grates, signals, street-name blades, corner bollards, bins, benches, hydrants, utility boxes, vending machines, dumpsters, crates, pallets, barrels, food carts, bus shelters, facade AC units, drain pipes, fire escapes, rooftop plant, Kowloon cables, car parks, plazas, construction sites, container yard.
+
+| Kowloon Market | Spire Boulevard |
+|---|---|
+| ![](Screenshots/Detail/02_kowloon_market.jpg) | ![](Screenshots/Detail/04_spire_boulevard.jpg) |
+
 ## Known gaps (next phases)
 
 - ~~Dark tower bodies~~, ~~fogged Sketchfab clusters~~, ~~no height fog~~: fixed in phase 2 (below).
-- Plaza trees on Spire Boulevard are dark cubes on poles; low-rise street-wall roofs are bare.
+- Low-rise street-wall roofs are sparse from above. There are no parked or ambient cars: the project has only the three catalog cars.
 - Street furniture and road detail (lane markings, signage, parking, construction) are next on the list.

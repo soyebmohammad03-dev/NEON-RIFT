@@ -102,6 +102,7 @@ namespace NeonRift.EditorTools.District
                 Every(19f, 13f, (p, _) => Crates(m, colliders, p - side.Normal * 0.2f, rot));
                 return;
             }
+            KerbSigns(zone, road, side, along, length, m, colliders, Kerbside);
             switch (zone)
             {
                 case Zone.Spire:
@@ -188,10 +189,24 @@ namespace NeonRift.EditorTools.District
             m.Unshadowed(kit.NeonStrips[0]).OrientedBox(p + Vector3.up * 0.62f, new Vector3(1.62f, 0.03f, 1.62f), rot, 1f);
             if (tree)
             {
-                m[kit.Metal].Cylinder(p + Vector3.up * 0.6f, 0.1f, 2.6f, 6, false);
-                float s = Range(1.6f, 2.2f);
-                m[kit.Foliage].OrientedBox(p + Vector3.up * 3.6f, new Vector3(s, s * 0.9f, s), rot * Quaternion.Euler(0f, 45f, 0f), 1f);
-                m[kit.Foliage].OrientedBox(p + Vector3.up * 4.2f, new Vector3(s * 0.7f, s * 0.6f, s * 0.7f), rot, 1f);
+                // Trunk with two limbs, then an irregular canopy of overlapping clumps (no two trees alike).
+                float trunk = Range(2.4f, 3f);
+                m[kit.Metal].Cylinder(p + Vector3.up * 0.6f, 0.11f, trunk, 6, false);
+                Vector3 fork = p + Vector3.up * (0.6f + trunk);
+                for (int limb = 0; limb < 2; limb++)
+                    m[kit.Metal].OrientedBox(fork + Vector3.up * 0.4f, new Vector3(0.08f, 1.1f, 0.08f),
+                                             Quaternion.Euler(Range(-30f, 30f), Range(0f, 360f), Range(18f, 32f)), 1f);
+                int clumps = rng.Next(5, 8);
+                float spread = Range(1.1f, 1.5f);
+                for (int i = 0; i < clumps; i++)
+                {
+                    float a = i / (float)clumps * 360f + Range(-20f, 20f);
+                    float r = i == 0 ? 0f : Range(0.45f, 1f) * spread;
+                    Vector3 c = fork + Vector3.up * Range(0.9f, 1.9f) + Quaternion.Euler(0f, a, 0f) * Vector3.forward * r;
+                    float size = Range(1.1f, 1.8f) * (i == 0 ? 1.25f : 1f);
+                    m[kit.Canopy].OrientedBox(c, new Vector3(size, size * Range(0.6f, 0.85f), size * Range(0.8f, 1.1f)),
+                                              Quaternion.Euler(Range(-15f, 15f), Range(0f, 360f), Range(-15f, 15f)), 1f);
+                }
             }
             Box(col, p + Vector3.up * 0.3f, new Vector3(1.6f, 0.6f, 1.6f), rot);
         }
@@ -257,6 +272,59 @@ namespace NeonRift.EditorTools.District
             m[kit.Metal].OrientedBox(p + Vector3.up * 0.45f + back * 0.7f, new Vector3(2.6f, 0.06f, 0.4f), side, 1f);
             Box(col, p + Vector3.up * 1.3f + back * 0.9f, new Vector3(4.2f, 2.6f, 0.2f), side);
         }
+
+        /// <summary>
+        /// Regulatory signs on kerb poles, facing the traffic in the lane beside the kerb (right-hand traffic): speed
+        /// limits on arterials and streets, no-parking along most blocks, loading in the harbor and a bus sign near shelters.
+        /// </summary>
+        private void KerbSigns(Zone zone, CityLayout.Road road, CityLayout.Side side, Vector3 along, float length, BlockMeshes m, Transform colliders,
+                               System.Func<float, Vector3> kerbside)
+        {
+            if (zone == Zone.Outer) return;
+            Vector3 travel = Vector3.Cross(Vector3.up, side.Normal);   // lane beside this kerb
+            var facing = Quaternion.LookRotation(-travel);
+            string limit = road.Class == RoadClass.Arterial ? "60" : "30";
+            float s0 = 14f + Range(0f, 10f);
+            int n = 0;
+            for (float s = s0; s < length - 10f; s += Range(58f, 84f), n++)
+            {
+                var p = kerbside(s) + side.Normal * 0.45f;
+                if (NearNode(p, 14f) || !Free(p)) continue;
+                string text = n % 3 == 0 ? limit : zone == Zone.Harbor ? "LOADING" : "NO PARKING";
+                RegulatorySign(m, colliders, p, facing, text);
+            }
+        }
+
+        private void RegulatorySign(BlockMeshes m, Transform colliders, Vector3 p, Quaternion facing, string text)
+        {
+            var uv = DistrictTextures.SignRect(text, out float aspect);
+            float height = 0.42f, width = Mathf.Clamp(height * aspect, 0.42f, 1.5f);
+            height = Mathf.Min(height, width / aspect * 1.15f);
+            m[kit.Metal].Cylinder(p, 0.045f, 2.75f, 6, true);
+            Vector3 plate = p + Vector3.up * 2.45f;
+            m[kit.DarkPlastic].OrientedBox(plate, new Vector3(width + 0.12f, height + 0.12f, 0.03f), facing, 1f);
+            m.Unshadowed(kit.StreetSign).Panel(plate + facing * Vector3.forward * 0.02f, facing, width, height, uv);
+            Box(colliders, p + Vector3.up * 1.3f, new Vector3(0.12f, 2.6f, 0.12f), Quaternion.identity);
+            KerbSignCount++;
+        }
+
+        /// <summary>A box CCTV camera on a short bracket, tilted down towards <paramref name="look"/>, with a red record LED.</summary>
+        public void Cctv(BlockMeshes m, Vector3 mount, Vector3 look)
+        {
+            Vector3 dir = look - mount;
+            dir.y = 0f;
+            if (dir.sqrMagnitude < 0.01f) dir = Vector3.forward;
+            var aim = Quaternion.LookRotation(dir.normalized) * Quaternion.Euler(22f, 0f, 0f);
+            m[kit.Metal].OrientedBox(mount + aim * Vector3.forward * 0.2f, new Vector3(0.06f, 0.06f, 0.4f), Quaternion.LookRotation(dir.normalized), 1f);
+            Vector3 body = mount + aim * Vector3.forward * 0.55f + Vector3.down * 0.08f;
+            m[kit.DarkPlastic].OrientedBox(body, new Vector3(0.22f, 0.2f, 0.48f), aim, 1f);
+            m[kit.DarkPlastic].OrientedBox(body + aim * new Vector3(0f, 0.13f, 0.05f), new Vector3(0.3f, 0.03f, 0.58f), aim, 1f);   // sun hood
+            m.Unshadowed(kit.AviationRed).OrientedBox(body + aim * new Vector3(0.07f, 0.06f, 0.245f), new Vector3(0.03f, 0.03f, 0.01f), aim, 1f);
+            CctvCount++;
+        }
+
+        public int KerbSignCount { get; private set; }
+        public int CctvCount { get; private set; }
 
         // ---------------- Facades and rooftops ----------------
 
@@ -416,6 +484,8 @@ namespace NeonRift.EditorTools.District
                         for (int k = 0; k < 3; k++)
                             lenses[set + k].OrientedBox(low + Vector3.up * (0.28f - k * 0.28f) - travel * 0.13f, new Vector3(0.18f, 0.18f, 0.03f), face, 1f);
                         Box(colliders, c + Vector3.up * 3.2f, new Vector3(0.35f, 6.4f, 0.35f), Quaternion.identity);
+                        // Junction CCTV on every other signal pole, watching the middle of the junction.
+                        if (Signals % 2 == 0) Cctv(m, c + Vector3.up * 5.1f - armDir * 0.2f, node);
                         Signals++;
                     }
                 }
