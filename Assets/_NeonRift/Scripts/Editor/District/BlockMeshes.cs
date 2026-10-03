@@ -36,7 +36,7 @@ namespace NeonRift.EditorTools.District
                 var (builder, shadows) = builders[material];
                 if (builder.IsEmpty) continue;
                 string name = material.name.Replace("District_", string.Empty);
-                var go = DistrictKit.Renderer(name, parent, DistrictKit.SaveMesh(builder, $"{prefix}_{name}"), material, layer, shadows);
+                var go = DistrictKit.Renderer(name, parent, DistrictKit.SaveMesh(builder.ToMesh($"{prefix}_{name}", material.IsKeywordEnabled("_NORMALMAP")), $"{prefix}_{name}"), material, layer, shadows);
                 renderers.Add(go.GetComponent<Renderer>());
             }
             return renderers;

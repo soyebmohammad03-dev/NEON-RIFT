@@ -55,7 +55,7 @@ namespace NeonRift.Gameplay
         private float resultsAt = -1f;
         private int lastTickSecond = -1;
         private readonly RoadPath route = new();
-        private readonly List<Vector3> rivalPositions = new();
+        private readonly List<(Vector3 position, float heading)> rivalPositions = new();
         private readonly List<(string, bool, bool)> raceRows = new();
         private float nextRoute;
         private int routeVersion = -1;
@@ -435,10 +435,11 @@ namespace NeonRift.Gameplay
             }
             if (!hasTarget) routeValid = false;
             string district = navigation.TryGetDistrict(p, out var d) ? d.displayName : "OUTSKIRTS";
-            float heading = Vector3.SignedAngle(Vector3.forward, Vector3.ProjectOnPlane(Player.transform.forward, Vector3.up), Vector3.up);
+            float heading = MinimapProjection.Heading(Player.transform.forward);
             rivalPositions.Clear();
             if (rivals != null)
-                foreach (var r in rivals.Rivals) if (r.Car != null) rivalPositions.Add(r.Car.transform.position);
+                foreach (var r in rivals.Rivals)
+                    if (r.Car != null) rivalPositions.Add((r.Car.transform.position, MinimapProjection.Heading(r.Car.transform.forward)));
             hud.SetNavigator(p, heading, district, navigation.StreetAt(p), routeValid ? route.Points : null, routeValid ? route.Length : 0f,
                              hasTarget, target, rivalPositions, Progress.Security == SecurityLevel.Lockdown);
         }

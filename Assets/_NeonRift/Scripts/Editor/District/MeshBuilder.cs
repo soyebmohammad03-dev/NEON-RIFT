@@ -13,7 +13,7 @@ namespace NeonRift.EditorTools.District
         private readonly List<Vector3> vertices = new();
         private readonly List<Vector3> normals = new();
         private readonly List<Vector2> uvs = new();
-        private readonly List<Color> colours = new();
+        private readonly List<Color32> colours = new();
         private readonly List<int> triangles = new();
 
         public bool IsEmpty => vertices.Count == 0;
@@ -25,7 +25,7 @@ namespace NeonRift.EditorTools.District
             Vector3 n = Vector3.Cross(b - a, d - a).normalized;
             int i = vertices.Count;
             vertices.Add(a); vertices.Add(b); vertices.Add(c); vertices.Add(d);
-            for (int k = 0; k < 4; k++) { normals.Add(n); colours.Add(colour ?? Color.white); }
+            for (int k = 0; k < 4; k++) { normals.Add(n); colours.Add((Color32)(colour ?? Color.white)); }
             uvs.Add(ua); uvs.Add(ub); uvs.Add(uc); uvs.Add(ud);
             triangles.Add(i); triangles.Add(i + 1); triangles.Add(i + 2);
             triangles.Add(i); triangles.Add(i + 2); triangles.Add(i + 3);
@@ -37,7 +37,7 @@ namespace NeonRift.EditorTools.District
             Vector3 n = Vector3.Cross(b - a, c - a).normalized;
             int i = vertices.Count;
             vertices.Add(a); vertices.Add(b); vertices.Add(c);
-            for (int k = 0; k < 3; k++) { normals.Add(n); colours.Add(Color.white); }
+            for (int k = 0; k < 3; k++) { normals.Add(n); colours.Add(new Color32(255, 255, 255, 255)); }
             uvs.Add(ua); uvs.Add(ub); uvs.Add(uc);
             triangles.Add(i); triangles.Add(i + 1); triangles.Add(i + 2);
         }
@@ -192,7 +192,11 @@ namespace NeonRift.EditorTools.District
             Quad(from - side, to - side, to + side, from + side, new Vector2(0, 0), new Vector2(0, len), new Vector2(1, len), new Vector2(1, 0), colour);
         }
 
-        public Mesh ToMesh(string name)
+        /// <summary>
+        /// Builds the mesh. Vertex colour is stored as 8-bit RGBA (the glow and skyline shaders read it); tangents only when
+        /// the material uses a normal map, which keeps the generated mesh assets (Git LFS) much smaller.
+        /// </summary>
+        public Mesh ToMesh(string name, bool tangents = true)
         {
             var mesh = new Mesh { name = name, indexFormat = vertices.Count > 65000 ? IndexFormat.UInt32 : IndexFormat.UInt16 };
             mesh.SetVertices(vertices);
@@ -201,7 +205,7 @@ namespace NeonRift.EditorTools.District
             mesh.SetColors(colours);
             mesh.SetTriangles(triangles, 0);
             mesh.RecalculateBounds();
-            mesh.RecalculateTangents();
+            if (tangents) mesh.RecalculateTangents();
             return mesh;
         }
     }

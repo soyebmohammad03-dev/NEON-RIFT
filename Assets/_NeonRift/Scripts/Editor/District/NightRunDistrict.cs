@@ -95,6 +95,8 @@ namespace NeonRift.EditorTools.District
         private readonly System.Random rng = new(2077);
         private readonly List<Rect> heroFootprints = new();
         private readonly List<Rect> towerFootprints = new();
+        /// <summary>Podium footprints of the block being built (the infill works around them).</summary>
+        private readonly List<Rect> blockFootprints = new();
         private readonly int drivable, environment;
         private CityLayout.Decomposition layout;
 
@@ -108,6 +110,7 @@ namespace NeonRift.EditorTools.District
         public List<Renderer> Screens { get; } = new();
         public CityProps Props { get; private set; }
         public CityLandmarks Landmarks { get; private set; }
+        public CityInfill Infill { get; private set; }
         public int RealtimeLights => Lamps.Count;
         public int Podiums { get; private set; }
         public int Towers { get; private set; }
@@ -128,6 +131,7 @@ namespace NeonRift.EditorTools.District
             Props = new CityProps(kit, rng, environment, Lamps);
             Landmarks = new CityLandmarks(kit, rng, drivable, environment, Lamps, Screens);
             Dressing = new TowerDressing(kit);
+            Infill = new CityInfill(kit, environment);
             BuildGround();
             BuildMarkings();
             PlaceHeroes();
@@ -308,6 +312,7 @@ namespace NeonRift.EditorTools.District
             colliders.SetParent(root, false);
             var lamps = new GameObject("Lamps").transform;
             lamps.SetParent(root, false);
+            blockFootprints.Clear();
 
             // Pavement slabs (lots are cut out where they sit at road level), with a kerb stone along the road edge.
             Rect bounds = cells[0].Grid;
@@ -348,6 +353,8 @@ namespace NeonRift.EditorTools.District
                 }
 
             if (zone != Zone.Sector7) FillTowers(cells, style, root, zone == Zone.Outer);
+            // Everything behind the street walls: back buildings, yards, car parks, parks, utility and storage.
+            Infill.Fill(index, zone, style, cells, blockFootprints.Concat(towerFootprints).ToList(), meshes, root, name, colliders);
 
             meshes.Emit(root, name, environment).ForEach(r =>
             {
@@ -419,6 +426,7 @@ namespace NeonRift.EditorTools.District
                 while (depth > 4f && Overlaps(FootprintRect(front, rotation, seg, depth), 1.5f)) depth -= 2f;
                 if (Overlaps(FootprintRect(front, rotation, seg, depth), 1.5f) || seg < 4f) continue;
                 Podiums++;
+                blockFootprints.Add(FootprintRect(front, rotation, seg, depth));
 
                 bool tall = Chance(style.TallChance);
                 float height = tall ? Range(style.TallHeight) : Range(style.Height);

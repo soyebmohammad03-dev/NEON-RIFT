@@ -135,7 +135,13 @@ namespace NeonRift.EditorTools.District
                              $"screens {c.District.Screens.Count}, mission lights {c.MissionLights.Count}");
             c.Log.AppendLine($"  street detail: kerb signs {c.District.Props.KerbSignCount}, CCTV {c.District.Props.CctvCount}, awnings {c.District.Awnings}, " +
                              $"loading bays {c.District.LoadingBays}, parking runs {c.District.ParkingRuns}, steam vents {c.District.SteamVents}");
-            c.Log.AppendLine($"  LODs: hero buildings {c.District.HeroLods}; Detail layer culled at 180 m");
+            var infill = c.District.Infill;
+            c.Log.AppendLine($"  block infill: {infill.FilledArea / 10000f:0.0} of {infill.FreeAreaBefore / 10000f:0.0} ha free filled; " +
+                             string.Join(", ", infill.Counts.Where(k => k.Value > 0).Select(k => $"{k.Key} {k.Value}")) +
+                             $"; parked vehicles {infill.Vehicles}, yard lamps {infill.YardLamps} (emissive)");
+            System.IO.File.WriteAllLines("Logs/CityInfillParcels.txt",
+                infill.Parcels.Select(p => $"{p.use}\t{p.area.center.x:0}\t{p.area.center.y:0}\t{p.area.width:0}\t{p.area.height:0}"));
+            c.Log.AppendLine($"  LODs: hero buildings {c.District.HeroLods}; Detail layer culled at 180 m, Clutter (yard props, parked vehicles) at 90 m");
             c.Log.AppendLine($"  scene saved: {ScenePath}");
             return c.Log.ToString();
         }
@@ -850,7 +856,11 @@ namespace NeonRift.EditorTools.District
             camera.farClipPlane = SkylineBackdrop.RequiredFarClip;
             camera.fieldOfView = 60f;
             camGo.AddComponent<AudioListener>();
-            camGo.AddComponent<CameraCullDistances>().EditorConfigure(new[] { new CameraCullDistances.Entry { layer = "Detail", distance = 180f } });
+            camGo.AddComponent<CameraCullDistances>().EditorConfigure(new[]
+            {
+                new CameraCullDistances.Entry { layer = "Detail", distance = 180f },
+                new CameraCullDistances.Entry { layer = "Clutter", distance = 90f },
+            });
             camGo.AddComponent<CinemachineBrain>();
             var data = camGo.AddComponent<UniversalAdditionalCameraData>();
             data.renderPostProcessing = true;

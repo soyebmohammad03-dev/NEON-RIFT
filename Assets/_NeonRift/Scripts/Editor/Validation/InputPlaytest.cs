@@ -64,9 +64,12 @@ namespace NeonRift.EditorTools.Validation
             public float RightTrigger, LeftTrigger;
             public bool PadSouth, PadEast;
             public bool Teleport;
+            /// <summary>Screenshot (Game view incl. HUD) written to Logs/Playtest/&lt;Capture&gt;.png at the end of the step.</summary>
+            public string Capture;
         }
 
         public const string ReportPath = "Logs/InputPlaytest.txt";
+        public const string CaptureFolder = "Logs/Playtest";
         private static List<Step> steps;
         private static int stepIndex;
         private static float stepEnds;
@@ -111,9 +114,33 @@ namespace NeonRift.EditorTools.Validation
             return Run(list);
         }
 
+        /// <summary>
+        /// North-up minimap check: drive straight, turn left, turn right, then a handbrake U-turn, capturing the HUD
+        /// after each. The report's minimap column shows the player heading and the objective's map pixel.
+        /// </summary>
+        public static string RunMinimapScript()
+        {
+            Step S(string label, float seconds, string capture, params Key[] keys) => new Step { Label = label, Seconds = seconds, Keys = keys, Capture = capture };
+            return Run(new List<Step>
+            {
+                new Step { Label = "teleport to spawn, settle", Seconds = 1.5f, Keys = new Key[0], Teleport = true, Capture = "minimap_0_spawn" },
+                S("W straight", 3.0f, "minimap_1_straight", Key.W),
+                S("brake", 1.6f, null, Key.S),
+                S("W+A turn left", 2.2f, "minimap_2_left", Key.W, Key.A),
+                S("brake", 1.6f, null, Key.S),
+                S("W+D turn right", 2.6f, "minimap_3_right", Key.W, Key.D),
+                S("brake", 1.6f, null, Key.S),
+                S("W+A sustained (U-turn)", 4.5f, "minimap_4_uturn", Key.W, Key.A),
+                S("brake", 2.0f, "minimap_5_stopped", Key.S),
+                S("release", 0.5f, null),
+            });
+        }
+
         public static string Run(List<Step> script)
         {
             if (!Application.isPlaying) return "not in Play Mode";
+            // Keyboard events only reach the action maps while the Game view has focus (Application.isFocused).
+            UnityEditor.EditorApplication.ExecuteMenuItem("Window/General/Game");
             steps = script;
             stepIndex = -1;
             report = new StringBuilder();
@@ -130,6 +157,13 @@ namespace NeonRift.EditorTools.Validation
             if (!Application.isPlaying) { Finish("Play Mode ended early"); return; }
             if (Time.time < stepEnds) return;
             report.AppendLine($"  -> {Snapshot()}{InteractState()}");
+            var capture = steps[stepIndex].Capture;
+            if (!string.IsNullOrEmpty(capture))
+            {
+                System.IO.Directory.CreateDirectory(CaptureFolder);
+                ScreenCapture.CaptureScreenshot($"{CaptureFolder}/{capture}.png");
+                report.AppendLine($"     captured {CaptureFolder}/{capture}.png");
+            }
             Advance();
         }
 
@@ -202,6 +236,8 @@ namespace NeonRift.EditorTools.Validation
             var director = entry.Director;
             if (director != null && director.Progress != null)
                 sb.Append($" | mission {director.Progress.Phase} obj {director.Progress.ObjectiveIndex} focus {(director.Focused != null ? director.Focused.name : "-")}");
+            var hud = Object.FindAnyObjectByType<MissionHud>();
+            if (hud != null && hud.Minimap != null) sb.Append($" | minimap {hud.Minimap.Describe()}");
             return sb.ToString();
         }
     }

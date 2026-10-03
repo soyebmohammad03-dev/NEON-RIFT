@@ -100,6 +100,7 @@ namespace NeonRift.EditorTools.District
             {
                 Every(26f, 7f, (p, _) => Dumpster(m, colliders, Wallside(Vector3.Dot(p - side.Start, along)), rot));
                 Every(19f, 13f, (p, _) => Crates(m, colliders, p - side.Normal * 0.2f, rot));
+                AlleyWall(side, road, along, length, rot, m);
                 return;
             }
             KerbSigns(zone, road, side, along, length, m, colliders, Kerbside);
@@ -141,6 +142,71 @@ namespace NeonRift.EditorTools.District
                     Every(120f, 85f, (p, _) => Vending(m, colliders, p, rot), wall: true);
                     if (road.Class == RoadClass.Arterial) Every(260f, 130f, (p, _) => Shelter(m, colliders, p, rot));
                     break;
+            }
+        }
+
+        public int AlleyFixtures { get; private set; }
+
+        /// <summary>
+        /// Back-of-house on an alley wall: drain and service pipes, extract vents, caged security lights with their pool,
+        /// fire-exit doors under a green sign, and (from one side only) power and data cables slung across the alley.
+        /// </summary>
+        private void AlleyWall(CityLayout.Side side, CityLayout.Road road, Vector3 along, float length, Quaternion rot, BlockMeshes m)
+        {
+            Vector3 Wall(float s) => side.Start + along * s - side.Normal * (side.Path - 0.02f);
+            bool Clear(Vector3 p) => !NearNode(p, 8f) && Free(p);
+            for (float s = 4f; s < length - 4f; s += Range(7f, 11f))
+            {
+                var p = Wall(s);
+                if (!Clear(p)) continue;
+                m[kit.Metal].Cylinder(p + side.Normal * 0.14f, Range(0.06f, 0.11f), Range(6f, 10f), 6, true);
+                AlleyFixtures++;
+            }
+            for (float s = 9f; s < length - 6f; s += Range(13f, 18f))
+            {
+                var p = Wall(s);
+                if (!Clear(p)) continue;
+                // Caged wall light and its pool on the alley floor.
+                m.Unshadowed(kit.WallPack).OrientedBox(p + Vector3.up * 4.2f + side.Normal * 0.14f, new Vector3(0.45f, 0.25f, 0.2f), rot, 1f);
+                m[kit.Metal].OrientedBox(p + Vector3.up * 4.2f + side.Normal * 0.2f, new Vector3(0.52f, 0.32f, 0.04f), rot, 1f);
+                m.Unshadowed(kit.LightPools[1]).Decal(new Vector3(p.x, 0.04f, p.z) + side.Normal * 2.4f, 7f, 7f);
+                AlleyFixtures++;
+            }
+            for (float s = 15f; s < length - 8f; s += Range(22f, 30f))
+            {
+                var p = Wall(s);
+                if (!Clear(p)) continue;
+                m[kit.DarkPlastic].OrientedBox(p + Vector3.up * 1.1f + side.Normal * 0.04f, new Vector3(1.1f, 2.2f, 0.08f), rot, 1f);
+                m.Unshadowed(kit.CameraLed).OrientedBox(p + Vector3.up * 2.5f + side.Normal * 0.06f, new Vector3(0.42f, 0.16f, 0.04f), rot, 1f);
+                m[kit.Concrete].OrientedBox(p + Vector3.up * 0.08f + side.Normal * 0.45f, new Vector3(1.6f, 0.16f, 0.9f), rot, 1f);
+                AlleyFixtures++;
+            }
+            for (float s = 6f; s < length - 5f; s += Range(12f, 20f))
+            {
+                var p = Wall(s);
+                if (!Clear(p)) continue;
+                float y = Range(2.8f, 5.5f);
+                m[kit.Metal].OrientedBox(p + Vector3.up * y + side.Normal * 0.3f, new Vector3(0.9f, 0.7f, 0.6f), rot, 1f);
+                m[kit.DarkPlastic].OrientedBox(p + Vector3.up * y + side.Normal * 0.61f, new Vector3(0.7f, 0.5f, 0.02f), rot, 1f);
+                AlleyFixtures++;
+            }
+            if (Vector3.Dot(side.Normal, Vector3.one) <= 0f) return;    // cables from one side of the alley only
+            float span = road.HalfWidth * 2f + side.Path * 2f - 0.1f;
+            for (float s = 10f; s < length - 6f; s += Range(9f, 15f))
+            {
+                var a = Wall(s) + Vector3.up * Range(6f, 8f);
+                if (!Clear(a)) continue;
+                var b = a + side.Normal * span + along * Range(-3f, 3f) + Vector3.up * Range(-0.8f, 0.8f);
+                const int segments = 6;
+                Vector3 prev = a;
+                for (int i = 1; i <= segments; i++)
+                {
+                    float t = i / (float)segments;
+                    Vector3 q = Vector3.Lerp(a, b, t) + Vector3.down * (Mathf.Sin(t * Mathf.PI) * span * 0.06f);
+                    m[kit.Metal].OrientedBox((prev + q) * 0.5f, new Vector3(0.035f, 0.035f, Vector3.Distance(prev, q)), Quaternion.LookRotation(q - prev), 1f);
+                    prev = q;
+                }
+                AlleyFixtures++;
             }
         }
 

@@ -28,6 +28,8 @@ namespace NeonRift.Gameplay
         private VisualElement race, raceRows, navigator;
         private Label racePosition, raceCount, raceGap, navDistrict, navStreet, navRoute;
         private CityMinimap minimap;
+        /// <summary>The navigator's map (dev tooling reads its state).</summary>
+        public CityMinimap Minimap => minimap;
         private float nextMinimapRepaint;
         private string lastStreet, lastDistrict, lastRoute, lastGap;
         private int lastRacePosition = -1;
@@ -148,7 +150,7 @@ namespace NeonRift.Gameplay
 
         /// <summary>Location readout and minimap state; the minimap repaints at ~15 Hz.</summary>
         public void SetNavigator(Vector3 position, float heading, string district, string street, IReadOnlyList<Vector3> route, float routeMetres,
-                                 bool hasTarget, Vector3 target, IEnumerable<Vector3> rivalPositions, bool lockdown)
+                                 bool hasTarget, Vector3 target, IEnumerable<(Vector3 position, float heading)> rivalPositions, bool lockdown)
         {
             if (minimap == null) return;
             if (district != lastDistrict) { lastDistrict = district; navDistrict.text = district ?? string.Empty; }

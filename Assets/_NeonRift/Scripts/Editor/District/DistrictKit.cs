@@ -32,6 +32,11 @@ namespace NeonRift.EditorTools.District
                         CameraLed, RollerDoor, WallPack, ConcreteDark, Foliage, SkylineBackdrop, Canopy;
         /// <summary>Shop awning fabrics: oxblood, bottle green, navy, sand.</summary>
         public Material[] Awnings;
+        /// <summary>Block-interior fill (<see cref="CityInfill"/>): lawn, parked-vehicle paints, unlit tail lamps, yard lamp heads.</summary>
+        public Material Grass, TailLampOff, YardLamp, Asphalt2;
+        public Material[] CarPaints;
+        /// <summary>Ground pools under yard lamps: brighter than the street pools (no real light reaches block interiors).</summary>
+        public Material[] YardPools;
         /// <summary>Signal lenses: [0..2] = north–south red/amber/green, [3..5] = east–west red/amber/green.</summary>
         public Material[] SignalLenses;
 
@@ -118,6 +123,18 @@ namespace NeonRift.EditorTools.District
             Foliage = Lit("District_Foliage", new Color(0.02f, 0.05f, 0.03f), 0.35f, 0f);
             // Street-tree canopy: a little self-light so trees read as green masses under the lamps, not black boxes.
             Canopy = Lit("District_Canopy", new Color(0.05f, 0.1f, 0.055f), 0.2f, 0f, emission: new Color(0.008f, 0.02f, 0.01f));
+            Grass = Lit("District_Grass", new Color(0.035f, 0.06f, 0.03f), 0.15f, 0f, t.PavementAlbedo, null, 1f);
+            TailLampOff = Lit("District_TailLampOff", new Color(0.25f, 0.02f, 0.02f), 0.8f, 0f, emission: new Color(0.06f, 0.004f, 0.004f));
+            YardLamp = Lit("District_YardLamp", Color.white, 0.6f, 0f, emission: LampColours[0] * 2.4f);
+            // Yard and car-park surface: the same wet asphalt, a little rougher so it reads as a lot rather than a road.
+            Asphalt2 = Lit("District_AsphaltLot", new Color(0.62f, 0.62f, 0.64f), 0.8f, 0f, t.AsphaltAlbedo, t.AsphaltNormal, 0.5f, metalSmooth: t.AsphaltMask);
+            YardPools = new Material[3];
+            string[] poolNames = { "Led", "Sodium", "Warm" };
+            for (int i = 0; i < 3; i++) YardPools[i] = Glow($"District_YardPool{poolNames[i]}", LampColours[i] * 0.24f, t.GlowSoft, 0f);
+            Color[] paints = { new(0.02f, 0.02f, 0.025f), new(0.32f, 0.33f, 0.35f), new(0.55f, 0.56f, 0.58f), new(0.18f, 0.03f, 0.03f),
+                               new(0.03f, 0.06f, 0.14f), new(0.62f, 0.6f, 0.55f), new(0.08f, 0.09f, 0.08f) };
+            CarPaints = new Material[paints.Length];
+            for (int i = 0; i < paints.Length; i++) CarPaints[i] = Lit($"District_CarPaint{i}", paints[i], 0.82f, 0.45f);
             Color[] awning = { new(0.3f, 0.05f, 0.05f), new(0.04f, 0.15f, 0.08f), new(0.05f, 0.07f, 0.17f), new(0.45f, 0.38f, 0.26f) };
             string[] awningNames = { "Oxblood", "Green", "Navy", "Sand" };
             Awnings = new Material[awning.Length];

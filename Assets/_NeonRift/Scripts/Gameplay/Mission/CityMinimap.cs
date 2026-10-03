@@ -6,9 +6,10 @@ using UnityEngine.UIElements;
 namespace NeonRift.Gameplay
 {
     /// <summary>
-    /// Heading-up minimap drawn with Painter2D: roads of the <see cref="RoadNetwork"/> by class, closed gates in red,
-    /// the GPS route to the objective, rival and target markers, the player arrow at the centre. A passive view:
-    /// the HUD pushes state in and calls <see cref="MarkDirtyRepaint"/> at a modest rate.
+    /// North-up minimap drawn with Painter2D: roads of the <see cref="RoadNetwork"/> by class, closed gates in red,
+    /// the GPS route to the objective, rival and target markers. The map is centred on the player but never rotates
+    /// (north is always up, see <see cref="MinimapProjection"/>); the player arrow and rival chevrons turn with their
+    /// world heading. A passive view: the HUD pushes state in and calls <see cref="MarkDirtyRepaint"/> at a modest rate.
     /// </summary>
     public sealed class CityMinimap : VisualElement
     {
@@ -24,7 +25,7 @@ namespace NeonRift.Gameplay
         private RoadNetwork network;
         private System.Func<int, bool> isClosed;
         private readonly List<Vector3> route = new();
-        private readonly List<Vector3> rivals = new();
+        private readonly List<(Vector3 position, float heading)> rivals = new();
         private Vector3 centre, target;
         private float heading;
         private bool hasTarget, lockdown;
@@ -44,6 +45,7 @@ namespace NeonRift.Gameplay
             isClosed = closed;
         }
 
+        /// <param name="headingDegrees">Compass heading of the player (0 = north, clockwise), see <see cref="MinimapProjection.Heading"/>.</param>
         public void SetView(Vector3 position, float headingDegrees, bool lockdownState)
         {
             centre = position;
@@ -63,20 +65,11 @@ namespace NeonRift.Gameplay
             target = position;
         }
 
-        public void SetRivals(IEnumerable<Vector3> positions)
+        /// <summary>Other mission cars: world position and compass heading.</summary>
+        public void SetRivals(IEnumerable<(Vector3 position, float heading)> cars)
         {
             rivals.Clear();
-            if (positions != null) rivals.AddRange(positions);
-        }
-
-        private Vector2 ToMap(Vector3 world, Vector2 size)
-        {
-            float scale = size.x * 0.5f / Range;
-            float r = -heading * Mathf.Deg2Rad;
-            float dx = world.x - centre.x, dz = world.z - centre.z;
-            float x = dx * Mathf.Cos(r) - dz * Mathf.Sin(r);
-            float z = dx * Mathf.Sin(r) + dz * Mathf.Cos(r);
-            return size * 0.5f + new Vector2(x, -z) * scale;
+            if (cars != null) rivals.AddRange(cars);
         }
 
         private void Draw(MeshGenerationContext ctx)
@@ -86,7 +79,8 @@ namespace NeonRift.Gameplay
             var p = ctx.painter2D;
             p.lineCap = LineCap.Round;
             p.lineJoin = LineJoin.Round;
-            float scale = size.x * 0.5f / Range;
+            var map = new MinimapProjection(centre, size, Range);
+            float scale = map.Scale;
             float reach = Range * 1.5f;
 
             var edges = network.Edges;
@@ -105,8 +99,8 @@ namespace NeonRift.Gameplay
                     };
                     p.lineWidth = Mathf.Max(1.5f, e.halfWidth * 2f * scale * (closed ? 1.3f : 1f));
                     p.BeginPath();
-                    p.MoveTo(ToMap(a, size));
-                    p.LineTo(ToMap(b, size));
+                    p.MoveTo(map.ToMap(a));
+                    p.LineTo(map.ToMap(b));
                     p.Stroke();
                 }
 
@@ -115,29 +109,51 @@ namespace NeonRift.Gameplay
                 p.strokeColor = lockdown ? RouteLockdown : RouteCalm;
                 p.lineWidth = 3f;
                 p.BeginPath();
-                p.MoveTo(ToMap(route[0], size));
-                for (int i = 1; i < route.Count; i++) p.LineTo(ToMap(route[i], size));
+                p.MoveTo(map.ToMap(route[0]));
+                for (int i = 1; i < route.Count; i++) p.LineTo(map.ToMap(route[i]));
                 p.Stroke();
             }
 
-            foreach (var r in rivals) Dot(p, Clamp(ToMap(r, size), size), 4.5f, RivalColour);
+            foreach (var r in rivals) Arrow(p, Clamp(map.ToMap(r.position), size), r.heading, 0.62f, RivalColour);
             if (hasTarget)
             {
-                var t = Clamp(ToMap(target, size), size);
+                var t = Clamp(map.ToMap(target), size);
                 Dot(p, t, 7f, lockdown ? RouteLockdown : RouteCalm);
                 Dot(p, t, 3f, Color.white);
             }
 
-            // Player: an arrow pointing up (heading-up map).
-            var c = size * 0.5f;
-            p.fillColor = Color.white;
+            // North tick on the rim: the map is north-up, this just makes it legible.
+            var north = new Vector2(size.x * 0.5f, 9f);
+            p.fillColor = new Color(1f, 1f, 1f, 0.85f);
             p.BeginPath();
-            p.MoveTo(c + new Vector2(0f, -9f));
-            p.LineTo(c + new Vector2(6.5f, 7f));
-            p.LineTo(c + new Vector2(0f, 3.5f));
-            p.LineTo(c + new Vector2(-6.5f, 7f));
+            p.MoveTo(north + new Vector2(0f, -5f));
+            p.LineTo(north + new Vector2(4.5f, 4f));
+            p.LineTo(north + new Vector2(-4.5f, 4f));
             p.ClosePath();
             p.Fill();
+
+            // Player: an arrow at the centre turned to the car's world heading.
+            Arrow(p, size * 0.5f, heading, 1f, Color.white);
+        }
+
+        private static readonly Vector2[] ArrowShape = { new(0f, -9f), new(6.5f, 7f), new(0f, 3.5f), new(-6.5f, 7f) };
+
+        private static void Arrow(Painter2D p, Vector2 at, float headingDegrees, float size, Color colour)
+        {
+            p.fillColor = colour;
+            p.BeginPath();
+            p.MoveTo(at + MinimapProjection.MarkerRotation(ArrowShape[0] * size, headingDegrees));
+            for (int i = 1; i < ArrowShape.Length; i++) p.LineTo(at + MinimapProjection.MarkerRotation(ArrowShape[i] * size, headingDegrees));
+            p.ClosePath();
+            p.Fill();
+        }
+
+        /// <summary>Dev readout: player heading and where the objective sits on the (north-up) map.</summary>
+        public string Describe()
+        {
+            var map = new MinimapProjection(centre, contentRect.size, Range);
+            string t = hasTarget ? $"target px {map.ToMap(target):F0} (world {target.x:0},{target.z:0})" : "no target";
+            return $"north-up, heading {heading:0}°, {t}";
         }
 
         private bool OutOfReach(Vector3 a, Vector3 b, float reach)

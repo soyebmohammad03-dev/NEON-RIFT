@@ -39,6 +39,57 @@ The ring beyond the perimeter roads is a backdrop of street walls and skyline-ti
 
 Generated per block side and zone (`CityProps`): kerb stones, bins, benches, hydrants, utility cabinets, vending machines, planters with trees, food carts, dumpsters, crates, pallets, barrels, bus shelters with adverts; facade AC units, drain pipes, fire escapes, LED fins; rooftop plant, fans, water tanks, antennas with aviation lights. Roads: edge/centre/lane lines, double solid on arterials, stop lines, zebras, manholes, drains, hatched skyway median. Junctions: traffic signals on mast arms (far-side right of every approach) plus pole heads, street-name blades, corner bollards. Expressway: concrete median barrier.
 
+## Block interiors (October 2026)
+
+Before this pass every block was a thin ring of podium street walls around a bare 15 cm pavement slab: about 139 ha of empty interior that showed in every aerial shot and above the podiums from the street (`height_before` below: yellow = bare slab).
+
+`CityInfill` now fills whatever is left behind the street walls, the towers, the lots and the sidewalks:
+
+1. **Free space** on a 2 m grid per block. It excludes podium, tower and hero footprints (+1.5 m), lots, reserved areas, and the sidewalk band plus 2 m.
+2. **Parcels**: the largest free rectangle (histogram method), split down to 58 m (70 m in the harbor), repeated until under 120 m². Leftover slivers become two- or three-storey annexes or back-of-house clutter.
+3. **Use per parcel** from the zone's mix. Each use has a reason to be there:
+
+| Use | Where | What is built |
+|---|---|---|
+| Back buildings | all zones | Masses split by 3 m service passages, taller than the street wall (S7 14–32 m, Spire 20–46 m, Kowloon/Lowtown 12–28 m), stepped tiers, parapets, rooftop plant, lit service doors |
+| Service yard | S7, Kowloon, Lowtown, Harbor | Lot asphalt, fence with a gate, dumpsters, pallets, crates, barrels, loading bays with vans or box trucks, sodium wall lights |
+| Surface car park | all but Outer | Bay rows on both sides of 6.5 m aisles, parked cars (~58 % occupancy), lamp posts, pay station, PARKING sign |
+| Multi-storey car park | S7, Spire | 2–4 open decks on columns, upstand walls, lit soffits, cars on every deck, lamps on the roof |
+| Pocket park | Spire, Lowtown | Lawn, clipped hedge, crossing paths, trees, benches, path bollard lights |
+| Courtyard | S7, Spire, Kowloon | Paving, a lit fountain basin, planter trees, benches, bollard lights |
+| Utility compound | all | Fenced substation: transformers with fins and insulators, cabinets with LEDs, cable tray, DANGER sign, pole light |
+| Warehouse | Harbor | Corrugated shed with skylights, dock platform, roller doors with wall packs, bay lines, box trucks at the docks |
+| Storage yard | Harbor | Container stacks in rows with aisles, fence, flood masts |
+
+**Alleys** (Service Alley, Fish Alley) also got back-of-house walls: drain and service pipes, extract vents, caged security lights with their pools, fire-exit doors under green signs, and power cables slung across from one side.
+
+Result of the current build: 119 of 139 ha filled. 707 building parcels, 69 service yards, 27 surface car parks, 13 multi-storey car parks, 24 parks, 30 courtyards, 26 utility compounds, 31 warehouses, 17 storage yards, 1,802 parked vehicles, 385 yard lamps.
+
+| Before (yellow = bare slab) | After |
+|---|---|
+| ![](Screenshots/CityInfill/height_before.jpg) | ![](Screenshots/CityInfill/height_after.jpg) |
+
+| Sector 7 from the air | Lowtown |
+|---|---|
+| ![](Screenshots/CityInfill/aerial_sector7.jpg) | ![](Screenshots/CityInfill/aerial_lowtown.jpg) |
+
+| Car park, yard and park inside a Lowtown block | Fish Alley |
+|---|---|
+| ![](Screenshots/CityInfill/lot_parking_park.jpg) | ![](Screenshots/CityInfill/fish_alley.jpg) |
+
+### Cost rules
+
+- Masses go into the block's combined meshes, one renderer per material, as before. A building is a 10-triangle box plus its parapet.
+- Furniture, fences and parked vehicles go to a new **Clutter** layer (12). It is emitted in 64 m cells, and the camera culls it beyond **90 m**, so the distance test works on small bounds. Cars and vans cast no shadows; trucks do.
+- Interior light is **emissive only**: lamp heads and brighter `District_YardPool*` ground pools. No real-time lights are added, so the street `LightBudget` is unchanged.
+- One simple box collider per mass, vehicle, dumpster, fence run or container stack. All of them are on Environment, none on the road.
+- Each block's infill has its own seed, so changing the infill never reshuffles the street walls.
+- Generated mesh assets are smaller: vertex colour is now 8-bit, and tangents are written only for normal-mapped materials. The district mesh folder is 238 MB with the infill (it was 148 MB without it, in the old format).
+
+Spawn view (W Avenue, editor): 4.06 M triangles (2.94 M before), 231 SetPass, 7.3 k draws, 611 shadow casters. Most of the increase is the shadow and depth passes over the new masses. The route profile is in the performance section.
+
+Validation after the rebuild: `BoulevardInAlleyOut` **Completed** in 102 s (the fast timing): 0 player collisions, 0 rival contacts. EditMode 107/107.
+
 ## Road network
 
 `CityLayout.BuildNetwork` writes `Data/World/RoadNetwork_NightRun.asset` (69 nodes, 104 edges): street names, widths, lanes, medians, classes (arterial, street, alley, service, skyway, tunnel) and gate ids. `RoadGraph` finds shortest routes between any two positions; `CityNavigation` adds live gate state (closed = impassable, counting down = +450 m) and a `Version` that changes whenever a gate moves.

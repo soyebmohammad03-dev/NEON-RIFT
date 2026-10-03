@@ -120,6 +120,22 @@ Adding a mechanic: create an `InteractionDefinition` (or a new `IMissionWorldCom
 
 **Still open:** the fast-timing (~102 s) boulevard run produced one more player/Terzo contact (18.1 m/s) after the crossing fix. It did not reproduce in four later runs, including one with the editor kept in the foreground. `RivalDirector` now logs every rival contact (`[Rivals] contact …`: position, closing speed, both speeds, angle, driver state) so the next occurrence can be diagnosed.
 
+## Minimap (north-up)
+
+The minimap used to be heading-up: `CityMinimap.ToMap` rotated the whole world by the car's heading, so the roads spun whenever the player turned. It is now **north-up**:
+
+- `MinimapProjection` (pure math, unit-tested) maps world XZ to panel pixels. +Z (north) is up and +X (east) is right, centred on the player, and it has no heading input at all.
+- The **player arrow** turns with the car's compass heading (`MinimapProjection.Heading`, 0 = north, clockwise). Rival markers are small orange arrows with their own headings. A white tick on the rim marks north.
+- Roads, closed gates (red), the GPS route and the objective marker all use the same projection, so they never rotate. Off-map objectives stay clamped to the rim in their true direction.
+
+Tests: `MinimapTests` (north-up/east-right, projection independent of heading at 0/−90/90/180/270, round trip, compass headings, arrow direction matches the world direction).
+
+Play Mode (`InputPlaytest.RunMinimapScript`, real keyboard events): straight, left, right, then a sustained left turn. The headings logged were 0° → 250° → 267° → 128°. W Avenue stayed vertical on the map in every capture, and the objective's map pixel moved only with the car's position.
+
+| Heading 250° | Heading 128° |
+|---|---|
+| ![](Screenshots/CityInfill/minimap_heading250.jpg) | ![](Screenshots/CityInfill/minimap_heading128.jpg) |
+
 ## Validation
 
 - EditMode: `MissionTests` (state machine, heat/timer rules, failure, data validity, scene wiring).
