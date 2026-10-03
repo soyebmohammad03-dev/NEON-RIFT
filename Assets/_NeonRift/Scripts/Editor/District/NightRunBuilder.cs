@@ -134,6 +134,7 @@ namespace NeonRift.EditorTools.District
                              $"screens {c.District.Screens.Count}, mission lights {c.MissionLights.Count}");
             c.Log.AppendLine($"  street detail: kerb signs {c.District.Props.KerbSignCount}, CCTV {c.District.Props.CctvCount}, awnings {c.District.Awnings}, " +
                              $"loading bays {c.District.LoadingBays}, parking runs {c.District.ParkingRuns}, steam vents {c.District.SteamVents}");
+            c.Log.AppendLine($"  LODs: hero buildings {c.District.HeroLods}; Detail layer culled at 180 m");
             c.Log.AppendLine($"  scene saved: {ScenePath}");
             return c.Log.ToString();
         }
@@ -848,6 +849,7 @@ namespace NeonRift.EditorTools.District
             camera.farClipPlane = SkylineBackdrop.RequiredFarClip;
             camera.fieldOfView = 60f;
             camGo.AddComponent<AudioListener>();
+            camGo.AddComponent<CameraCullDistances>().EditorConfigure(new[] { new CameraCullDistances.Entry { layer = "Detail", distance = 180f } });
             camGo.AddComponent<CinemachineBrain>();
             var data = camGo.AddComponent<UniversalAdditionalCameraData>();
             data.renderPostProcessing = true;
@@ -1054,6 +1056,10 @@ namespace NeonRift.EditorTools.District
             rp.colorGradingMode = ColorGradingMode.HighDynamicRange;
             rp.msaaSampleCount = 4;
             rp.shadowDistance = 90f;
+            // Two moon cascades: the moon is weak (0.16), and four cascades re-drew every caster up to four times
+            // (measured at the spawn: 4.53 M → 3.13 M triangles, 1247 → 708 shadow casters).
+            rp.shadowCascadeCount = 2;
+            rp.cascade2Split = 0.3f;
             EditorUtility.SetDirty(rp);
             var so = new SerializedObject(rp);
             var list = so.FindProperty("m_RendererDataList");
@@ -1070,7 +1076,7 @@ namespace NeonRift.EditorTools.District
                             f.ApplyModifiedPropertiesWithoutUndo();
                         }
             AssetDatabase.SaveAssets();
-            c.Log.AppendLine($"  pipeline: HDR grading, MSAA {rp.msaaSampleCount}x, shadow distance {rp.shadowDistance} m");
+            c.Log.AppendLine($"  pipeline: HDR grading, MSAA {rp.msaaSampleCount}x, shadow distance {rp.shadowDistance} m, {rp.shadowCascadeCount} cascades");
         }
 
         /// <summary>Deletes generated district meshes the rebuilt scene and prefabs no longer use (from disk, no dialogs).</summary>

@@ -138,6 +138,31 @@ Already present and unchanged: lane, edge and centre lines, crosswalks, stop lin
 |---|---|
 | ![](Screenshots/Detail/02_kowloon_market.jpg) | ![](Screenshots/Detail/04_spire_boulevard.jpg) |
 
+# LODs and performance (phase 6)
+
+A distance strategy where the triangles actually are, not LODs on everything. The static city is only 1.1 M triangles; the spawn view drew 3.9 M because of three ~200 k-triangle cars and shadow passes re-drawing casters.
+
+| Change | Rule | Effect |
+|---|---|---|
+| Vehicle LODs (`VehicleLodSetup`, applied by `VehiclePrefabBuilder` and the menu *Vehicles ▸ Apply Vehicle LODs*) | LOD0 everything; LOD1 < 18 % screen height drops interior, engine bay, brakes, damage glass and small non-light parts; LOD2 < 5 % keeps body panels, glass, wheels and lights; culled < 0.8 %. Lights stay in every level | SLS AMG 169 k → 47.5 k → 45 k; GT3 165 k → 50 k → 46 k; Terzo 103 k → 84 k → 64 k (different interior naming) |
+| Moon shadow cascades | 4 → 2 (split 0.3), 90 m distance unchanged; the moon is 0.16 | Spawn: 4.53 M → 3.13 M triangles, 1247 → 708 shadow casters in an A/B |
+| Hero buildings (`HeroLod`) | Interiors, lobbies, furniture and curtains never cast shadows and drop out below 15 % screen height; the shell is never culled (skyline landmarks) | 8 heroes |
+| Intersections | Poles, arms, heads, bollards, blades and CCTV split into 400 m cells (they were one city-wide mesh per material, never culled). The 6 lens renderers stay city-wide for `TrafficSignalNetwork` | culls with the camera and shadow cascades |
+| Detail layer | Sidewalk furniture and kerb signs are their own meshes on layer `Detail`; `CameraCullDistances` culls them beyond 180 m (spherical, so turning the camera doesn't pop them) | small props past 180 m skipped |
+| Lights | Unchanged on purpose: `LightBudget` already keeps 56 real-time lamps within 150 m (2 shadowed) and leaves distant streets to emissive heads, pools and haze | — |
+
+Measured in Play Mode, player plus two rivals, `UnityStats` (editor timing includes editor overhead):
+
+| Viewpoint | Triangles | SetPass | Draw calls | Shadow casters | Editor frame |
+|---|---|---|---|---|---|
+| Spawn, phase 1 baseline | 3.82 M | 177 | 4617 | 776 | — |
+| Spawn, after phase 5 | 3.93 M | 208 | 4837 | 744 | — |
+| **Spawn, phase 6** | **2.94 M** | 218 | 4844 | 555 | 11.5–12 ms |
+| Spire Boulevard, phase 6 | 1.73 M | 115 | 2742 | 444 | 9–10 ms |
+| Kowloon Market, phase 6 | 2.25 M | 182 | 3466 | 441 | 12–13.5 ms |
+
+The rendering path is Forward+ with the GPU Resident Drawer, so the extra renderers from splitting cost less than the raw draw count suggests. A player build profile is still to do: editor numbers are an upper bound.
+
 ## Known gaps (next phases)
 
 - ~~Dark tower bodies~~, ~~fogged Sketchfab clusters~~, ~~no height fog~~: fixed in phase 2 (below).

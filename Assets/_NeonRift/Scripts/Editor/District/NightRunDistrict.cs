@@ -301,6 +301,8 @@ namespace NeonRift.EditorTools.District
             var root = new GameObject(name).transform;
             root.SetParent(Root, false);
             var meshes = new BlockMeshes();
+            // Sidewalk furniture and kerb signs: own meshes on the Detail layer, culled by the camera beyond ~180 m.
+            var detail = new BlockMeshes();
             var security = meshes.Unshadowed(kit.Security);
             var colliders = new GameObject("Colliders").transform;
             colliders.SetParent(root, false);
@@ -342,7 +344,7 @@ namespace NeonRift.EditorTools.District
                     var sub = side;
                     BuildStreetWall(zone, style, sub, meshes, security, colliders);
                     BuildStreetLights(style, side, lamps, meshes);
-                    Props.Sidewalk(zone, side, meshes, colliders);
+                    Props.Sidewalk(zone, side, detail, colliders);
                 }
 
             if (zone != Zone.Sector7) FillTowers(cells, style, root, zone == Zone.Outer);
@@ -352,6 +354,10 @@ namespace NeonRift.EditorTools.District
                 if (r.sharedMaterial == kit.Security) SecurityStrips[name] = r;
                 if (kit.Billboards.Contains(r.sharedMaterial)) Screens.Add(r);
                 if (r.sharedMaterial == kit.Pavement || r.sharedMaterial == kit.Kerb) r.gameObject.layer = drivable;
+            });
+            detail.Emit(root, name + "_Detail", LayerMask.NameToLayer("Detail")).ForEach(r =>
+            {
+                if (kit.Billboards.Contains(r.sharedMaterial)) Screens.Add(r);
             });
             BlockCentres[name] = new Vector3(bounds.center.x, 0f, bounds.center.y);
         }
@@ -593,8 +599,35 @@ namespace NeonRift.EditorTools.District
             if (!collider) foreach (var c in go.GetComponentsInChildren<Collider>(true)) Object.DestroyImmediate(c);
             Dressing.ApplyFacade(go);
             Dressing.Dress(go);
+            if (def.Tier == BuildingTier.Hero) HeroLod(go);
             Towers++;
         }
+
+        private static readonly string[] HeroInterior = { "interior", "lobby", "furniture", "curtain", "blinds", "railing", "sidewalk", "floor" };
+
+        /// <summary>
+        /// Hero models carry interiors, lobbies and furniture behind their glass. They never cast shadows, and they drop
+        /// out below 15 % screen height. The shell stays at every distance: these towers are skyline landmarks.
+        /// </summary>
+        private void HeroLod(GameObject go)
+        {
+            var all = go.GetComponentsInChildren<MeshRenderer>(true).Where(r => r.enabled).ToArray();
+            var shell = new List<Renderer>();
+            foreach (var r in all)
+            {
+                string mats = string.Join("|", r.sharedMaterials.Where(m => m != null).Select(m => m.name.ToLowerInvariant()));
+                if (HeroInterior.Any(mats.Contains)) r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+                else shell.Add(r);
+            }
+            if (shell.Count == all.Length) return;
+            var group = go.AddComponent<LODGroup>();
+            group.fadeMode = LODFadeMode.None;
+            group.SetLODs(new[] { new LOD(0.15f, all.Cast<Renderer>().ToArray()), new LOD(0f, shell.ToArray()) });
+            group.RecalculateBounds();
+            HeroLods++;
+        }
+
+        public int HeroLods { get; private set; }
 
         /// <summary>
         /// Generated towers in the interior of a block: candidates on a 12 m grid in seeded order, each a catalog building

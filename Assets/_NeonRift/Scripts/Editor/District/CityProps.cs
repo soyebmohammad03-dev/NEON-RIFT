@@ -414,9 +414,14 @@ namespace NeonRift.EditorTools.District
             colliders.SetParent(parent, false);
             var m = new BlockMeshes();
             var lenses = kit.SignalLenses.Select(l => m.Unshadowed(l)).ToArray();
+            var cells = new Dictionary<Vector2Int, BlockMeshes>();
             foreach (var node in nodes)
             {
                 if (node.y > 0.5f) continue;
+                // Structure goes into 400 m cells so it culls (and only nearby cells draw into shadow maps); the lenses
+                // stay city-wide because TrafficSignalNetwork drives all signals through six shared materials.
+                var key = new Vector2Int(Mathf.FloorToInt(node.x / 400f), Mathf.FloorToInt(node.z / 400f));
+                if (!cells.TryGetValue(key, out var cm)) cells[key] = cm = new BlockMeshes();
                 var p2 = new Vector2(node.x, node.z);
                 CityLayout.Road? v = null, h = null;
                 foreach (var r in CityLayout.Roads)
@@ -447,8 +452,8 @@ namespace NeonRift.EditorTools.District
                     {
                         // Two along each kerb, starting 2.5 m from the tip.
                         var b = c + (i < 2 ? new Vector3(sx * (2.5f + i * 1.6f), 0f, 0f) : new Vector3(0f, 0f, sz * (2.5f + (i - 2) * 1.6f)));
-                        m[kit.Metal].Cylinder(b, 0.12f, 0.95f, 8, true);
-                        m.Unshadowed(kit.Reflector).Cylinder(b + Vector3.up * 0.75f, 0.125f, 0.06f, 8, false);
+                        cm[kit.Metal].Cylinder(b, 0.12f, 0.95f, 8, true);
+                        cm.Unshadowed(kit.Reflector).Cylinder(b + Vector3.up * 0.75f, 0.125f, 0.06f, 8, false);
                         Box(colliders, b + Vector3.up * 0.47f, new Vector3(0.25f, 0.95f, 0.25f), Quaternion.identity);
                     }
                 }
@@ -470,22 +475,22 @@ namespace NeonRift.EditorTools.District
                         float reach = (ns ? hv : hh) * 0.75f;
                         Vector3 armDir = ns ? new Vector3(-sx, 0f, 0f) : new Vector3(0f, 0f, -sz);
                         var face = Quaternion.LookRotation(-travel);
-                        m[kit.Metal].Cylinder(c, 0.16f, 6.4f, 10, true);
-                        m[kit.Metal].OrientedBox(c + Vector3.up * 6.2f + armDir * (reach * 0.5f + 0.5f), new Vector3(0.14f, 0.14f, reach + 1f), Quaternion.LookRotation(armDir), 1f);
+                        cm[kit.Metal].Cylinder(c, 0.16f, 6.4f, 10, true);
+                        cm[kit.Metal].OrientedBox(c + Vector3.up * 6.2f + armDir * (reach * 0.5f + 0.5f), new Vector3(0.14f, 0.14f, reach + 1f), Quaternion.LookRotation(armDir), 1f);
                         Vector3 head = c + Vector3.up * 5.6f + armDir * (reach + 0.3f);
-                        m[kit.DarkPlastic].OrientedBox(head, new Vector3(0.45f, 1.25f, 0.32f), face, 1f);
-                        m[kit.DarkPlastic].OrientedBox(head + travel * 0.18f, new Vector3(0.75f, 1.45f, 0.03f), face, 1f);   // back plate
+                        cm[kit.DarkPlastic].OrientedBox(head, new Vector3(0.45f, 1.25f, 0.32f), face, 1f);
+                        cm[kit.DarkPlastic].OrientedBox(head + travel * 0.18f, new Vector3(0.75f, 1.45f, 0.03f), face, 1f);   // back plate
                         int set = ns ? 0 : 3;
                         for (int k = 0; k < 3; k++)
                             lenses[set + k].OrientedBox(head + Vector3.up * (0.38f - k * 0.38f) - travel * 0.17f, new Vector3(0.24f, 0.24f, 0.03f), face, 1f);
                         // Pedestrian-height head on the pole too.
                         Vector3 low = c + Vector3.up * 2.9f - travel * 0.25f;
-                        m[kit.DarkPlastic].OrientedBox(low, new Vector3(0.35f, 0.95f, 0.25f), face, 1f);
+                        cm[kit.DarkPlastic].OrientedBox(low, new Vector3(0.35f, 0.95f, 0.25f), face, 1f);
                         for (int k = 0; k < 3; k++)
                             lenses[set + k].OrientedBox(low + Vector3.up * (0.28f - k * 0.28f) - travel * 0.13f, new Vector3(0.18f, 0.18f, 0.03f), face, 1f);
                         Box(colliders, c + Vector3.up * 3.2f, new Vector3(0.35f, 6.4f, 0.35f), Quaternion.identity);
                         // Junction CCTV on every other signal pole, watching the middle of the junction.
-                        if (Signals % 2 == 0) Cctv(m, c + Vector3.up * 5.1f - armDir * 0.2f, node);
+                        if (Signals % 2 == 0) Cctv(cm, c + Vector3.up * 5.1f - armDir * 0.2f, node);
                         Signals++;
                     }
                 }
@@ -496,11 +501,17 @@ namespace NeonRift.EditorTools.District
                     var c = Corner(sx, sz) + new Vector3(sx * 0.6f, 0f, sz * 0.6f);
                     if (!Sidewalk(c)) continue;
                     if (vr.Sign == null && hr.Sign == null) break;
-                    m[kit.Metal].Cylinder(c, 0.06f, 3.4f, 6, true);
-                    if (vr.Sign != null) Blade(m, c + Vector3.up * 3.15f, Quaternion.LookRotation(Vector3.right), vr.Sign);
-                    if (hr.Sign != null) Blade(m, c + Vector3.up * 2.8f, Quaternion.LookRotation(Vector3.forward), hr.Sign);
+                    cm[kit.Metal].Cylinder(c, 0.06f, 3.4f, 6, true);
+                    if (vr.Sign != null) Blade(cm, c + Vector3.up * 3.15f, Quaternion.LookRotation(Vector3.right), vr.Sign);
+                    if (hr.Sign != null) Blade(cm, c + Vector3.up * 2.8f, Quaternion.LookRotation(Vector3.forward), hr.Sign);
                     break;
                 }
+            }
+            foreach (var pair in cells)
+            {
+                var cell = new GameObject($"Cell_{pair.Key.x}_{pair.Key.y}").transform;
+                cell.SetParent(parent, false);
+                pair.Value.Emit(cell, $"District_Intersections_{pair.Key.x}_{pair.Key.y}", environment);
             }
             var renderers = m.Emit(parent, "District_Intersections", environment);
             SignalRenderers = kit.SignalLenses.Select(l => renderers.FirstOrDefault(r => r.sharedMaterial == l)).ToArray();

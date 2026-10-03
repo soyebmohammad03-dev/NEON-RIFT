@@ -150,6 +150,7 @@ namespace NeonRift.EditorTools.Vehicles
                 EnsureFolder(meshFolder);
                 SaveMeshes(meshes, $"{meshFolder}/{setup.prefabName}_WheelMeshes.asset");
 
+                VehicleLodSetup.Apply(root);
                 EnsureFolder(PrefabFolder);
                 report.PrefabPath = $"{PrefabFolder}/{setup.prefabName}.prefab";
                 PrefabUtility.SaveAsPrefabAsset(root, report.PrefabPath, out bool ok);
