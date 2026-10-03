@@ -20,7 +20,12 @@ namespace NeonRift.Gameplay
             /// <summary>Long boulevard route in, then back out through the alley (re-hacking the slammed gate).</summary>
             BoulevardInAlleyOut,
             /// <summary>Alley in, steal the core, then park: the trace timer must fail the mission.</summary>
-            TraceTimeout
+            TraceTimeout,
+            /// <summary>
+            /// Alley in, but at the gate: miss the bypass window until the controller locks out, wait it out, start again
+            /// and drive off mid-bypass (cancel), then stop and finish the hack properly; then the normal expressway escape.
+            /// </summary>
+            AlleyInFailRetry
         }
 
         private enum Stage { Idle, Driving, Stopping, Holding, Waiting, Parked, Done }
@@ -54,6 +59,8 @@ namespace NeonRift.Gameplay
         private DrivingRoute route;
         private float nextTrace;
         private float interferenceSeen = -1f;
+        private int trick;          // AlleyInFailRetry at the gate: 0 fail, 1 restart, 2 drive off, 3 finish
+        private float trickTime;
 
         public bool Running => stage is not (Stage.Idle or Stage.Done);
         public string Report { get; private set; } = string.Empty;
@@ -92,6 +99,7 @@ namespace NeonRift.Gameplay
                 maxImpact = Mathf.Max(maxImpact, c.RelativeSpeed);
             };
             log.Clear();
+            trick = run == Scenario.AlleyInFailRetry ? 0 : 3;
             collisions = interactions = 0;
             maxImpact = 0f;
             startTime = Time.time;
@@ -162,6 +170,7 @@ namespace NeonRift.Gameplay
                     // A competent player: start the run, hold on Hold stages, press inside Timing windows, answer interference.
                     held = holding == null || holding.Run == null || holding.Run.SuggestedInput();
                     var run = holding != null ? holding.Run : null;
+                    if (trick < 3 && holding != null && run != null && holding.Id.Contains("gate")) { GateTrick(holding, run); break; }
                     if (run != null && run.InterferencePending)
                     {
                         if (interferenceSeen < 0f) interferenceSeen = Time.time;
@@ -182,6 +191,44 @@ namespace NeonRift.Gameplay
                 case Stage.Parked:
                     input.Current = Hold();
                     if (stage == Stage.Waiting && stageTime >= settleSeconds) Enter(Stage.Driving);
+                    break;
+            }
+        }
+
+        /// <summary>The fail/abort/retry sequence at the gate terminal (AlleyInFailRetry).</summary>
+        private void GateTrick(Interactable gate, InteractionRun run)
+        {
+            trickTime += Time.deltaTime;
+            switch (trick)
+            {
+                case 0:
+                    // Mash outside the window until the controller locks out.
+                    input.Current = Hold();
+                    held = run.State == InteractionRun.RunState.Idle ||
+                           run.Current != null && run.Current.Kind == InteractionStepKind.Hold ||
+                           run.Current != null && run.Current.Kind == InteractionStepKind.Timing && Time.frameCount % 8 < 4 && !run.InWindow(run.Current, 0.8f);
+                    if (gate.LockedOut) { Note($"gate locked out after {run.Misses} misses (lockout {gate.LockoutRemaining:0.0}s)"); trick = 1; trickTime = 0f; }
+                    break;
+                case 1:
+                    // Wait out the lockout, then play properly until the bypass stage starts.
+                    input.Current = Hold();
+                    held = !gate.LockedOut && run.SuggestedInput();
+                    if (run.Running && run.Current != null && run.Current.Kind == InteractionStepKind.Timing)
+                    {
+                        Note("bypass reached again: driving off to abort");
+                        trick = 2;
+                        trickTime = 0f;
+                    }
+                    break;
+                case 2:
+                    // Drive off: over the speed limit the run is cancelled after its grace period.
+                    held = false;
+                    input.Current = run.State == InteractionRun.RunState.Idle ? Hold() : new DrivingInput { Throttle = 0.45f };
+                    if (run.State == InteractionRun.RunState.Idle && vehicle.Telemetry.SpeedKph < stoppedKph)
+                    {
+                        Note($"run cancelled and car stopped again after {trickTime:0.0}s");
+                        trick = 3;
+                    }
                     break;
             }
         }

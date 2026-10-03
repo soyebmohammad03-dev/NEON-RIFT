@@ -66,34 +66,7 @@ namespace NeonRift.EditorTools.District
 
         private static Interactable BuildCoreTerminal(Context c, Transform compound, InteractionDefinition definition, Transform core)
         {
-            var kiosk = new GameObject("SecurityTerminal");
-            kiosk.transform.SetParent(compound, false);
-            kiosk.transform.SetPositionAndRotation(CoreTerminalPosition, Quaternion.LookRotation(Vector3.right));
-            var body = new MeshBuilder();
-            body.OrientedBox(new Vector3(0f, 0.15f, 0f), new Vector3(1.6f, 0.3f, 1.1f), Quaternion.identity, 1f);
-            body.OrientedBox(new Vector3(0f, 1.1f, -0.1f), new Vector3(1.2f, 1.9f, 0.6f), Quaternion.identity, 1f);
-            body.OrientedBox(new Vector3(0f, 2.15f, 0.05f), new Vector3(1.4f, 0.12f, 0.9f), Quaternion.identity, 1f);
-            var bodyGo = DistrictKit.Renderer("Body", kiosk.transform, DistrictKit.SaveMesh(body, "Prop_CoreTerminal_Body"), c.Kit.Metal, c.Environment);
-            var col = bodyGo.AddComponent<BoxCollider>();
-            col.center = new Vector3(0f, 1.1f, -0.1f);
-            col.size = new Vector3(1.4f, 2.2f, 0.9f);
-
-            var screens = new List<Renderer>();
-            var screenMesh = new MeshBuilder();
-            screenMesh.Panel(Vector3.zero, Quaternion.identity, 1.0f, 0.7f, new Rect(0f, 0f, 1f, 1f));
-            var mainScreen = Screen(c, "MainScreen", kiosk.transform, DistrictKit.SaveMesh(screenMesh, "Prop_TerminalScreen_Panel"),
-                                    new Vector3(0f, 1.45f, 0.21f), Quaternion.Euler(-14f, 180f, 0f), opaque: true);
-            screens.Add(mainScreen);
-            // A tall status hologram above the kiosk, readable from the car.
-            var holoMesh = new MeshBuilder();
-            holoMesh.Panel(Vector3.zero, Quaternion.identity, 2.2f, 1.3f, new Rect(0f, 0f, 1f, 1f));
-            var holo = Screen(c, "StatusHologram", kiosk.transform, DistrictKit.SaveMesh(holoMesh, "Prop_TerminalHolo_Panel"),
-                              new Vector3(0f, 3.2f, 0.1f), Quaternion.Euler(0f, 180f, 0f), opaque: false);
-            screens.Add(holo);
-
-            var glow = Light(c, kiosk.transform, "ScreenGlow", LightType.Point, CoreTerminalPosition + new Vector3(1.2f, 1.6f, 0f), Quaternion.identity,
-                             new Color(0.3f, 0.9f, 1f), 4f, 7f);
-            var speaker = Speaker(c, kiosk.transform, "Speaker", 4f, 60f);
+            var kiosk = TerminalKiosk(c, compound, "SecurityTerminal", CoreTerminalPosition, Quaternion.LookRotation(Vector3.right), out var screens, out var glow, out var speaker);
 
             // The pad where the car stops: a glowing outline on the plaza.
             var pad = new MeshBuilder();
@@ -116,8 +89,120 @@ namespace NeonRift.EditorTools.District
             var interactable = zoneGo.AddComponent<Interactable>();
             interactable.EditorConfigure(CoreTerminalId, definition, "SECURITY TERMINAL", 3.4f, true, new[] { EventCoreSecurityOff }, null, null, null,
                                          new[] { padGo.GetComponent<Renderer>() }, Beacon(c, zoneGo.transform, CoreTerminalPosition, c.Kit.BeaconCyan, 1.6f));
-            kiosk.AddComponent<TerminalDisplay>().EditorConfigure(interactable, screens.ToArray(), glow, speaker, c.Audio.Heist.StepStart, c.Audio.Heist.Miss);
+            kiosk.AddComponent<TerminalDisplay>().EditorConfigure(interactable, screens, glow, speaker, c.Audio.Heist.StepStart, c.Audio.Heist.Miss);
             return interactable;
+        }
+
+        /// <summary>A hacking kiosk: plinth, cabinet, canopy, an angled main screen and a status hologram above, facing local +Z.</summary>
+        private static GameObject TerminalKiosk(Context c, Transform parent, string name, Vector3 position, Quaternion rotation,
+                                                out Renderer[] screens, out Light glow, out AudioSource speaker)
+        {
+            var kiosk = new GameObject(name);
+            kiosk.transform.SetParent(parent, false);
+            kiosk.transform.SetPositionAndRotation(position, rotation);
+            var body = new MeshBuilder();
+            body.OrientedBox(new Vector3(0f, 0.15f, 0f), new Vector3(1.6f, 0.3f, 1.1f), Quaternion.identity, 1f);
+            body.OrientedBox(new Vector3(0f, 1.1f, -0.1f), new Vector3(1.2f, 1.9f, 0.6f), Quaternion.identity, 1f);
+            body.OrientedBox(new Vector3(0f, 2.15f, 0.05f), new Vector3(1.4f, 0.12f, 0.9f), Quaternion.identity, 1f);
+            var bodyGo = DistrictKit.Renderer("Body", kiosk.transform, DistrictKit.SaveMesh(body, "Prop_CoreTerminal_Body"), c.Kit.Metal, c.Environment);
+            var col = bodyGo.AddComponent<BoxCollider>();
+            col.center = new Vector3(0f, 1.1f, -0.1f);
+            col.size = new Vector3(1.4f, 2.2f, 0.9f);
+
+            var screenMesh = new MeshBuilder();
+            screenMesh.Panel(Vector3.zero, Quaternion.identity, 1.0f, 0.7f, new Rect(0f, 0f, 1f, 1f));
+            var holoMesh = new MeshBuilder();
+            holoMesh.Panel(Vector3.zero, Quaternion.identity, 2.2f, 1.3f, new Rect(0f, 0f, 1f, 1f));
+            screens = new[]
+            {
+                Screen(c, "MainScreen", kiosk.transform, DistrictKit.SaveMesh(screenMesh, "Prop_TerminalScreen_Panel"),
+                       new Vector3(0f, 1.45f, 0.21f), Quaternion.Euler(-14f, 180f, 0f), opaque: true),
+                // A status hologram above the kiosk, readable from the car.
+                Screen(c, "StatusHologram", kiosk.transform, DistrictKit.SaveMesh(holoMesh, "Prop_TerminalHolo_Panel"),
+                       new Vector3(0f, 3.2f, 0.1f), Quaternion.Euler(0f, 180f, 0f), opaque: false),
+            };
+            glow = Light(c, kiosk.transform, "ScreenGlow", LightType.Point, position + rotation * new Vector3(0f, 1.6f, 1.2f), Quaternion.identity,
+                         new Color(0.3f, 0.9f, 1f), 4f, 7f);
+            speaker = Speaker(c, kiosk.transform, "Speaker", 4f, 60f);
+            return kiosk;
+        }
+
+        // ---------------- Gate hack ----------------
+
+        public const string EventGateHack = GateTerminalId + ".hack";
+        public const string EventGateAbort = GateTerminalId + ".abort";
+        public const string EventGateLockout = GateTerminalId + ".lockout";
+        public const string EventGateUnlock = GateTerminalId + ".unlock";
+
+        /// <summary>The reusable gate-controller hack ({id} = the terminal's id, so any gate can use it).</summary>
+        private static void ConfigureGateHackDefinition(InteractionDefinition d)
+        {
+            d.EditorConfigure("HACK", 0f, 10f, 0.6f, 0.35f, "GATE BREACH LOGGED", "GATE RELEASED");
+            d.EditorConfigureStages("S7 GRID // GATE CONTROLLER", new List<InteractionStep>
+            {
+                new("CONNECTING", InteractionStepKind.Auto, 0.9f, "Tapping the gate controller bus", eventOnStart: "{id}.hack"),
+                new("AUTHENTICATING", InteractionStepKind.Hold, 1.3f, "Replaying a maintenance key — hold E"),
+                new InteractionStep("BYPASSING SECURITY", InteractionStepKind.Timing, 1.2f, "Inject between watchdog sweeps — press E in the window")
+                    .WithTiming(0.26f, 0.58f, 3, 0.05f),
+                new("OVERRIDE", InteractionStepKind.Auto, 0.8f, "Override accepted — controller is ours"),
+                new("GATE RELEASE", InteractionStepKind.Auto, 1.1f, "Locks withdrawing", eventOnStart: "{id}.unlock"),
+            }, lockout: 5f, heatOnFail: 0.12f, onFailMessage: "GATE CONTROLLER LOCKOUT · TRACE LOGGED", onFail: new[] { "{id}.lockout" }, tensionLevel: 0.35f);
+            d.EditorConfigureCancel(new[] { "{id}.abort" });
+            EditorUtility.SetDirty(d);
+        }
+
+        /// <summary>Lock bolts in a housing on the gate's latch post, status lamps on both posts and a gate-status hologram.</summary>
+        private static void BuildGateLocks(Context c, SecurityBarrier barrier, float width, float gantryHeight)
+        {
+            var root = barrier.transform;
+            var locks = new GameObject("Locks").transform;
+            locks.SetParent(root, false);
+            float post = width * 0.5f + 0.6f;
+
+            var housing = new MeshBuilder();
+            housing.OrientedBox(new Vector3(-post - 0.55f, 1.9f, 0f), new Vector3(0.6f, 3.4f, 0.7f), Quaternion.identity, 1f);
+            var housingGo = DistrictKit.Renderer("Housing", locks, DistrictKit.SaveMesh(housing, "Gate_LockHousing"), c.Kit.Metal, c.Environment);
+            GameObjectUtility.SetStaticEditorFlags(housingGo, StaticEditorFlags.BatchingStatic);
+
+            var boltMesh = new MeshBuilder();
+            boltMesh.OrientedBox(Vector3.zero, new Vector3(1.0f, 0.18f, 0.18f), Quaternion.identity, 1f);
+            boltMesh.OrientedBox(new Vector3(0.46f, 0f, 0f), new Vector3(0.08f, 0.22f, 0.22f), Quaternion.identity, 1f);
+            var boltAsset = DistrictKit.SaveMesh(boltMesh, "Gate_LockBolt");
+            var bolts = new List<GateLockSystem.Bolt>();
+            foreach (float y in new[] { 0.7f, 1.5f, 2.3f, 3.1f })
+            {
+                var go = DistrictKit.Renderer($"Bolt_{y:0.0}", locks, boltAsset, c.Kit.Metal, c.Environment, shadows: false);
+                GameObjectUtility.SetStaticEditorFlags(go, 0);
+                // Home: across the gap from the post into the panel edge. Withdrawn: back into the housing.
+                go.transform.localPosition = new Vector3(-width * 0.5f - 0.1f, y, 0f);
+                bolts.Add(new GateLockSystem.Bolt { bolt = go.transform, withdrawOffset = new Vector3(-0.95f, 0f, 0f) });
+            }
+
+            var lampMesh = new MeshBuilder();
+            foreach (float x in new[] { -post, post })
+                foreach (float z in new[] { -0.47f, 0.47f })
+                    lampMesh.OrientedBox(new Vector3(x, gantryHeight * 0.5f, z), new Vector3(0.14f, gantryHeight - 0.8f, 0.04f), Quaternion.identity, 1f);
+            // A lamp bar across the gate under the gantry, both faces: the gate's state reads from the car.
+            foreach (float z in new[] { -0.55f, 0.55f })
+                lampMesh.OrientedBox(new Vector3(0f, gantryHeight - 0.65f, z), new Vector3(width + 0.8f, 0.16f, 0.05f), Quaternion.identity, 1f);
+            var lampGo = DistrictKit.Renderer("StatusLamps", locks, DistrictKit.SaveMesh(lampMesh, "Gate_StatusLamps"), c.Kit.Indicator, c.Environment, shadows: false);
+            GameObjectUtility.SetStaticEditorFlags(lampGo, 0);
+            var lampLight = Light(c, locks, "StatusLight", LightType.Point, root.TransformPoint(new Vector3(-post, 3.5f, 0f)), Quaternion.identity,
+                                  new Color(1f, 0.2f, 0.2f), 3f, 9f);
+
+            var holoMesh = new MeshBuilder();
+            holoMesh.Panel(Vector3.zero, Quaternion.identity, 4.6f, 1.6f, new Rect(0f, 0f, 1f, 1f));
+            var holo = Screen(c, "GateStatusHologram", locks, DistrictKit.SaveMesh(holoMesh, "Gate_StatusHolo"),
+                              new Vector3(0f, gantryHeight + 1.4f, 0f), Quaternion.identity, opaque: false);
+            var speaker = Speaker(c, locks, "LockAudio", 6f, 90f);
+            speaker.transform.localPosition = new Vector3(-post, 2f, 0f);
+
+            var lockSystem = locks.gameObject.AddComponent<GateLockSystem>();
+            c.GateLocks.Add(lockSystem);
+            lockSystem.EditorConfigure(
+                new[] { EventGateHack }, new[] { EventGateAbort }, new[] { EventGateLockout }, new[] { EventGateUnlock },
+                new[] { EventAlleyOpen }, new[] { EventLockdown }, bolts.ToArray(), new[] { lampGo.GetComponent<Renderer>() }, lampLight,
+                new[] { holo }, speaker, c.Audio.Heist.GateUnlock, c.Audio.Heist.GateLatch, 5f);
         }
 
         private static Material terminalScreenOpaque, terminalScreenHolo;

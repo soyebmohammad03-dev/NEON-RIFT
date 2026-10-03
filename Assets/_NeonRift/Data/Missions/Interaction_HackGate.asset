@@ -13,16 +13,94 @@ MonoBehaviour:
   m_Name: Interaction_HackGate
   m_EditorClassIdentifier: NeonRift.Gameplay::NeonRift.Gameplay.InteractionDefinition
   verb: HACK
-  deviceName: 
-  holdSeconds: 2.5
+  deviceName: S7 GRID // GATE CONTROLLER
+  holdSeconds: 0
   maxSpeedKph: 10
   decayPerSecond: 0.6
   heatOnComplete: 0.35
   heatReason: GATE BREACH LOGGED
-  completeMessage: GATE OVERRIDDEN
-  tension: 0
-  steps: []
-  lockoutSeconds: 4
-  failHeat: 0.1
-  failMessage: "LOCKOUT \xB7 TRACE LOGGED"
-  eventsOnFail: []
+  completeMessage: GATE RELEASED
+  tension: 0.35
+  steps:
+  - label: CONNECTING
+    detail: Tapping the gate controller bus
+    kind: 0
+    duration: 0.9
+    checkpoint: 0
+    window: 0.24
+    windowCentre: 0.62
+    maxMisses: 3
+    missHeat: 0.04
+    interference: []
+    responseSeconds: 2.5
+    rollback: 0.1
+    eventOnStart: '{id}.hack'
+    eventOnComplete: 
+    cues: []
+  - label: AUTHENTICATING
+    detail: "Replaying a maintenance key \u2014 hold E"
+    kind: 1
+    duration: 1.3
+    checkpoint: 0
+    window: 0.24
+    windowCentre: 0.62
+    maxMisses: 3
+    missHeat: 0.04
+    interference: []
+    responseSeconds: 2.5
+    rollback: 0.1
+    eventOnStart: 
+    eventOnComplete: 
+    cues: []
+  - label: BYPASSING SECURITY
+    detail: "Inject between watchdog sweeps \u2014 press E in the window"
+    kind: 2
+    duration: 1.2
+    checkpoint: 0
+    window: 0.26
+    windowCentre: 0.58
+    maxMisses: 3
+    missHeat: 0.05
+    interference: []
+    responseSeconds: 2.5
+    rollback: 0.1
+    eventOnStart: 
+    eventOnComplete: 
+    cues: []
+  - label: OVERRIDE
+    detail: "Override accepted \u2014 controller is ours"
+    kind: 0
+    duration: 0.8
+    checkpoint: 0
+    window: 0.24
+    windowCentre: 0.62
+    maxMisses: 3
+    missHeat: 0.04
+    interference: []
+    responseSeconds: 2.5
+    rollback: 0.1
+    eventOnStart: 
+    eventOnComplete: 
+    cues: []
+  - label: GATE RELEASE
+    detail: Locks withdrawing
+    kind: 0
+    duration: 1.1
+    checkpoint: 0
+    window: 0.24
+    windowCentre: 0.62
+    maxMisses: 3
+    missHeat: 0.04
+    interference: []
+    responseSeconds: 2.5
+    rollback: 0.1
+    eventOnStart: '{id}.unlock'
+    eventOnComplete: 
+    cues: []
+  lockoutSeconds: 5
+  failHeat: 0.12
+  failMessage: "GATE CONTROLLER LOCKOUT \xB7 TRACE LOGGED"
+  eventsOnFail:
+  - '{id}.lockout'
+  eventsOnCancel:
+  - '{id}.abort'

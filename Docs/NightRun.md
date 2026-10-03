@@ -70,13 +70,47 @@ The same run without the reaction delay (instant answers) completed too: three r
 ```
 
 - **Long route in** (W Avenue → North Boulevard → Access Road), ≈ 910 m, wide and fast, no heat.
-- **Short risky route in** (Market Street → Service Alley), ≈ 520 m, a 10 m-wide alley with a jersey-barrier chicane and a locked gate: hacking it (2.5 s) adds **35 % heat**.
+- **Short risky route in** (Market Street → Service Alley), ≈ 520 m, a 10 m-wide alley with a jersey-barrier chicane and a locked gate. Hacking it (five stages, about 5 s plus the bypass timing; see below) adds **35 % heat**.
 - **Heat** raises security to Alert, shortens the escape trace (25 s per 1.0 heat, applied at the start and immediately for heat gained during the escape) and shortens checkpoint countdowns.
 - **Lockdown** (data, `closeOn: lockdown`):
   - Alley gate slams shut (1 s warning). The terminal re-arms: hack again for +35 % heat.
   - Compound north gate seals in 12 s (−4 s per heat).
   - Expressway checkpoint seals in 30 s (−12 s per heat).
 - **Escape options**: race north/east before the compound gate and checkpoint seal (fast, ≈ 1 km), or re-hack the alley (short, ≈ 700 m, costs heat). If both seal, the long west loop via W Avenue and Market Street is still open but tight on time.
+
+## The alley gate hack
+
+The gate controller is the same framework as the Data Core terminal ([Interactions.md](Interactions.md)). The definition is generic: its stage events use `{id}`, so any gate terminal can reuse it.
+
+| Stage | Kind | What the world does |
+|---|---|---|
+| CONNECTING | Auto 0.9 s | `alley_gate_terminal.hack`: lock lamps and the lamp bar go amber and pulse, the bolts chatter in their seats, the gate status hologram works |
+| AUTHENTICATING | Hold E 1.3 s | Kiosk screens scroll |
+| BYPASSING SECURITY | Timing, 3 misses allowed | Each miss: +5 % heat (raises Alert), the screens tear, a denied buzz. Three misses: `alley_gate_terminal.lockout`, lamps flash red, 5 s lockout, +12 % heat |
+| OVERRIDE | Auto 0.8 s | "Override accepted" |
+| GATE RELEASE | Auto 1.1 s | `alley_gate_terminal.unlock`: four bolts withdraw into the housing with a ratchet and a pneumatic sigh, lamps turn green. On completion `alley.gate.open`, then the panel slides |
+
+- **Cancelling:** driving off (over 10 km/h or out of the zone for 0.6 s) drops the link ("CONNECTION LOST"). `alley_gate_terminal.abort` returns the locks to sealed red, and the next attempt starts from CONNECTING.
+- **Lockdown:** the gate slams. The lock system re-seats the bolts 2.6 s later with a latch clunk, and the terminal re-arms for another hack (+35 % heat).
+- **Camera:** while the gate is hacked or releasing and the car is within 40 m, the camera rises and frames the gate. It stays near-straight behind the car so it does not swing into the alley walls.
+
+| Bypass (timing) | Lockout after three misses | Drive-off abort |
+|---|---|---|
+| ![](Screenshots/Gate/bypass.jpg) | ![](Screenshots/Gate/lockout.jpg) | ![](Screenshots/Gate/abort.jpg) |
+
+| Locks releasing | Re-hack in the lockdown |
+|---|---|
+| ![](Screenshots/Gate/release.jpg) | ![](Screenshots/Gate/lockdown_rehack.jpg) |
+
+**Validation:** `NightRunValidator` scenario `AlleyInFailRetry` (Play Mode, real mission):
+1. Three deliberate misses → lockout (+5 % ×3 and +12 % heat, security Alert).
+2. 5 s wait → restart → drove off during BYPASSING → CONNECTION LOST and abort event.
+3. Stopped → full hack → bolts released → gate open (+35 % heat).
+4. Then the heist.
+
+`BoulevardInAlleyOut` re-hacked the slammed gate during the escape with the new stages and completed (133.7 s, 0 collisions).
+
+The `AlleyInFailRetry` run stalled later, on its expressway escape, after contacts with the rivals leaving the S7 car park. That is the rival issue handled in the three-car heist phase.
 
 ## Rival crews
 

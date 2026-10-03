@@ -147,7 +147,7 @@ namespace NeonRift.Gameplay
             Run = null;
             if (definition == null) return;
             Run = new InteractionRun(definition.Steps, definition.DecayPerSecond);
-            Run.Event += e => { if (world != null) world.Raise(e); };
+            Run.Event += e => { if (world != null) world.Raise(Expand(e)); };
             Run.StepStarted += i => { if (i > 0) Notify(Feedback.StepStarted); else Notify(Feedback.Started); };
             Run.StepCompleted += _ => Notify(Feedback.StepCompleted);
             Run.Missed += (step, heat) =>
@@ -159,7 +159,11 @@ namespace NeonRift.Gameplay
             Run.InterferenceResolved += ok => Notify(ok ? Feedback.Resynced : Feedback.LinkDropped);
             Run.Cancelled += reason =>
             {
-                if (world != null) world.Announce($"{displayName}: {reason}", MessageTone.Warning);
+                if (world != null)
+                {
+                    world.Announce($"{displayName}: {reason}", MessageTone.Warning);
+                    foreach (var e in definition.EventsOnCancel) world.Raise(Expand(e));
+                }
                 Notify(Feedback.Cancelled);
             };
             Run.Failed += _ => OnFailed();
@@ -188,7 +192,7 @@ namespace NeonRift.Gameplay
             {
                 world.Announce($"{displayName}: {definition.FailMessage}", MessageTone.Danger);
                 if (definition.FailHeat > 0f) world.AddHeat(definition.FailHeat, "HACK TRACED");
-                foreach (var e in definition.EventsOnFail) world.Raise(e);
+                foreach (var e in definition.EventsOnFail) world.Raise(Expand(e));
             }
             Refresh();
         }
@@ -202,6 +206,9 @@ namespace NeonRift.Gameplay
         }
 
         private void Notify(Feedback feedback) => FeedbackRaised?.Invoke(this, feedback);
+
+        /// <summary>Definition event ids may name the device generically: "{id}.unlock" → "alley_gate_terminal.unlock".</summary>
+        private string Expand(string eventId) => eventId != null && eventId.Contains("{id}") ? eventId.Replace("{id}", id) : eventId;
 
         private bool IsUsable()
         {

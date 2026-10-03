@@ -218,6 +218,19 @@ namespace NeonRift.Tests
                                ?? roots.SelectMany(r => r.GetComponentsInChildren<Interactable>(true)).Single(i => i.Id == NightRunBuilder.GateTerminalId);
                 Assert.IsNotNull(terminal.Definition);
                 Assert.Greater(terminal.Definition.HeatOnComplete, 0f, "The shortcut gate must have a consequence (heat).");
+                // The gate is a real hack (connect, authenticate, bypass with a skill stage, override, release) and its
+                // locks, lamps and status display react to the hack's own stage events.
+                Assert.IsTrue(terminal.Definition.IsSequence);
+                Assert.GreaterOrEqual(terminal.Definition.Steps.Count, 4);
+                Assert.IsTrue(terminal.Definition.Steps.Any(st => st.Kind == InteractionStepKind.Timing && st.MaxMisses > 0), "Bypassing must be failable.");
+                Assert.IsTrue(terminal.Definition.Steps.Any(st => st.EventOnStart == "{id}.unlock"));
+                Assert.Greater(terminal.Definition.EventsOnCancel.Length + terminal.Definition.EventsOnFail.Length, 1);
+                var locks = roots.SelectMany(r => r.GetComponentsInChildren<GateLockSystem>(true)).Single();
+                var lso = new SerializedObject(locks);
+                Assert.IsTrue(Listens(lso, "unlockOn", NightRunBuilder.EventGateUnlock));
+                Assert.IsTrue(Listens(lso, "abortOn", NightRunBuilder.EventGateAbort));
+                Assert.IsTrue(Listens(lso, "sealOn", NightRunBuilder.EventLockdown));
+                Assert.AreEqual(4, lso.FindProperty("bolts").arraySize);
 
                 // Triggers are on the Trigger layer so only vehicles set them off.
                 int trigger = LayerMask.NameToLayer("Trigger");

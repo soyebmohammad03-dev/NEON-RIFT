@@ -60,6 +60,7 @@ namespace NeonRift.EditorTools.District
             public int Environment, Trigger, Drivable;
             public readonly List<Light> MissionLights = new();
             public DataCoreChamber Chamber;
+            public readonly List<GateLockSystem> GateLocks = new();
             public readonly StringBuilder Log = new();
         }
 
@@ -121,6 +122,7 @@ namespace NeonRift.EditorTools.District
 
             var (entry, director, camera, chase) = BuildMissionRig(c, core, volumes, navigation);
             if (c.Chamber != null) c.Chamber.EditorSetChaseCamera(chase);
+            foreach (var g in c.GateLocks) g.EditorSetChaseCamera(chase);
             BuildCitySystems(c, camera);
             BuildDevTools(c, entry);
             c.Log.Append(NeonRift.EditorTools.Intro.IntroBuilder.Build(c.Scene));
@@ -161,7 +163,7 @@ namespace NeonRift.EditorTools.District
         {
             VehiclePrefabBuilder.EnsureFolder(DataFolder);
             hackGate = Asset<InteractionDefinition>($"{DataFolder}/Interaction_HackGate.asset");
-            hackGate.EditorConfigure("HACK", 2.5f, 10f, 0.6f, 0.35f, "GATE BREACH LOGGED", "GATE OVERRIDDEN");
+            ConfigureGateHackDefinition(hackGate);
             uplink = Asset<InteractionDefinition>($"{DataFolder}/Interaction_DataCoreUplink.asset");
             ConfigureUplinkDefinition(uplink);
             coreTerminal = CoreTerminalDefinition();
@@ -401,20 +403,9 @@ namespace NeonRift.EditorTools.District
                                        warning: 1f, travel: 1.5f);
 
             // Terminal kiosk on the west pavement, facing the alley.
-            var kiosk = new GameObject("GateTerminal");
-            kiosk.transform.SetParent(barrier.transform, false);
-            kiosk.transform.position = new Vector3(154.3f, KerbY, -27f);
-            kiosk.transform.rotation = Quaternion.LookRotation(Vector3.right);
-            var body = new MeshBuilder();
-            body.OrientedBox(new Vector3(0f, 0.85f, 0f), new Vector3(0.9f, 1.7f, 0.5f), Quaternion.identity, 1f);
-            DistrictKit.Renderer("Body", kiosk.transform, DistrictKit.SaveMesh(body, "Prop_Terminal_Body"), c.Kit.Metal, c.Environment);
-            var screen = new MeshBuilder();
-            screen.OrientedBox(new Vector3(0f, 1.25f, 0.26f), new Vector3(0.7f, 0.5f, 0.03f), Quaternion.Euler(-12f, 0f, 0f), 1f);
-            screen.OrientedBox(new Vector3(0f, 1.78f, 0f), new Vector3(0.9f, 0.08f, 0.5f), Quaternion.identity, 1f);
-            var screenGo = DistrictKit.Renderer("Screen", kiosk.transform, DistrictKit.SaveMesh(screen, "Prop_Terminal_Screen"), c.Kit.Indicator, c.Environment, shadows: false);
-            GameObjectUtility.SetStaticEditorFlags(screenGo, 0);
-            Light(c, kiosk.transform, "ScreenGlow", LightType.Point, kiosk.transform.position + Vector3.up * 1.4f + Vector3.right * 0.8f, Quaternion.identity,
-                  new Color(0.3f, 0.9f, 1f), 3f, 6f);
+            var kiosk = TerminalKiosk(c, barrier.transform, "GateTerminal", new Vector3(154.3f, KerbY, -27f), Quaternion.LookRotation(Vector3.right),
+                                      out var screens, out var glow, out var speaker);
+            BuildGateLocks(c, barrier, 10f, 6.5f);
 
             var zoneGo = new GameObject("TerminalZone") { layer = c.Trigger };
             zoneGo.transform.SetParent(barrier.transform, false);
@@ -424,7 +415,8 @@ namespace NeonRift.EditorTools.District
             box.size = new Vector3(10f, 5f, 46f);
             var interactable = zoneGo.AddComponent<Interactable>();
             interactable.EditorConfigure(GateTerminalId, hackGate, "ALLEY GATE", 3f, true, new[] { EventAlleyOpen }, null, null, new[] { EventLockdown },
-                                         new[] { screenGo.GetComponent<Renderer>() }, null);
+                                         null, null);
+            kiosk.AddComponent<TerminalDisplay>().EditorConfigure(interactable, screens, glow, speaker, c.Audio.Heist.StepStart, c.Audio.Heist.Miss);
             return barrier;
         }
 

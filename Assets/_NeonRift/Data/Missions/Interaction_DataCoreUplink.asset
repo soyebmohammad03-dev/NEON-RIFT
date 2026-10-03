@@ -109,3 +109,4 @@ MonoBehaviour:
   failHeat: 0
   failMessage: LINK COLLAPSED
   eventsOnFail: []
+  eventsOnCancel: []

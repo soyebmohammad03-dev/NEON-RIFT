@@ -36,6 +36,12 @@ Stages raise world events (`eventOnStart`, `eventOnComplete`, and `cues` at prog
 - **World:** `TerminalDisplay` drives screens through a MaterialPropertyBlock: stage strip, scrolling rows, progress bar and scan line. Its colour follows state (standby cyan, working, alarm red, complete green, lockout). Screens tear on misses and interference.
 - **Audio:** stage start and complete blips, denied, interference, re-sync, lockout and cancel cues (`MissionAudioSet`). The tension bed builds with the definition's `tension` × progress. Event stingers (`core.acquired`, `core.breached`) are data on the audio set.
 
+## Gates and other infrastructure
+
+`GateLockSystem` is the physical side of a hackable barrier: lock bolts in a housing, status lamps (posts and a bar across the gate), a status hologram, lock audio, and an optional camera framing. Its event lists (hack, abort, lockout, unlock, released, seal) take the hack's own stage events, so doors, bridges and lifts can reuse it next to a `SecurityBarrier`.
+
+Definition event ids may contain `{id}`, which is replaced by the interactable's id at runtime: `{id}.unlock` becomes `alley_gate_terminal.unlock`. `eventsOnFail` and `eventsOnCancel` let the world react to a lockout or an abandoned hack.
+
 ## Adding a device
 
 1. Create an `InteractionDefinition` with stages (or build one in code like `NightRunBuilder.CoreTerminalDefinition`).

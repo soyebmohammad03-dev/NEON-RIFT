@@ -86,3 +86,4 @@ MonoBehaviour:
   failHeat: 0.1
   failMessage: "INTRUSION FILTER LOCKOUT \xB7 TRACE LOGGED"
   eventsOnFail: []
+  eventsOnCancel: []

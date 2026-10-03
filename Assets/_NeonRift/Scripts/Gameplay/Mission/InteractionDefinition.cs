@@ -39,8 +39,11 @@ namespace NeonRift.Gameplay
         [SerializeField, Min(0f)] private float lockoutSeconds = 4f;
         [SerializeField, Range(0f, 1f)] private float failHeat = 0.1f;
         [SerializeField] private string failMessage = "LOCKOUT · TRACE LOGGED";
-        [Tooltip("World events raised when the interaction fails.")]
+        [Tooltip("World events raised when the interaction fails. Stage and failure/cancel event ids may contain {id}, " +
+                 "replaced by the interactable's id, so one definition serves many devices.")]
         [SerializeField] private string[] eventsOnFail = System.Array.Empty<string>();
+        [Tooltip("World events raised when a run is abandoned (the car drove off).")]
+        [SerializeField] private string[] eventsOnCancel = System.Array.Empty<string>();
 
         // Not serialized (also not by the editor's domain-reload pass, which would turn it into an empty list).
         [System.NonSerialized] private List<InteractionStep> fallback;
@@ -58,6 +61,7 @@ namespace NeonRift.Gameplay
         public float FailHeat => failHeat;
         public string FailMessage => failMessage;
         public string[] EventsOnFail => eventsOnFail ?? System.Array.Empty<string>();
+        public string[] EventsOnCancel => eventsOnCancel ?? System.Array.Empty<string>();
         /// <summary>True if this is a multi-stage interaction (shows the terminal readout).</summary>
         public bool IsSequence => steps != null && steps.Count > 0;
 
@@ -98,6 +102,8 @@ namespace NeonRift.Gameplay
             eventsOnFail = onFail ?? System.Array.Empty<string>();
             fallback = null;
         }
+
+        public void EditorConfigureCancel(string[] onCancel) => eventsOnCancel = onCancel ?? System.Array.Empty<string>();
 #endif
     }
 }

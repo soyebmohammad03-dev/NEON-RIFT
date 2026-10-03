@@ -156,11 +156,16 @@ namespace NeonRift.Gameplay
         /// a machine opening): the camera eases out to the far side of the car, raised, and drifts gently while aiming
         /// between the two. Blends in and out over <see cref="frameBlend"/>; the player keeps full control of the car.
         /// </summary>
-        public void SetFraming(bool on, Vector3 subject)
+        public void SetFraming(bool on, Vector3 subject, float swingDegrees = -1f, float riseMetres = -1f)
         {
             framing = on;
-            if (on) frameSubject = subject;
+            if (!on) return;
+            frameSubject = subject;
+            activeSwing = swingDegrees >= 0f ? swingDegrees : frameSwing;
+            activeRise = riseMetres >= 0f ? riseMetres : frameRise;
         }
+
+        private float activeSwing, activeRise;
 
         public float FramingWeight => frameWeight;
 
@@ -248,9 +253,9 @@ namespace NeonRift.Gameplay
             {
                 Vector3 away = Vector3.ProjectOnPlane(pivot - frameSubject, Vector3.up);
                 if (away.sqrMagnitude < 1f) away = -(Quaternion.Euler(0f, yaw, 0f) * Vector3.forward);
-                float swing = frameSwing + Mathf.Sin(Time.unscaledTime * 0.15f) * 14f;
+                float swing = activeSwing + Mathf.Sin(Time.unscaledTime * 0.15f) * Mathf.Min(14f, activeSwing * 0.4f + 4f);
                 away = Quaternion.Euler(0f, swing, 0f) * away.normalized;
-                Vector3 framePosition = aimOrigin + away * (distance + framePullBack) + Vector3.up * (height + frameRise);
+                Vector3 framePosition = aimOrigin + away * (distance + framePullBack) + Vector3.up * (height + activeRise);
                 Vector3 toFrame = framePosition - aimOrigin;
                 if (scene.SphereCast(aimOrigin, collisionRadius, toFrame.normalized, out var frameHit, toFrame.magnitude, obstacleLayers, QueryTriggerInteraction.Ignore))
                     framePosition = aimOrigin + toFrame.normalized * Mathf.Max(minDistance, frameHit.distance);
