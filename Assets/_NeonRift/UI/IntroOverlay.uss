@@ -1,0 +1,170 @@
+/* Opening cinematic overlay: fades, letterbox, text cards, title reveal, surveillance view. Values the
+   sequence animates every frame (opacity, letter spacing) are set from code; the rest is static styling. */
+.nr-intro {
+    position: absolute;
+    left: 0; top: 0; right: 0; bottom: 0;
+    color: rgb(235, 240, 245);
+}
+
+.nr-intro--off { display: none; }
+
+.nr-intro__fade, .nr-intro__flash {
+    position: absolute;
+    left: 0; top: 0; right: 0; bottom: 0;
+    background-color: rgb(0, 0, 0);
+    opacity: 1;
+}
+
+.nr-intro__flash { background-color: rgb(255, 250, 240); opacity: 0; }
+
+.nr-intro__bar {
+    position: absolute;
+    left: 0; right: 0;
+    height: 11%;
+    background-color: rgb(0, 0, 0);
+}
+
+.nr-intro__bar--top { top: 0; }
+.nr-intro__bar--bottom { bottom: 0; }
+
+.nr-intro__card {
+    position: absolute;
+    left: 9%;
+    bottom: 19%;
+    max-width: 70%;
+    opacity: 0;
+}
+
+.nr-intro__card-text {
+    font-size: 30px;
+    letter-spacing: 6px;
+    -unity-font-style: bold;
+    color: rgb(240, 244, 248);
+    text-shadow: 0 0 12px rgba(0, 0, 0, 0.9);
+}
+
+.nr-intro__card-sub {
+    font-size: 17px;
+    letter-spacing: 5px;
+    margin-top: 8px;
+    color: rgb(120, 215, 240);
+    text-shadow: 0 0 10px rgba(0, 0, 0, 0.9);
+}
+
+.nr-intro__title {
+    position: absolute;
+    left: 0; right: 0;
+    top: 19%;
+    align-items: center;
+    opacity: 0;
+}
+
+.nr-intro__title-main {
+    font-size: 118px;
+    -unity-font-style: bold;
+    letter-spacing: 30px;
+    color: rgb(245, 248, 252);
+    text-shadow: 0 0 28px rgba(60, 220, 255, 0.55);
+}
+
+.nr-intro__title-rule {
+    width: 0;
+    height: 2px;
+    margin-top: 6px;
+    background-color: rgb(80, 225, 255);
+}
+
+.nr-intro__title-sub {
+    font-size: 46px;
+    -unity-font-style: bold;
+    letter-spacing: 22px;
+    margin-top: 14px;
+    color: rgb(255, 95, 160);
+    text-shadow: 0 0 22px rgba(255, 40, 120, 0.85);
+    opacity: 0;
+}
+
+.nr-intro__prompt {
+    position: absolute;
+    left: 0; right: 0;
+    bottom: 14%;
+    -unity-text-align: middle-center;
+    font-size: 21px;
+    letter-spacing: 9px;
+    color: rgb(235, 242, 248);
+    text-shadow: 0 0 10px rgba(0, 0, 0, 0.95);
+    opacity: 0;
+}
+
+.nr-intro__skip {
+    position: absolute;
+    right: 48px;
+    bottom: 13%;
+    font-size: 13px;
+    letter-spacing: 4px;
+    color: rgba(220, 230, 240, 0.7);
+    opacity: 0;
+}
+
+/* Surveillance view */
+.nr-intro__cctv {
+    position: absolute;
+    left: 0; top: 0; right: 0; bottom: 0;
+}
+
+.nr-intro__cctv-tint {
+    position: absolute;
+    left: 0; top: 0; right: 0; bottom: 0;
+    background-color: rgba(40, 255, 160, 0.05);
+}
+
+.nr-intro__bracket {
+    position: absolute;
+    width: 60px;
+    height: 60px;
+    border-color: rgba(200, 255, 220, 0.75);
+}
+
+.nr-intro__bracket--tl { left: 6%; top: 15%; border-left-width: 3px; border-top-width: 3px; }
+.nr-intro__bracket--tr { right: 6%; top: 15%; border-right-width: 3px; border-top-width: 3px; }
+.nr-intro__bracket--bl { left: 6%; bottom: 15%; border-left-width: 3px; border-bottom-width: 3px; }
+.nr-intro__bracket--br { right: 6%; bottom: 15%; border-right-width: 3px; border-bottom-width: 3px; }
+
+.nr-intro__cctv-top {
+    position: absolute;
+    left: 8%;
+    top: 16.5%;
+    flex-direction: row;
+    align-items: center;
+}
+
+.nr-intro__rec-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 7px;
+    margin-right: 12px;
+    background-color: rgb(255, 40, 60);
+}
+
+.nr-intro__cctv-label, .nr-intro__cctv-clock {
+    font-size: 18px;
+    letter-spacing: 4px;
+    color: rgba(210, 255, 225, 0.9);
+}
+
+.nr-intro__cctv-clock {
+    position: absolute;
+    right: 8%;
+    top: 16.5%;
+}
+
+.nr-intro__cctv-alert {
+    position: absolute;
+    left: 0; right: 0;
+    bottom: 22%;
+    -unity-text-align: middle-center;
+    font-size: 26px;
+    letter-spacing: 10px;
+    -unity-font-style: bold;
+    color: rgb(255, 80, 90);
+}

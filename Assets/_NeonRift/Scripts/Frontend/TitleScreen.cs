@@ -10,6 +10,7 @@ namespace NeonRift.Frontend
         private GameContext context;
         private Button startButton;
         private Button quitButton;
+        private Button introButton;
 
         public void Enter(GameContext gameContext)
         {
@@ -18,10 +19,12 @@ namespace NeonRift.Frontend
 
             startButton = root.Q<Button>("start-button");
             quitButton = root.Q<Button>("quit-button");
+            introButton = root.Q<Button>("intro-button");
             root.Q<Label>("version-label").text = $"v{Application.version}";
 
             startButton.clicked += OnStart;
             quitButton.clicked += OnQuit;
+            if (introButton != null) introButton.clicked += OnIntro;
             startButton.Focus();
         }
 
@@ -29,11 +32,14 @@ namespace NeonRift.Frontend
         {
             if (startButton != null) startButton.clicked -= OnStart;
             if (quitButton != null) quitButton.clicked -= OnQuit;
+            if (introButton != null) introButton.clicked -= OnIntro;
             context = null;
         }
 
         private void OnStart() => context?.Flow.GoToCarSelect();
 
         private void OnQuit() => context?.Flow.QuitGame();
+
+        private void OnIntro() => context?.Flow.PlayIntro();
     }
 }

@@ -14,7 +14,10 @@
         "NeonRift.World",
         "NeonRift.Input",
         "Unity.InputSystem",
-        "Unity.InputSystem.TestFramework"
+        "Unity.InputSystem.TestFramework",
+        "NeonRift.Intro",
+        "Unity.Timeline",
+        "Unity.Cinemachine"
     ],
     "includePlatforms": [
         "Editor"

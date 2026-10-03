@@ -121,6 +121,7 @@ namespace NeonRift.EditorTools.District
             var (entry, director, camera, chase) = BuildMissionRig(c, core, volumes, navigation);
             BuildCitySystems(c, camera);
             BuildDevTools(c, entry);
+            c.Log.Append(NeonRift.EditorTools.Intro.IntroBuilder.Build(c.Scene));
             ConfigurePipeline(c);
 
             Lightmapping.lightingSettings = LightingSettingsAsset();

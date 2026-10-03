@@ -14,6 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: NeonRift.Game::NeonRift.Game.GameConfig
   frontendScene: Frontend
   carSelectScene: CarSelect
+  introScene: NightRun
+  introSettings: {fileID: 11400000, guid: e4b6030023a7a43a89c09cdbd6912f60, type: 2}
   vehicleCatalog: {fileID: 11400000, guid: eb772a81547f5450fbdfe60c97931f67, type: 2}
   missions:
   - {fileID: 11400000, guid: 6dbb8108a4bcb4e23a90ef55ed634f2b, type: 2}

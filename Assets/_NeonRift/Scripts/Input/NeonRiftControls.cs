@@ -440,6 +440,15 @@ namespace NeonRift.Input
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Skip"",
+                    ""type"": ""Button"",
+                    ""id"": ""8a3e98f4-cba0-4963-9e32-2435d4e25a08"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -629,6 +638,28 @@ namespace NeonRift.Input
                     ""action"": ""Back"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""ac23e185-9b3d-4468-bb45-4ae61b32c830"",
+                    ""path"": ""<Keyboard>/space"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""KeyboardMouse"",
+                    ""action"": ""Skip"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""b9cf0259-992c-4807-9d4d-f57e900c69dc"",
+                    ""path"": ""<Gamepad>/start"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Gamepad"",
+                    ""action"": ""Skip"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -679,6 +710,7 @@ namespace NeonRift.Input
             m_Menu_Rotate = m_Menu.FindAction("Rotate", throwIfNotFound: true);
             m_Menu_Confirm = m_Menu.FindAction("Confirm", throwIfNotFound: true);
             m_Menu_Back = m_Menu.FindAction("Back", throwIfNotFound: true);
+            m_Menu_Skip = m_Menu.FindAction("Skip", throwIfNotFound: true);
         }
 
         ~@NeonRiftControls()
@@ -927,6 +959,7 @@ namespace NeonRift.Input
         private readonly InputAction m_Menu_Rotate;
         private readonly InputAction m_Menu_Confirm;
         private readonly InputAction m_Menu_Back;
+        private readonly InputAction m_Menu_Skip;
         /// <summary>
         /// Provides access to input actions defined in input action map "Menu".
         /// </summary>
@@ -958,6 +991,10 @@ namespace NeonRift.Input
             /// Provides access to the underlying input action "Menu/Back".
             /// </summary>
             public InputAction @Back => m_Wrapper.m_Menu_Back;
+            /// <summary>
+            /// Provides access to the underlying input action "Menu/Skip".
+            /// </summary>
+            public InputAction @Skip => m_Wrapper.m_Menu_Skip;
             /// <summary>
             /// Provides access to the underlying input action map instance.
             /// </summary>
@@ -999,6 +1036,9 @@ namespace NeonRift.Input
                 @Back.started += instance.OnBack;
                 @Back.performed += instance.OnBack;
                 @Back.canceled += instance.OnBack;
+                @Skip.started += instance.OnSkip;
+                @Skip.performed += instance.OnSkip;
+                @Skip.canceled += instance.OnSkip;
             }
 
             /// <summary>
@@ -1025,6 +1065,9 @@ namespace NeonRift.Input
                 @Back.started -= instance.OnBack;
                 @Back.performed -= instance.OnBack;
                 @Back.canceled -= instance.OnBack;
+                @Skip.started -= instance.OnSkip;
+                @Skip.performed -= instance.OnSkip;
+                @Skip.canceled -= instance.OnSkip;
             }
 
             /// <summary>
@@ -1183,6 +1226,13 @@ namespace NeonRift.Input
             /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
             /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
             void OnBack(InputAction.CallbackContext context);
+            /// <summary>
+            /// Method invoked when associated input action "Skip" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnSkip(InputAction.CallbackContext context);
         }
     }
 }

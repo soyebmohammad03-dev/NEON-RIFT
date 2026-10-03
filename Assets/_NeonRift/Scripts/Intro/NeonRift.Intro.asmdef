@@ -1,0 +1,25 @@
+{
+    "name": "NeonRift.Intro",
+    "rootNamespace": "NeonRift.Intro",
+    "references": [
+        "NeonRift.Game",
+        "NeonRift.Gameplay",
+        "NeonRift.Vehicles",
+        "NeonRift.Input",
+        "NeonRift.Audio",
+        "NeonRift.World",
+        "Unity.Timeline",
+        "Unity.Cinemachine",
+        "Unity.InputSystem",
+        "Unity.RenderPipelines.Core.Runtime"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

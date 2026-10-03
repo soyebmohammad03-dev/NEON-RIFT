@@ -38,7 +38,7 @@ namespace NeonRift.Game
 
         // Menus get the menu mix; missions the gameplay mix. Results/lockdown/ducking are driven by mission code.
         private void OnStateChanged(GameState state) =>
-            audio.TransitionTo(state == GameState.Mission ? MixerState.Gameplay : MixerState.Menu, config.FadeSeconds);
+            audio.TransitionTo(state is GameState.Mission or GameState.Intro ? MixerState.Gameplay : MixerState.Menu, config.FadeSeconds);
 
         private async void Start()
         {

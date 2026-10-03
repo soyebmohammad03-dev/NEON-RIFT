@@ -16,7 +16,9 @@
         "Unity.RenderPipelines.Universal.Runtime",
         "Unity.InputSystem",
         "NeonRift.Input",
-        "NeonRift.Rendering"
+        "NeonRift.Rendering",
+        "NeonRift.Intro",
+        "Unity.Timeline"
     ],
     "includePlatforms": [
         "Editor"

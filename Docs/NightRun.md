@@ -118,6 +118,8 @@ Adding a mechanic: create an `InteractionDefinition` (or a new `IMissionWorldCom
 
 **Rival fix during this phase:** in fast-timing runs the Terzo turned into the S7 car park across the scripted player's path, and once reversed out into it (2 of 5 runs had contacts up to 18.9 m/s). Rivals now give way to the player on any crossing course within their stopping horizon, and never reverse while a car is, or within a second will be, in a 6 × 10 m box behind them. The next four runs had 0 player collisions and 0 reversals (one rival-to-rival touch). None of them hit the fast ~102 s timing, so that exact case is improved but not re-verified.
 
+**Still open:** the fast-timing (~102 s) boulevard run produced one more player/Terzo contact (18.1 m/s) after the crossing fix. It did not reproduce in four later runs, including one with the editor kept in the foreground. `RivalDirector` now logs every rival contact (`[Rivals] contact …`: position, closing speed, both speeds, angle, driver state) so the next occurrence can be diagnosed.
+
 ## Validation
 
 - EditMode: `MissionTests` (state machine, heat/timer rules, failure, data validity, scene wiring).

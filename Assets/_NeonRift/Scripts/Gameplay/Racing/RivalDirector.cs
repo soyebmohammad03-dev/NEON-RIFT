@@ -79,7 +79,16 @@ namespace NeonRift.Gameplay
                 foreach (var receiver in car.GetComponentsInChildren<IVehicleInputReceiver>()) receiver.SetInputSource(driver);
                 if (car.TryGetComponent(out VehicleAudio audio)) audio.SetPlayerView(false);
                 var racer = new Racer { Name = $"{slot.profile.DisplayName} · {def.DisplayName.ToUpperInvariant()}", Definition = def, Car = car, Driver = driver };
-                car.Collided += c => { if (c.Other != null && c.Other.GetComponentInParent<VehicleController>() != null) racer.VehicleContacts++; };
+                car.Collided += c =>
+                {
+                    var other = c.Other != null ? c.Other.GetComponentInParent<VehicleController>() : null;
+                    if (other == null) return;
+                    racer.VehicleContacts++;
+                    var mine = car.Body.linearVelocity;
+                    var theirs = other.Body != null ? other.Body.linearVelocity : Vector3.zero;
+                    Debug.Log($"[Rivals] contact {car.name} × {other.name} at {c.Point:F0}: {c.RelativeSpeed:0.0} m/s closing, " +
+                              $"speeds {mine.magnitude:0.0}/{theirs.magnitude:0.0} m/s, angle {Vector3.Angle(mine, theirs):0}°, state {driver.State} {driver.DebugState}");
+                };
                 rivals.Add(racer);
                 traffic.Add(car);
             }

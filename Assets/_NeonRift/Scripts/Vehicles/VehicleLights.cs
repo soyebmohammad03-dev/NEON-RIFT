@@ -52,6 +52,12 @@ namespace NeonRift.Vehicles
             tail.shadows = LightShadows.None;
         }
 
+        /// <summary>Switches the headlight beams (cinematics: the "lights on" moment). Tail light is unaffected.</summary>
+        public void SetHeadlights(bool on)
+        {
+            foreach (var l in heads) if (l != null) l.enabled = on;
+        }
+
         private Light Make(string name, Vector3 local, Quaternion rotation)
         {
             var go = new GameObject(name);

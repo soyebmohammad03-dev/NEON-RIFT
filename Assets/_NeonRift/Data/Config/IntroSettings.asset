@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 99c8a7984665748db90f43fb6539344f, type: 3}
+  m_Name: IntroSettings
+  m_EditorClassIdentifier: NeonRift.Game::NeonRift.Game.IntroSettings
+  policy: 0
+  mode: 0
+  video: {fileID: 0}
+  skippable: 1
+  seenKey: NeonRift.IntroSeen

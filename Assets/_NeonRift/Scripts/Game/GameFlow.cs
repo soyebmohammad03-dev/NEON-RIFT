@@ -47,7 +47,17 @@ namespace NeonRift.Game
                 }
             }
 
-            await TransitionAsync(GameState.Frontend, config.FrontendScene);
+            var intro = config.Intro;
+            if (intro != null && intro.ShouldPlayOnBoot() && !string.IsNullOrEmpty(config.IntroScene))
+                await TransitionAsync(GameState.Intro, config.IntroScene);
+            else
+                await TransitionAsync(GameState.Frontend, config.FrontendScene);
+        }
+
+        public void PlayIntro()
+        {
+            if (string.IsNullOrEmpty(config.IntroScene)) return;
+            Request(GameState.Intro, config.IntroScene);
         }
 
         public void GoToFrontend() => Request(GameState.Frontend, config.FrontendScene);
@@ -122,7 +132,7 @@ namespace NeonRift.Game
                 SceneManager.SetActiveScene(contentScene);
                 await WaitFor(Resources.UnloadUnusedAssets());
 
-                contentEntry = FindEntryPoint(contentScene);
+                contentEntry = FindEntryPoint(contentScene, target);
                 SetState(target);
                 if (contentEntry != null) contentEntry.Enter(context);
                 else Debug.LogError($"[GameFlow] Scene '{sceneName}' has no root component implementing ISceneEntryPoint.");
@@ -141,7 +151,7 @@ namespace NeonRift.Game
 
             contentScene = scene;
             SceneManager.SetActiveScene(scene);
-            contentEntry = FindEntryPoint(scene);
+            contentEntry = FindEntryPoint(scene, state);
             if (contentEntry == null)
             {
                 Debug.LogWarning($"[GameFlow] '{scene.name}' has no ISceneEntryPoint; running it without game flow.");
@@ -176,11 +186,13 @@ namespace NeonRift.Game
             StateChanged?.Invoke(state);
         }
 
-        private static ISceneEntryPoint FindEntryPoint(Scene scene)
+        /// <summary>The intro uses the scene's <see cref="IIntroEntryPoint"/>; every other state the scene's ordinary entry.</summary>
+        private static ISceneEntryPoint FindEntryPoint(Scene scene, GameState state)
         {
             foreach (var root in scene.GetRootGameObjects())
-                if (root.TryGetComponent(out ISceneEntryPoint entry))
-                    return entry;
+                foreach (var entry in root.GetComponents<ISceneEntryPoint>())
+                    if ((entry is IIntroEntryPoint) == (state == GameState.Intro))
+                        return entry;
             return null;
         }
 

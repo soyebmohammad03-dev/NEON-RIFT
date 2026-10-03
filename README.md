@@ -23,6 +23,10 @@ More in [Docs/Screenshots](Docs/Screenshots).
 5. Tests: `Window ▸ General ▸ Test Runner ▸ EditMode`, or `Neon Rift ▸ Tests ▸ Run EditMode Tests` (writes `Logs/TestResults-EditMode.txt`).
 6. The city is generated: `Neon Rift ▸ Night Run ▸ Build Night Run (district + mission)` (about 40 s, including the reflection-probe bake).
 
+## Flow
+
+Launch → opening cinematic (first launch; replay it from the Title's WATCH INTRO) → NEON RIFT title → Enter / A → Car Select → Night Run. Space / Start skips the cinematic to the title. See [Docs/Intro.md](Docs/Intro.md).
+
 ## Driving
 
 | Action | Keyboard | Gamepad |

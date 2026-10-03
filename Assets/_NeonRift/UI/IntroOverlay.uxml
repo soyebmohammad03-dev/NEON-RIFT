@@ -1,0 +1,36 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <Style src="project://database/Assets/_NeonRift/UI/IntroOverlay.uss" />
+    <ui:VisualElement name="intro-root" class="nr-intro" picking-mode="Ignore">
+        <ui:VisualElement name="surveillance" class="nr-intro__cctv nr-intro--off" picking-mode="Ignore">
+            <ui:VisualElement class="nr-intro__cctv-tint" picking-mode="Ignore" />
+            <ui:VisualElement class="nr-intro__bracket nr-intro__bracket--tl" picking-mode="Ignore" />
+            <ui:VisualElement class="nr-intro__bracket nr-intro__bracket--tr" picking-mode="Ignore" />
+            <ui:VisualElement class="nr-intro__bracket nr-intro__bracket--bl" picking-mode="Ignore" />
+            <ui:VisualElement class="nr-intro__bracket nr-intro__bracket--br" picking-mode="Ignore" />
+            <ui:VisualElement class="nr-intro__cctv-top" picking-mode="Ignore">
+                <ui:VisualElement name="rec-dot" class="nr-intro__rec-dot" picking-mode="Ignore" />
+                <ui:Label text="REC   CAM 07 · SECTOR 7 GRID" class="nr-intro__cctv-label" picking-mode="Ignore" />
+            </ui:VisualElement>
+            <ui:Label name="cctv-clock" text="02:13:07" class="nr-intro__cctv-clock" picking-mode="Ignore" />
+            <ui:Label name="cctv-alert" text="" class="nr-intro__cctv-alert" picking-mode="Ignore" />
+        </ui:VisualElement>
+
+        <ui:VisualElement name="card" class="nr-intro__card" picking-mode="Ignore">
+            <ui:Label name="card-text" class="nr-intro__card-text" picking-mode="Ignore" />
+            <ui:Label name="card-sub" class="nr-intro__card-sub" picking-mode="Ignore" />
+        </ui:VisualElement>
+
+        <ui:VisualElement name="title" class="nr-intro__title" picking-mode="Ignore">
+            <ui:Label name="title-main" text="NEON RIFT" class="nr-intro__title-main" picking-mode="Ignore" />
+            <ui:VisualElement name="title-rule" class="nr-intro__title-rule" picking-mode="Ignore" />
+            <ui:Label name="title-sub" text="NIGHT RUN" class="nr-intro__title-sub" picking-mode="Ignore" />
+        </ui:VisualElement>
+
+        <ui:Label name="prompt" text="PRESS ENTER  ·  A" class="nr-intro__prompt" picking-mode="Ignore" />
+        <ui:VisualElement name="letterbox-top" class="nr-intro__bar nr-intro__bar--top" picking-mode="Ignore" />
+        <ui:VisualElement name="letterbox-bottom" class="nr-intro__bar nr-intro__bar--bottom" picking-mode="Ignore" />
+        <ui:Label name="skip" text="SPACE  ·  START   SKIP" class="nr-intro__skip" picking-mode="Ignore" />
+        <ui:VisualElement name="flash" class="nr-intro__flash" picking-mode="Ignore" />
+        <ui:VisualElement name="fade" class="nr-intro__fade" picking-mode="Ignore" />
+    </ui:VisualElement>
+</ui:UXML>

@@ -13,6 +13,9 @@ namespace NeonRift.Game
         [Header("Scenes")]
         [SerializeField] private string frontendScene = "Frontend";
         [SerializeField] private string carSelectScene = "CarSelect";
+        [Tooltip("Scene the opening cinematic runs in (the city).")]
+        [SerializeField] private string introScene = "NightRun";
+        [SerializeField] private IntroSettings introSettings;
 
         [Header("Content")]
         [SerializeField] private VehicleCatalog vehicleCatalog;
@@ -28,6 +31,8 @@ namespace NeonRift.Game
 
         public string FrontendScene => frontendScene;
         public string CarSelectScene => carSelectScene;
+        public string IntroScene => introScene;
+        public IntroSettings Intro => introSettings;
         public VehicleCatalog VehicleCatalog => vehicleCatalog;
         public IReadOnlyList<MissionDefinition> Missions => missions;
         public MissionDefinition DefaultMission => IsPlayable(defaultMission) ? defaultMission : null;
