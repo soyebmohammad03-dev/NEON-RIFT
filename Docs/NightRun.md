@@ -112,15 +112,56 @@ The gate controller is the same framework as the Data Core terminal ([Interactio
 
 The `AlleyInFailRetry` run stalled later, on its expressway escape, after contacts with the rivals leaving the S7 car park. That is the rival issue handled in the three-car heist phase.
 
-## Rival crews
+## Rival crews: one operation, three cars
 
-The two catalog cars the player did not pick spawn in a column in the clear lane to the player's left on W Avenue (`RivalDirector`, driver profiles `Data/Racing/Racer_Vex` and `Racer_Kade`). They start about 3 s into the mission, usually while the player is still on the grid, so they must never be boxed in behind the player.
+The two catalog cars the player did not pick are rival crews running the same job (`RivalDirector`, driver profiles `Racer_Vex` and `Racer_Kade`). They spawn in the clear lane to the player's left on W Avenue and launch with the player. They use the same road graph, gate states, physics and vehicle audio as the player, with no shortcuts and no teleporting while driving.
 
-| Objective | Rivals (`rivalGoalId`, delay) |
-|---|---|
-| `reach_core` | Race to the S7 car park off the Access Road (`core_staging`, 0.6 s) and wait there |
-| `hack_core` | Hold |
-| `escape` | Race to the Rift Gate tunnel (`extraction`, 1.2 s) |
+Their behaviour is mission data: **rival orders** (`MissionDefinition.RivalOrders`). Each order is a world event and a reaction delay, plus per crew a marker route (`via>goal`), whether to stop there, whether arriving finishes the race, and the radio line shown when the crew arrives.
+
+| World event | VEX (fast, aggressive) | KADE | HUD |
+|---|---|---|---|
+| `mission.start` (+0.6 s) | Races to **overwatch** beside the compound drive, north of the core | Scouts the **expressway checkpoint**: via North Boulevard so it lands on the southbound carriageway, facing the way it will leave | "VEX: ON STATION AT THE CORE", "KADE: SCOUTING THE EXPRESSWAY CHECKPOINT" |
+| `core.extract.begin` (+0.8 s) | Moves to the **north gate**, ready to run | Stages **above the checkpoint** | "VEX: HOLDING THE NORTH GATE", "KADE: STAGED ABOVE THE CHECKPOINT" |
+| `core.breached` (+0.15 s) | Breaks for the **Rift Gate** | Breaks for the **Rift Gate** | "RIVAL CREWS BREAKING FOR THE RIFT GATE", then "… EXTRACTED" as each one arrives |
+
+Objectives can still name a `rivalGoalId`. An objective without one now leaves the crews on their current orders instead of stopping them, and the crews only stop when the mission ends. Standings, the race board, gaps, rubber band and finishing positions work as before. Rivals re-plan when gates change, so a sealed checkpoint sends them another way.
+
+| Launch: all three cars together | VEX breaks north from the compound | KADE through the checkpoint on the expressway |
+|---|---|---|
+| ![](Screenshots/Crews/launch_three_cars.jpg) | ![](Screenshots/Crews/vex_breaks_north.jpg) | ![](Screenshots/Crews/kade_expressway.jpg) |
+
+### Fixes made while bringing the crews into the operation
+
+- **Compound graph:** the compound drive ran straight through the core pedestal, so a rival routed through the compound drove into it. The graph now loops round the west side of the core (`Compound Loop`).
+- **Parking slots off the graph:** a slot well off the road made the driver re-plan every frame (always "off the line") and wander into walls. Slots now sit within a lane or two of the road. The driver approaches them on a slant from up to 22 m back instead of jogging sideways at the end, and off-line re-plans are throttled to one every 1.5 s.
+- **Expressway median:** the barrier between junctions was missing from the graph, so racing lines used the whole road. One rival swung onto the wrong carriageway out of a turn and pinned itself on the barrier. `East Expressway` now has a 0.8 m median, so lines keep to their own carriageway.
+
+## Rival collisions (Sector 7 car park and junctions)
+
+**Cause of the old S7 car-park contact:** the crews raced to the car park on the Access Road and parked during the heist, then pulled out across the player's escape. The car park is no longer used (new roles above), so that crossing no longer happens.
+
+Two more real causes showed up in the first regression series (`MissionSeries`, run 1). Both were logged by the `[Rivals] contact` telemetry:
+
+1. **Overtaking on the inside of a turning car.** At North Boulevard → Access Road, VEX (racing line: wide, then braking for the right turn) was passed on the inside by KADE and turned across it: 13.8 m/s closing, 44°.
+2. **Converging with the player at a narrow gate.** VEX and the player reached the compound gate together and squeezed into the same gap: 20 m/s.
+
+**Fixes** (in `RacerDriver`, collisions stay fully physical):
+
+- **Intentions:** every driver publishes `TurnDistance`, the distance to its next turn of more than 30°. A driver never passes a peer that is about to turn, or while it is about to turn itself. "About to turn" is the greater of 40 m and 3.5 s at the car's speed. Instead it holds its lane and follows: alongside it drops 2 m/s below the other car, ahead it keeps a braking-distance gap.
+- **Player alongside:** a player alongside (−2..7 m, within 4.5 m laterally) who is converging makes the rival drop 2 m/s below the player's speed and hold its lane. The player's intentions are unknown, so the AI always gives way.
+- The earlier rules still apply (path occupancy, side risk, yield to predicted collisions, no blind reversing).
+
+**Regression runs** (Play Mode, `MissionSeries`, real mission, SLS AMG):
+
+| Series | Runs | Rival car contacts | Reversals | Resets | Player collisions |
+|---|---|---|---|---|---|
+| 1 (before the intent rules) | 4 | 3 (run 1) | 1 | 0 | 1 rival contact, plus 2 runs that hit the sealed expressway checkpoint* |
+| 2 | 4 (3× BoulevardInAlleyOut, 1× AlleyInExpresswayOut) | **0** | **0** | **0** | 0, plus 1 sealed checkpoint* |
+| crew5 (single run) | 1 | 1: KADE rear-ended VEX braking for the Access Road turn, because the intent window was too short | 0 | 0 | 0 |
+| 3 (speed-aware intent window) | 4 (3× Boulevard, 1× AlleyIn) | **0** | **0** | **0** | 0, plus 1 sealed checkpoint* |
+| crew7 (single run, AlleyIn) | 1 | **0** | **0** | **0** | 1 sealed checkpoint* |
+
+\* `AlleyInExpresswayOut`: the conservative validation driver (0.72 g corners) reaches the expressway checkpoint about 3 s after it seals, as documented above. That collision is the player against the closed barrier, not a rival.
 
 ### Rival driving (`RacerDriver`)
 

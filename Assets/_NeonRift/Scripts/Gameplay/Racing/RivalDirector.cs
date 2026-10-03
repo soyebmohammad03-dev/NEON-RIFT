@@ -36,6 +36,16 @@ namespace NeonRift.Gameplay
             public int VehicleContacts;
             /// <summary>True once this objective's goal has been handed to the driver (arrival before that is the previous leg's).</summary>
             public bool OnLeg;
+            /// <summary>Arriving at the current goal finishes the race (extraction).</summary>
+            public bool FinishOnArrival;
+            /// <summary>Radio line shown when the rival reaches its current goal (once).</summary>
+            public string ArrivalMessage;
+            /// <summary>Which marker the rival is heading for (validation reports).</summary>
+            public string GoalId;
+            /// <summary>Via points still to drive through before the goal, and the order's hold flag for the goal.</summary>
+            public readonly Queue<Vector3> Via = new();
+            public Vector3 Goal;
+            public bool HoldAtGoal;
             public bool Finished => FinishTime >= 0f;
         }
 
@@ -54,6 +64,7 @@ namespace NeonRift.Gameplay
         private bool finalLeg;
         private float startAt = -1f, nextStandings, legStart;
         private ObjectiveDefinition current;
+        private readonly List<(float time, RivalOrder order)> orders = new();
 
         public IReadOnlyList<Racer> Rivals => rivals;
         /// <summary>Player and rivals, leader first (extracted rivals ahead in finishing order).</summary>
@@ -92,6 +103,9 @@ namespace NeonRift.Gameplay
                 rivals.Add(racer);
                 traffic.Add(car);
             }
+            var peers = new List<RacerDriver>();
+            foreach (var r in rivals) peers.Add(r.Driver);
+            foreach (var r in rivals) r.Driver.Peers = peers;
             Debug.Log($"[Rivals] spawned {rivals.Count} rival(s).");
         }
 
@@ -107,18 +121,32 @@ namespace NeonRift.Gameplay
         {
             world = missionWorld;
             world.ObjectiveStarted += OnObjectiveStarted;
+            world.EventRaised += OnWorldEvent;
+            orders.Clear();
             player.Car = world.Player;
             if (player.Car != null && !traffic.Contains(player.Car)) traffic.Add(player.Car);
             foreach (var r in rivals) r.Driver.PlayerCar = player.Car;
             player.FinishTime = -1f;
-            foreach (var r in rivals) { r.FinishTime = -1f; r.Driver.Hold(); }
+            foreach (var r in rivals)
+            {
+                r.FinishTime = -1f;
+                r.Via.Clear();
+                r.OnLeg = r.FinishOnArrival = false;
+                r.ArrivalMessage = r.GoalId = null;
+                r.Driver.Hold();
+            }
         }
 
         public void Unbind()
         {
-            if (world != null) world.ObjectiveStarted -= OnObjectiveStarted;
+            if (world != null)
+            {
+                world.ObjectiveStarted -= OnObjectiveStarted;
+                world.EventRaised -= OnWorldEvent;
+            }
             world = null;
             raceTarget = null;
+            orders.Clear();
         }
 
         private void OnObjectiveStarted(ObjectiveDefinition objective, Vector3? target, bool last)
@@ -127,9 +155,52 @@ namespace NeonRift.Gameplay
             raceTarget = target;
             finalLeg = last;
             legStart = Time.time;
-            foreach (var r in rivals) r.OnLeg = false;
-            startAt = objective != null && !string.IsNullOrEmpty(objective.RivalGoalId) ? Time.time + objective.RivalStartDelay : -1f;
-            if (startAt < 0f) foreach (var r in rivals) if (!r.Finished) r.Driver.Hold();
+            bool hasGoal = objective != null && !string.IsNullOrEmpty(objective.RivalGoalId);
+            startAt = hasGoal ? Time.time + objective.RivalStartDelay : -1f;
+            // Mission over: everyone stops. An objective without a rival goal leaves the crews on their current orders.
+            if (objective == null)
+            {
+                orders.Clear();
+                foreach (var r in rivals) if (!r.Finished) r.Driver.Hold();
+            }
+        }
+
+        private void OnWorldEvent(string eventId)
+        {
+            if (world == null || world.Mission == null) return;
+            foreach (var o in world.Mission.RivalOrders)
+                if (o.eventId == eventId) orders.Add((Time.time + o.delay, o));
+        }
+
+        /// <summary>Hands each rival its goal from <paramref name="order"/>.</summary>
+        private void Apply(RivalOrder order)
+        {
+            for (int i = 0; i < rivals.Count; i++)
+            {
+                var r = rivals[i];
+                if (r.Finished) continue;
+                var route = order.RouteFor(i);
+                if (route.Length == 0) continue;
+                string id = route[^1];
+                var marker = Marker(id);
+                if (marker == null) { Debug.LogError($"[Rivals] No race marker '{id}'.", this); continue; }
+                r.Via.Clear();
+                for (int v = 0; v < route.Length - 1; v++)
+                {
+                    var via = Marker(route[v]);
+                    if (via != null) r.Via.Enqueue(via.Slot(i));
+                    else Debug.LogError($"[Rivals] No race marker '{route[v]}'.", this);
+                }
+                r.Goal = marker.Slot(i);
+                r.HoldAtGoal = order.hold;
+                if (r.Via.Count > 0) r.Driver.SetGoal(r.Via.Peek(), hold: false);
+                else r.Driver.SetGoal(r.Goal, order.hold);
+                r.OnLeg = true;
+                r.FinishOnArrival = order.finish;
+                r.GoalId = id;
+                r.ArrivalMessage = order.MessageFor(i, r.Driver.Profile.DisplayName);
+                Debug.Log($"[Rivals] {r.Name} → {id} ({order.eventId})");
+            }
         }
 
         private RaceMarker Marker(string id)
@@ -151,14 +222,40 @@ namespace NeonRift.Gameplay
                     {
                         rivals[i].Driver.SetGoal(marker.Slot(i), hold: true);
                         rivals[i].OnLeg = true;
+                        rivals[i].FinishOnArrival = finalLeg;
+                        rivals[i].GoalId = current.RivalGoalId;
+                        rivals[i].ArrivalMessage = null;
                     }
             }
+            for (int k = 0; k < orders.Count;)
+            {
+                if (Time.time < orders[k].time) { k++; continue; }
+                var order = orders[k].order;
+                orders.RemoveAt(k);
+                Apply(order);
+            }
             foreach (var r in rivals)
-                if (finalLeg && r.OnLeg && !r.Finished && r.Driver.AtGoal && world.Phase == MissionPhase.Running)
+            {
+                // Through a via point: on to the next (a generous radius keeps the car rolling through it).
+                if (r.Via.Count > 0 && r.Car != null && (r.Driver.AtGoal || Vector3.Distance(r.Car.Body.position, r.Via.Peek()) < 14f))
+                {
+                    r.Via.Dequeue();
+                    if (r.Via.Count > 0) r.Driver.SetGoal(r.Via.Peek(), hold: false);
+                    else r.Driver.SetGoal(r.Goal, r.HoldAtGoal);
+                    continue;
+                }
+                if (r.Via.Count > 0 || !r.OnLeg || r.Finished || !r.Driver.AtGoal || world.Phase != MissionPhase.Running) continue;
+                if (r.ArrivalMessage != null)
+                {
+                    world.Announce(r.ArrivalMessage, MessageTone.Info);
+                    r.ArrivalMessage = null;
+                }
+                if (r.FinishOnArrival)
                 {
                     r.FinishTime = Time.time - legStart;
                     world.Announce($"{r.Name} EXTRACTED", MessageTone.Warning);
                 }
+            }
             if (Time.time >= nextStandings)
             {
                 nextStandings = Time.time + standingsInterval;
@@ -200,7 +297,7 @@ namespace NeonRift.Gameplay
             var sb = new System.Text.StringBuilder();
             foreach (var r in rivals)
                 sb.AppendLine($"  rival {r.Name}: car contacts {r.VehicleContacts}, reversals {r.Driver.Reversals}, resets {r.Driver.Recoveries}, " +
-                              $"yields {r.Driver.Yields}, state {r.Driver.State}, at goal {r.Driver.AtGoal}, remaining {(r.Finished ? 0f : r.Remaining):0} m");
+                              $"yields {r.Driver.Yields}, lane holds {r.Driver.LaneHolds}, goal {r.GoalId ?? "-"}, state {r.Driver.State}, at goal {r.Driver.AtGoal}, finished {r.Finished}, remaining {(r.Finished ? 0f : r.Remaining):0} m");
             return sb.ToString();
         }
 

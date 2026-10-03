@@ -31,8 +31,8 @@ MonoBehaviour:
     eventsOnStart: []
     eventsOnComplete:
     - core.arrive
-    rivalGoalId: core_staging
-    rivalStartDelay: 0.6
+    rivalGoalId: 
+    rivalStartDelay: 0
   - id: disable_security
     kind: 1
     targetId: core_security_terminal
@@ -74,8 +74,8 @@ MonoBehaviour:
     - lockdown
     - escape.start
     eventsOnComplete: []
-    rivalGoalId: extraction
-    rivalStartDelay: 1.2
+    rivalGoalId: 
+    rivalStartDelay: 0
   eventsOnStart:
   - mission.start
   eventsOnComplete:
@@ -153,6 +153,39 @@ MonoBehaviour:
     tone: 1
     delay: 5.5
     banner: 0
+  - eventId: core.breached
+    text: RIVAL CREWS BREAKING FOR THE RIFT GATE
+    tone: 1
+    delay: 1.2
+    banner: 0
   maxRivals: 2
+  rivalOrders:
+  - eventId: mission.start
+    delay: 0.6
+    markers:
+    - core_overwatch
+    - nblvd_east_via>expressway_scout
+    hold: 1
+    finish: 0
+    arrivalMessages:
+    - '{name}: ON STATION AT THE CORE'
+    - '{name}: SCOUTING THE EXPRESSWAY CHECKPOINT'
+  - eventId: core.extract.begin
+    delay: 0.8
+    markers:
+    - compound_exit
+    - checkpoint_ready
+    hold: 1
+    finish: 0
+    arrivalMessages:
+    - '{name}: HOLDING THE NORTH GATE'
+    - '{name}: STAGED ABOVE THE CHECKPOINT'
+  - eventId: core.breached
+    delay: 0.15
+    markers:
+    - extraction
+    hold: 1
+    finish: 1
+    arrivalMessages: []
   heatTimePenalty: 25
   minimumTimeLimit: 30

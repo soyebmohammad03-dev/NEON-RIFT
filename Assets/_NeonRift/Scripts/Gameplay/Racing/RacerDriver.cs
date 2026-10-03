@@ -53,6 +53,7 @@ namespace NeonRift.Gameplay
         private int reverses;
         private string obstacleName = "none";
         private float yieldUntil, yieldSpeed;
+        private float nextOffLineReplan;
         /// <summary>Speed cap from a car directly in front in this car's own frame (fail-safe behind the line logic), m/s.</summary>
         private float guardSpeed = float.MaxValue;
         private bool carBehind;
@@ -81,6 +82,13 @@ namespace NeonRift.Gameplay
         public IReadOnlyList<VehicleController> Traffic { get; set; }
         /// <summary>The player's car: rivals give way to it on crossing courses whoever has the right of way.</summary>
         public VehicleController PlayerCar { get; set; }
+        /// <summary>The other AI drivers: their intentions (an upcoming turn) are known, so nobody passes a car about to turn across it.</summary>
+        public IReadOnlyList<RacerDriver> Peers { get; set; }
+        /// <summary>Distance along the line to the next turn of more than 30°, m (∞ if none within 60 m).</summary>
+        public float TurnDistance { get; private set; } = float.MaxValue;
+        /// <summary>Lane changes are suspended this probe (a peer about to turn, the player alongside).</summary>
+        private bool holdLane;
+        public int LaneHolds { get; private set; }
 
         public RacerDriver(VehicleController vehicle, RacerProfile profile, CityNavigation navigation)
         {
@@ -118,9 +126,26 @@ namespace NeonRift.Gameplay
                 line.Build(null, null, 0f, 0f, 0f, false);
                 return;
             }
-            // The graph ends on the nearest road; finish the last metres to the exact goal (a parking slot).
+            // The graph ends on the nearest road; finish the last metres to the exact goal (a parking slot). A slot beside
+            // the road is approached on a slant from further back, not with a sideways jog at the very end.
             if (Vector3.Distance(path.Points[^1], goal) > 1f)
             {
+                int n = path.Points.Count;
+                if (n >= 2)
+                {
+                    Vector3 end = path.Points[n - 1], dir = end - path.Points[n - 2];
+                    dir.y = 0f;
+                    float segment = dir.magnitude;
+                    if (segment > 0.1f)
+                    {
+                        dir /= segment;
+                        Vector3 side = goal - end;
+                        side.y = 0f;
+                        side -= dir * Vector3.Dot(side, dir);
+                        float back = Mathf.Min(Mathf.Clamp(side.magnitude * 2.5f, 8f, 22f), segment - 2f);
+                        if (side.magnitude > 1f && side.magnitude < 12f && back > 4f) path.Points[n - 1] = end - dir * back + side;
+                    }
+                }
                 path.Edges.Add(path.Edges[^1]);
                 path.Points.Add(goal);
             }
@@ -145,7 +170,13 @@ namespace NeonRift.Gameplay
             if (line.Count < 2) return Park(forwardSpeed);
 
             index = line.FindClosest(position, index);
-            if (Mathf.Abs(LateralOf(position, index)) > OffLineDistance || Vector3.Distance(position, line.PointAt(index)) > OffLineDistance * 1.5f) Replan();
+            // Far off the line (knocked off it, or starting off-road): re-plan, but not every frame if that does not help.
+            if ((Mathf.Abs(LateralOf(position, index)) > OffLineDistance || Vector3.Distance(position, line.PointAt(index)) > OffLineDistance * 1.5f)
+                && Time.time >= nextOffLineReplan)
+            {
+                nextOffLineReplan = Time.time + 1.5f;
+                Replan();
+            }
             if (line.Count < 2) return Park(forwardSpeed);
 
             // Arrival.
@@ -308,6 +339,8 @@ namespace NeonRift.Gameplay
             others.Clear();
             guardSpeed = float.MaxValue;
             carBehind = false;
+            holdLane = false;
+            TurnDistance = NextTurn(110f);
             if (Traffic == null) return;
             Vector3 velocity = vehicle.Body.linearVelocity;
             Vector3 forward = rotation * Vector3.forward;
@@ -331,6 +364,30 @@ namespace NeonRift.Gameplay
                         guardSpeed = Mathf.Min(guardSpeed, theirs + Mathf.Sqrt(2f * profile.Braking * gap));
                     }
                     else if (own.z > -7.5f) carBehind = true;
+                }
+                // Intentions: a peer about to turn (or us about to turn) is never passed close by; follow it through the
+                // junction instead. The player's intentions are unknown, so a player alongside and converging makes us
+                // drop back and keep our lane rather than race it into a gate or a corner.
+                var peer = PeerOf(other);
+                // "About to turn" scales with speed: a car braking from 25 m/s for a corner is committed ~3.5 s out.
+                float peerWindow = Mathf.Max(40f, v.magnitude * 3.5f), ownWindow = Mathf.Max(40f, speed * 3.5f);
+                bool turning = (peer != null && peer.TurnDistance < peerWindow) || TurnDistance < ownWindow;
+                if (peer != null && turning && own.z > -2f && own.z < 40f && Mathf.Abs(own.x) < 6f)
+                {
+                    float theirs = Mathf.Max(0f, Vector3.Dot(v, forward));
+                    // Alongside: drop back behind it; further ahead: follow at a braking-distance gap.
+                    guardSpeed = Mathf.Min(guardSpeed, own.z < 7f ? Mathf.Max(0f, theirs - 2f) : theirs + Mathf.Sqrt(2f * profile.Braking * (own.z - 7f)));
+                    holdLane = true;
+                }
+                if (other == PlayerCar && own.z > -2f && own.z < 7f && Mathf.Abs(own.x) < 4.5f)
+                {
+                    float theirs = Mathf.Max(0f, Vector3.Dot(v, forward));
+                    float converging = Vector3.Dot(v - velocity, rotation * Vector3.right) * -Mathf.Sign(own.x == 0f ? 1f : own.x);
+                    if (converging > -0.5f || Mathf.Abs(own.x) < 3f)
+                    {
+                        guardSpeed = Mathf.Min(guardSpeed, Mathf.Max(0f, theirs - 2f));
+                        holdLane = true;
+                    }
                 }
                 // Reversing blind into the road is the dangerous move: block it if any car is, or within a second will be,
                 // in a 6 m x 10 m box behind us (cars crossing behind a car park entrance, for example).
@@ -369,6 +426,32 @@ namespace NeonRift.Gameplay
                     AlongSpeed = Vector3.Dot(v, tangent)
                 });
             }
+        }
+
+        private RacerDriver PeerOf(VehicleController car)
+        {
+            if (Peers == null) return null;
+            foreach (var p in Peers) if (p != this && p.vehicle == car) return p;
+            return null;
+        }
+
+        /// <summary>Distance to the first point within <paramref name="range"/> where the line has turned more than 30° from here.</summary>
+        private float NextTurn(float range)
+        {
+            if (line.Count < 3 || index < 0) return float.MaxValue;
+            Vector3 here = line.PointAt(Mathf.Min(index + 1, line.Count - 1)) - line.PointAt(index);
+            here.y = 0f;
+            if (here.sqrMagnitude < 1e-4f) return float.MaxValue;
+            float start = line.DistanceAt(index);
+            for (int i = index + 1; i < line.Count - 1; i++)
+            {
+                float d = line.DistanceAt(i) - start;
+                if (d > range) break;
+                Vector3 t = line.PointAt(i + 1) - line.PointAt(i);
+                t.y = 0f;
+                if (t.sqrMagnitude > 1e-4f && Vector3.Angle(here, t) > 30f) return d;
+            }
+            return float.MaxValue;
         }
 
         /// <summary>
@@ -455,7 +538,13 @@ namespace NeonRift.Gameplay
                 float score = -sideRisk + clear - Mathf.Abs(o - preferred) * (1.2f - profile.Aggression) * 2f - Mathf.Abs(o - targetOffset) * 0.6f;
                 if (score > bestScore) { bestScore = score; bestOffset = o; bestDistance = clear < probe - 0.01f ? clear : float.MaxValue; bestSpeed = otherSpeed; bestName = name; }
             }
-            targetOffset = bestOffset;
+            if (holdLane)
+            {
+                // Keep the line we are on (clamped to this stretch of road) rather than diving for a gap.
+                targetOffset = Mathf.Clamp(offset, minO, maxO);
+                LaneHolds++;
+            }
+            else targetOffset = bestOffset;
             // Fail-safe on the path actually being driven right now (the offset only eases towards the chosen one).
             float occupiedNow = PathClearance(offset, probe, out float nowSpeed);
             if (occupiedNow < probe) guardSpeed = Mathf.Min(guardSpeed, nowSpeed + Mathf.Sqrt(2f * profile.Braking * Mathf.Max(0f, occupiedNow - 2.5f)));

@@ -210,6 +210,14 @@ namespace NeonRift.Tests
                 var markerIds = roots.SelectMany(r => r.GetComponentsInChildren<RaceMarker>(true)).Select(m => m.Id).ToList();
                 foreach (var o in mission.Objectives)
                     if (!string.IsNullOrEmpty(o.RivalGoalId)) Assert.Contains(o.RivalGoalId, markerIds);
+                // Three-car heist: the crews get roles at the start, react to the extraction and break on the theft.
+                foreach (var order in mission.RivalOrders)
+                    foreach (var m in order.markers.SelectMany(x => x.Split('>')))
+                        Assert.Contains(m, markerIds, $"Rival order on '{order.eventId}' names a missing marker.");
+                Assert.IsTrue(mission.RivalOrders.Any(o => o.eventId == NightRunBuilder.EventStart && o.markers.Distinct().Count() > 1),
+                              "The crews launch with the player, to different roles.");
+                Assert.IsTrue(mission.RivalOrders.Any(o => o.eventId == NightRunBuilder.EventBreached && o.finish && o.delay < 0.5f),
+                              "The crews react to the theft straight away and race for extraction.");
                 Assert.IsNotNull(new SerializedObject(entry).FindProperty("rivals").objectReferenceValue);
                 var budget = roots.SelectMany(r => r.GetComponentsInChildren<LightBudget>(true)).Single();
                 Assert.Greater(budget.Count, 300);

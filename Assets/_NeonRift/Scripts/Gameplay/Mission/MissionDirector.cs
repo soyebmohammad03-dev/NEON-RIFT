@@ -533,6 +533,9 @@ namespace NeonRift.Gameplay
 
         private void OnRetryInput(UnityEngine.InputSystem.InputAction.CallbackContext _) => Retry();
 
+        /// <summary>Restarts the mission through the normal retry path (also used by validation tools).</summary>
+        public void RestartMission() => Retry();
+
         private void Retry()
         {
             if (context == null || context.Flow.IsTransitioning) return;

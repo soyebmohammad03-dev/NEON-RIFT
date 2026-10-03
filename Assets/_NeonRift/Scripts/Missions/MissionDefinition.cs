@@ -37,6 +37,8 @@ namespace NeonRift.Missions
         [Header("Rivals")]
         [Tooltip("Rival crews spawned from the vehicle catalog (the cars the player did not pick). 0 = solo run.")]
         [SerializeField, Min(0)] private int maxRivals = 2;
+        [Tooltip("Event-driven taskings for the rival crews (roles in the operation, reactions to the heist).")]
+        [SerializeField] private List<RivalOrder> rivalOrders = new();
 
         [Header("Security")]
         [Tooltip("Seconds removed from a timed objective per 1.0 heat (heat is 0..1). Applied when the timer starts, " +
@@ -59,6 +61,7 @@ namespace NeonRift.Missions
         public float HeatTimePenalty => heatTimePenalty;
         public float MinimumTimeLimit => minimumTimeLimit;
         public int MaxRivals => maxRivals;
+        public IReadOnlyList<RivalOrder> RivalOrders => rivalOrders;
 
         /// <summary>Data problems that would break the mission at runtime.</summary>
         public List<string> Validate()
@@ -80,6 +83,8 @@ namespace NeonRift.Missions
         }
 
 #if UNITY_EDITOR
+        public void EditorConfigureRivals(List<RivalOrder> orders) => rivalOrders = orders ?? new List<RivalOrder>();
+
         public void EditorConfigure(string missionId, string missionName, string missionTagline, string missionBriefing, string scene,
                                     List<ObjectiveDefinition> missionObjectives, string[] onStart, string[] onComplete, string[] onFail,
                                     List<MissionAnnouncement> missionAnnouncements, float timePenalty, float minimumTime, int rivals = 2)

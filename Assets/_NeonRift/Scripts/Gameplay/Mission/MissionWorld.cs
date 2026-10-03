@@ -21,6 +21,7 @@ namespace NeonRift.Gameplay
         public SecurityLevel Security => progress.Security;
         public float Heat => progress.Heat;
         public MissionPhase Phase => progress.Phase;
+        public MissionDefinition Mission => progress.Definition;
         /// <summary>Where a lockdown starts spreading from (the theft location), world space.</summary>
         public Vector3 AlertOrigin { get; set; }
 

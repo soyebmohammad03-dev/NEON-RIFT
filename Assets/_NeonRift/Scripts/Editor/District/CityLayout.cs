@@ -97,7 +97,8 @@ namespace NeonRift.EditorTools.District
             R("Access Road", null, 160, 195, 160, 300, 6f, 1, RoadClass.Street, sidewalk: 3f),
             R("Service Alley", "SERVICE ALLEY", 160, -100, 160, 60, 5f, 1, RoadClass.Alley, sidewalk: 1.5f),
             R("Kiln Street", "KILN ST", 160, -700, 160, -320, 6f, 1, RoadClass.Street),
-            R("East Expressway", "EXPRESSWAY", 320, -405, 320, 700, 9f, 2, RoadClass.Arterial),
+            // The expressway has a concrete median barrier between junctions (CityLandmarks): drivers keep to their carriageway.
+            R("East Expressway", "EXPRESSWAY", 320, -405, 320, 700, 9f, 2, RoadClass.Arterial, median: 0.8f),
             R("Rift Gate Tunnel", null, 320, -470, 320, -405, 9f, 1, RoadClass.Tunnel, sidewalk: 0f),
             R("Dock Road", "DOCK RD", 560, -700, 560, 700, 7f, 2, RoadClass.Arterial),
             R("Eastern Ring Road", "RING RD", 760, -700, 760, 700, 7f, 2, RoadClass.Arterial),
@@ -114,8 +115,12 @@ namespace NeonRift.EditorTools.District
             R("Lowtown Road", "LOWTOWN RD", -380, -520, 760, -520, 6f, 1, RoadClass.Street),
             R("Southern Perimeter", "RING RD", -380, -700, 760, -700, 7f, 2, RoadClass.Arterial),
             // Graph-only: the Data Core compound, the S7 car park and the elevated Harbor Skyway.
-            R("Compound Drive", null, 160, 127.5f, 160, 195, 6f, 1, RoadClass.Service, ground: false, blocker: CompoundGateId),
-            R("Compound South", null, 160, 60, 160, 127.5f, 6f, 1, RoadClass.Service, ground: false),
+            // The compound drive loops round the west side of the core (the pedestal and uplink ring sit on the axis).
+            R("Compound Drive", null, 160, 150, 160, 195, 6f, 1, RoadClass.Service, ground: false, blocker: CompoundGateId),
+            R("Compound Loop", null, 146, 150, 160, 150, 5f, 1, RoadClass.Service, ground: false),
+            R("Compound Loop", null, 146, 105, 146, 150, 5f, 1, RoadClass.Service, ground: false),
+            R("Compound Loop", null, 146, 105, 160, 105, 5f, 1, RoadClass.Service, ground: false),
+            R("Compound South", null, 160, 60, 160, 105, 6f, 1, RoadClass.Service, ground: false),
             R("Car Park", "PARKING", 128, 246, 160, 246, 4f, 1, RoadClass.Service, ground: false),
             R("Skyway West Ramp", "SKYWAY", 345, 60, 405, 60, 4.5f, 1, RoadClass.Skyway, ground: false, ay: 0f, by: 8f, blocker: SkywayGateId),
             R("Harbor Skyway", "SKYWAY", 405, 60, 680, 60, 4.5f, 1, RoadClass.Skyway, ground: false, ay: 8f, by: 8f),
