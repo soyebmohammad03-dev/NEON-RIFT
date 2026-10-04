@@ -132,6 +132,7 @@ namespace NeonRift.EditorTools.District
             if (c.Chamber != null) c.Chamber.EditorSetChaseCamera(chase);
             foreach (var g in c.GateLocks) g.EditorSetChaseCamera(chase);
             BuildCitySystems(c, camera);
+            BuildCityLife(c, navigation, core);
             BuildDevTools(c, entry);
             c.Log.Append(NeonRift.EditorTools.Intro.IntroBuilder.Build(c.Scene));
             ConfigurePipeline(c);

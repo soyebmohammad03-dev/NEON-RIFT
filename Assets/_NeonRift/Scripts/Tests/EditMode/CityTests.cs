@@ -7,6 +7,7 @@ using NeonRift.Vehicles;
 using NeonRift.World;
 using NUnit.Framework;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 using UnityEngine;
 
 namespace NeonRift.Tests
@@ -168,6 +169,28 @@ namespace NeonRift.Tests
             Assert.IsFalse(session.Rivals.Contains(picked));
             session.SelectVehicle(picked);
             Assert.AreEqual(0, session.Rivals.Count);
+        }
+
+        [Test]
+        public void NightRun_CityLifeIsLightweight()
+        {
+            var scene = EditorSceneManager.OpenScene("Assets/_NeonRift/Scenes/NightRun.unity", OpenSceneMode.Additive);
+            try
+            {
+                var roots = scene.GetRootGameObjects();
+                var traffic = roots.SelectMany(r => r.GetComponentsInChildren<AmbientTraffic>(true)).Single();
+                Assert.GreaterOrEqual(traffic.transform.childCount, 30, "traffic pool");
+                Assert.IsEmpty(traffic.GetComponentsInChildren<Collider>(true), "traffic cars must not collide");
+                Assert.IsEmpty(traffic.GetComponentsInChildren<Rigidbody>(true), "traffic cars must not simulate physics");
+                var crowd = roots.SelectMany(r => r.GetComponentsInChildren<CrowdGroups>(true)).Single();
+                Assert.Greater(crowd.Count, 20, "crowd groups");
+                Assert.IsEmpty(crowd.GetComponentsInChildren<Collider>(true), "pedestrians must not collide");
+                Assert.AreEqual(1, roots.SelectMany(r => r.GetComponentsInChildren<SecurityDrones>(true)).Count());
+            }
+            finally
+            {
+                EditorSceneManager.CloseScene(scene, true);
+            }
         }
     }
 }

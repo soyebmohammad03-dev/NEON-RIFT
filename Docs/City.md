@@ -117,6 +117,22 @@ The night look (sky, fog, skyline rings, lamp levels, Volume grade) and its befo
 | Alarm | — | 10 sirens, beacons on gates |
 | HUD | Cyan route | Magenta route, closed gates red on the minimap, lockdown frame |
 
+## City life (lightweight)
+
+Signs of life without a traffic or pedestrian simulation. None of these have physics or colliders, and each system runs one `Update` for its whole set with no per-frame allocations. Built by `NightRunBuilder.CityLife.cs`.
+
+| System | What it is | Rules |
+|---|---|---|
+| `AmbientTraffic` | 40 pooled low-poly cars (5 meshes, 6 paints) with lit head and tail lamps. They drive the road graph's kerb-side lanes and avoid alleys, service roads and tunnels | Dealt out 70–300 m around the player when the mission binds. A car stops for the player or a rival within 45 m ahead in its lane. Cars near the player are recycled further out once off screen; new cars appear behind the camera when close. A car the player drives into is recycled at once, so nothing ghosts through a driver. Cars beyond 420 m are recycled closer. In a lockdown they pull over and flash their hazards |
+| `CrowdGroups` | 62 groups, 270 static figures (Detail layer) on plazas, the night market and pavements | A group steps out of sight when the player comes within 16 m; it never stands in the road. A slow sway; six groups are checked per frame |
+| `SecurityDrones` | 4 drones with red and blue strobes and a searchlight spot | Dormant until `core.extract.trace` or a lockdown. They then lift off from the Data Core and orbit a point that trails the player at altitude, sweeping the street |
+
+Validation: the BoulevardInAlleyOut heist with all three systems running gave 0 player collisions and 0 rival contacts. Traffic is visible on W Avenue and the boulevard during the run.
+
+![Traffic on the run](Screenshots/Life/traffic_run_sheet.png)
+![Drones over the compound](Screenshots/Life/drones_lockdown.png)
+![Plaza crowd](Screenshots/Life/crowd_plaza.png)
+
 ## Performance (desktop, measured in the editor)
 
 Profiler, Night Run start (three cars, about 37 budgeted lamps on): PlayerLoop ≈ 10 ms per frame (the rest of the editor frame is EditorLoop overhead). 7 SRP batches, 165 SetPass calls, 82 draw calls, 3.4 M triangles. Triangles are the next lever: the London tower alone is 143 k, and towers have no LODs yet.
