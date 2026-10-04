@@ -318,7 +318,7 @@ namespace NeonRift.Gameplay
                 if (raceRowKeys[i] != key)
                 {
                     raceRowKeys[i] = key;
-                    l.text = $"{i + 1}  {rows[i].name}{(rows[i].finished ? "  ·  OUT" : string.Empty)}";
+                    l.text = $"{i + 1}  {rows[i].name}";
                 }
                 l.EnableInClassList("nr-race__row--player", rows[i].player);
                 l.EnableInClassList("nr-race__row--finished", rows[i].finished);

@@ -36,9 +36,12 @@ Tooling outside Unity: Git LFS 3.8.0 (official GitHub release, installed to `~/.
 | [Singapore Office Skyscraper [FREE]](https://sketchfab.com/3d-models/singapore-office-skyscraper-free-2305f0fe03ba44229a1f768dcb48bd8f) | 99.Miles | CC-BY-4.0 | Yes, with attribution | In catalog |
 | [Asian Themed Low Poly Night City Buildings](https://sketchfab.com/3d-models/asian-themed-low-poly-night-city-buildings-9f0343aff4814b758dc6e905aba5b5e0) | 99.Miles | CC-BY-4.0 (Sketchfab page) | Yes, with attribution | In catalog |
 | [Low Poly Night City Building Skyline](https://sketchfab.com/3d-models/low-poly-night-city-building-skyline-b0035b8713b048bb8ddf311ee67c28c8) | 99.Miles | CC-BY-4.0 (Sketchfab page) | Yes, with attribution | In catalog |
+| [Mech Drone](https://sketchfab.com/3d-models/mech-drone-8d06874aac5246c59edb4adbe3606e0e) | Willy Decarpentrie | CC-BY-4.0 | Yes, with attribution | In use: security and intro drones |
+| [Buster Drone](https://sketchfab.com/3d-models/buster-drone-294e79652f494130ad2ab00a13fdbafd) | LaVADraGoN | CC-BY-4.0 | Yes, with attribution | In use: compound sentries |
+| [Drone Design](https://sketchfab.com/3d-models/drone-design-592c49fb806c42dba309e4d7a31d4a57) | 3DHaupt | **CC-BY-NC-ND-4.0** | **No** (and no modified versions) | **Not used**, kept unmodified |
 | [city at night low poly skyscrapers](https://sketchfab.com/3d-models/city-at-night-low-poly-skyscrapers-dc1294de66194054961c16aa74fda2cb) | dasy444 | Sketchfab "Free Standard" | Unclear | **Rejected** |
 
-Sources: the GLB licences come from each file's embedded glTF `asset.extras`. The three ZIP packs carry no licence file; their licences were read from the Sketchfab model pages on 2026-10-02.
+Sources: the GLB licences come from each file's embedded glTF `asset.extras`. The drone licences were read from their Sketchfab download pages on 2026-10-04 (captures in `Docs/Licenses/`). The drone source archive is in `SourceArchives/mech-drone.zip`. The three ZIP packs carry no licence file; their licences were read from the Sketchfab model pages on 2026-10-02.
 
 **Trademarks.** CC licences cover the 3D model's copyright only. Mercedes-Benz/AMG, Lamborghini, Red Bull, Lukoil, Blancpain, Michelin and other logos and liveries are third-party trademarks. A commercial release needs de-branded liveries and fictional names.
 

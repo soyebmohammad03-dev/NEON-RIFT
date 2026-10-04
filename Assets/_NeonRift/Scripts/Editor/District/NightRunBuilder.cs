@@ -44,14 +44,14 @@ namespace NeonRift.EditorTools.District
         public const string EventEscape = "escape.start";
         public const string RivalStagingId = "core_staging";
         public const string RivalExtractionId = "extraction";
-        public const string RivalOverwatchId = "core_overwatch";
-        public const string RivalScoutId = "expressway_scout";
-        public const string RivalScoutViaId = "nblvd_east_via";
-        public const string RivalCompoundExitId = "compound_exit";
-        public const string RivalCheckpointReadyId = "checkpoint_ready";
+        public const string RivalRelayNorthId = "spire_relay";
+        public const string RivalTrunkTapId = "trunk_tap";
+        public const string RivalRelayWestId = "kowloon_relay";
         public const string NetworkPath = "Assets/_NeonRift/Data/World/RoadNetwork_NightRun.asset";
 
         public static readonly Vector3 CorePosition = new(160f, 0f, 127.5f);
+        /// <summary>Rival work times, s (tuned so a clean run beats the crews and a messy one does not).</summary>
+        public const float RivalRelaySeconds = 12f, RivalUplinkSeconds = 16f;
         /// <summary>Just north of the crew garage's door on W Avenue: the car has pulled out and turned north.</summary>
         public static readonly Vector3 SpawnPosition = new(3.5f, 0f, -238f);
 
@@ -132,7 +132,7 @@ namespace NeonRift.EditorTools.District
             if (c.Chamber != null) c.Chamber.EditorSetChaseCamera(chase);
             foreach (var g in c.GateLocks) g.EditorSetChaseCamera(chase);
             BuildCitySystems(c, camera);
-            BuildCityLife(c, navigation, core);
+            BuildCityLife(c, navigation, core, entry.Rivals);
             BuildDevTools(c, entry);
             c.Log.Append(NeonRift.EditorTools.Intro.IntroBuilder.Build(c.Scene));
             ConfigurePipeline(c);
@@ -217,26 +217,27 @@ namespace NeonRift.EditorTools.District
                     new("escape.start", "EXTRACTION: RIFT GATE, SOUTH-EAST TUNNEL", MessageTone.Info, 4f),
                     new("escape.start", "ALLEY GATE CAN BE RE-HACKED  ·  COSTS HEAT", MessageTone.Warning, 7f),
                     new("escape.start", "CREW: SKYWAY GATE OPEN  ·  HARBOR ROUTE CLEAR", MessageTone.Success, 2.5f),
-                    new(EventStart, "RIVAL CREWS ON THE GRID  ·  BEAT THEM OUT OF SECTOR 7", MessageTone.Warning, 9f),
+                    new(EventStart, "RIVAL CREWS RUNNING THEIR OWN JOBS  ·  FIRST TWO OUT QUALIFY", MessageTone.Warning, 9f),
                     new(EventBreached, "CAMERAS ARMED  ·  STAY OUT OF SIGHT", MessageTone.Warning, 5.5f),
-                    new(EventBreached, "RIVAL CREWS BREAKING FOR THE RIFT GATE", MessageTone.Warning, 1.2f),
                 },
                 timePenalty: 25f, minimumTime: 30f);
-            // The rival crews are part of the same operation: each has a role on the approach (overwatch inside the
-            // compound, scouting the expressway checkpoint), they reposition when the extraction starts, and they break
-            // for the Rift Gate the moment the theft is detected.
-            // Debrief par (a clean, quick boulevard run) and each crew's role on the briefing card (slot order: VEX, KADE).
-            mission.EditorConfigureDebrief(115f, new[] { "NORTH GATE OVERWATCH", "EXPRESSWAY SCOUT" });
-            mission.EditorConfigureRivals(new List<RivalOrder>
+            // The rival crews run their own heists against the same grid, in parallel with the player: each hacks a
+            // relay on its own side of the city, pulls its own uplink at the Data Core compound, then races for the
+            // Rift Gate. Only the first two crews out qualify for the next operation.
+            // Debrief par (a clean, quick boulevard run) and each crew's job on the briefing card (slot order: VEX, KADE).
+            mission.EditorConfigureDebrief(115f, new[] { "SPIRE RELAY  ·  OWN JOB", "KOWLOON RELAY  ·  OWN JOB" });
+            mission.EditorConfigureRivals(new List<RivalTask>
             {
-                // KADE comes down the expressway from North Boulevard so it lands on the southbound carriageway, facing
-                // the way it will leave (the median barrier rules out a U-turn).
-                new(EventStart, 0.6f, new[] { RivalOverwatchId, RivalScoutViaId + ">" + RivalScoutId }, hold: true,
-                    arrivalMessages: new[] { "{name}: ON STATION AT THE CORE", "{name}: SCOUTING THE EXPRESSWAY CHECKPOINT" }),
-                new(EventExtractBegin, 0.8f, new[] { RivalCompoundExitId, RivalCheckpointReadyId }, hold: true,
-                    arrivalMessages: new[] { "{name}: HOLDING THE NORTH GATE", "{name}: STAGED ABOVE THE CHECKPOINT" }),
-                new(EventBreached, 0.15f, new[] { RivalExtractionId }, hold: true, finish: true),
-            });
+                // Both relays sit on loops that carry on towards the core without a U-turn: VEX along Spire Boulevard
+                // (then south down Spire Avenue), KADE north through Kowloon (then east along North Boulevard).
+                new(new[] { RivalRelayNorthId, RivalRelayWestId }, "TO RELAY", "HACKING RELAY",
+                    RivalRelaySeconds, 0.15f, doneMessages: new[] { "{name}: SPIRE RELAY CRACKED", "{name}: KOWLOON RELAY CRACKED" }),
+                // The crews tap the core's trunk line from the kerb just north of the compound: outside the gate, so the
+                // player's lockdown never shuts them in or out, and on the road graph (an off-road lot deadlocked them).
+                new(new[] { RivalTrunkTapId }, "TO THE CORE", "TAPPING CORE", RivalUplinkSeconds, 0.15f,
+                    doneMessages: new[] { "{name} HAS A CORE PACKAGE  ·  RUNNING FOR THE GATE" }),
+                new(new[] { RivalExtractionId }, "TO RIFT GATE", finish: true),
+            }, startDelay: 0.6f, qualifying: 2);
             EditorUtility.SetDirty(mission);
             AssetDatabase.SaveAssets();
             return mission;
@@ -1040,17 +1041,29 @@ namespace NeonRift.EditorTools.District
             var markers = new[]
             {
                 Marker(RivalStagingId, CityLandmarks.CarParkSlots),
-                // Inside the compound, north-west of the core: in sight of the uplink, clear of the north lane.
-                // Beside the compound drive, north of the core: the uplink in sight, the player's lane clear. Slots sit
-                // within a lane-width or two of the road graph so drivers pull in on a slant.
-                Marker(RivalOverwatchId, new[] { new Vector3(152.4f, 0f, 168f), new Vector3(152.4f, 0f, 176f) }),
-                // East Expressway, southbound kerb lane, north of the checkpoint.
-                Marker(RivalScoutId, new[] { new Vector3(314.6f, 0f, 238f), new Vector3(314.6f, 0f, 228f) }),
-                Marker(RivalScoutViaId, new[] { new Vector3(272f, 0f, 296.4f), new Vector3(272f, 0f, 296.4f) }),
-                Marker(RivalCompoundExitId, new[] { new Vector3(152.4f, 0f, 184f), new Vector3(152.4f, 0f, 176f) }),
-                Marker(RivalCheckpointReadyId, new[] { new Vector3(314.6f, 0f, 214f), new Vector3(314.6f, 0f, 204f) }),
+                // Spire Boulevard, eastbound kerb lane: VEX carries on east and south to the core.
+                Marker(RivalRelayNorthId, new[] { new Vector3(80f, 0f, 474f), new Vector3(70f, 0f, 474f) }),
+                // Trunk taps, one per crew in its own kerb lane, each facing the way it leaves: VEX on Spire Avenue
+                // southbound, KADE on North Boulevard eastbound.
+                Marker(RivalTrunkTapId, new[] { new Vector3(154.75f, 0f, 350f), new Vector3(110f, 0f, 294.75f) }),
+                // Kowloon's north-south street, northbound kerb lane: KADE carries on north and east to the compound.
+                Marker(RivalRelayWestId, new[] { new Vector3(-197.5f, 0f, 20f), new Vector3(-197.5f, 0f, 10f) }),
                 Marker(RivalExtractionId, new[] { new Vector3(315.5f, 0f, -463f), new Vector3(324.5f, 0f, -463f) }),
             };
+            // Each crew's hack: a magenta beacon column and a light over its car while it works (hidden otherwise).
+            for (int i = 0; i < slots.Length; i++)
+            {
+                var fx = new GameObject($"RivalWorkFx_{i}");
+                fx.transform.SetParent(root, false);
+                var beacon = Beacon(c, fx.transform, Vector3.zero, c.Kit.BeaconMagenta, 1.1f);
+                beacon.transform.localPosition = Vector3.zero;
+                beacon.SetActive(true);
+                var glow = Light(c, fx.transform, "Glow", LightType.Point, Vector3.zero, Quaternion.identity, new Color(1f, 0.25f, 0.85f), 18f, 14f);
+                glow.transform.localPosition = new Vector3(0f, 3.5f, 0f);
+                c.MissionLights.Remove(glow);
+                fx.SetActive(false);
+                slots[i].workFx = fx;
+            }
             var director = root.gameObject.AddComponent<RivalDirector>();
             director.EditorConfigure(slots, navigation, markers);
             return director;

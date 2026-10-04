@@ -31,8 +31,6 @@ MonoBehaviour:
     eventsOnStart: []
     eventsOnComplete:
     - core.arrive
-    rivalGoalId: 
-    rivalStartDelay: 0
   - id: disable_security
     kind: 1
     targetId: core_security_terminal
@@ -44,8 +42,6 @@ MonoBehaviour:
     startDelay: 0
     eventsOnStart: []
     eventsOnComplete: []
-    rivalGoalId: 
-    rivalStartDelay: 0
   - id: hack_core
     kind: 1
     targetId: core_uplink
@@ -58,8 +54,6 @@ MonoBehaviour:
     eventsOnStart: []
     eventsOnComplete:
     - core.acquired
-    rivalGoalId: 
-    rivalStartDelay: 0
   - id: escape
     kind: 0
     targetId: extraction
@@ -74,8 +68,6 @@ MonoBehaviour:
     - lockdown
     - escape.start
     eventsOnComplete: []
-    rivalGoalId: 
-    rivalStartDelay: 0
   eventsOnStart:
   - mission.start
   eventsOnComplete:
@@ -144,7 +136,7 @@ MonoBehaviour:
     delay: 2.5
     banner: 0
   - eventId: mission.start
-    text: "RIVAL CREWS ON THE GRID  \xB7  BEAT THEM OUT OF SECTOR 7"
+    text: "RIVAL CREWS RUNNING THEIR OWN JOBS  \xB7  FIRST TWO OUT QUALIFY"
     tone: 1
     delay: 9
     banner: 0
@@ -153,43 +145,41 @@ MonoBehaviour:
     tone: 1
     delay: 5.5
     banner: 0
-  - eventId: core.breached
-    text: RIVAL CREWS BREAKING FOR THE RIFT GATE
-    tone: 1
-    delay: 1.2
-    banner: 0
   maxRivals: 2
-  rivalOrders:
-  - eventId: mission.start
-    delay: 0.6
-    markers:
-    - core_overwatch
-    - nblvd_east_via>expressway_scout
-    hold: 1
+  rivalTasks:
+  - markers:
+    - spire_relay
+    - kowloon_relay
+    driveLabel: TO RELAY
+    workLabel: HACKING RELAY
+    workSeconds: 12
+    workJitter: 0.15
     finish: 0
-    arrivalMessages:
-    - '{name}: ON STATION AT THE CORE'
-    - '{name}: SCOUTING THE EXPRESSWAY CHECKPOINT'
-  - eventId: core.extract.begin
-    delay: 0.8
-    markers:
-    - compound_exit
-    - checkpoint_ready
-    hold: 1
+    doneMessages:
+    - '{name}: SPIRE RELAY CRACKED'
+    - '{name}: KOWLOON RELAY CRACKED'
+  - markers:
+    - trunk_tap
+    driveLabel: TO THE CORE
+    workLabel: TAPPING CORE
+    workSeconds: 16
+    workJitter: 0.15
     finish: 0
-    arrivalMessages:
-    - '{name}: HOLDING THE NORTH GATE'
-    - '{name}: STAGED ABOVE THE CHECKPOINT'
-  - eventId: core.breached
-    delay: 0.15
-    markers:
+    doneMessages:
+    - "{name} HAS A CORE PACKAGE  \xB7  RUNNING FOR THE GATE"
+  - markers:
     - extraction
-    hold: 1
+    driveLabel: TO RIFT GATE
+    workLabel: 
+    workSeconds: 0
+    workJitter: 0
     finish: 1
-    arrivalMessages: []
+    doneMessages: []
+  rivalStartDelay: 0.6
+  qualifyingPlaces: 2
   crewRoles:
-  - NORTH GATE OVERWATCH
-  - EXPRESSWAY SCOUT
+  - "SPIRE RELAY  \xB7  OWN JOB"
+  - "KOWLOON RELAY  \xB7  OWN JOB"
   parTime: 115
   heatTimePenalty: 25
   minimumTimeLimit: 30

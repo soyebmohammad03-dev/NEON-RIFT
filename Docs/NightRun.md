@@ -116,15 +116,25 @@ The `AlleyInFailRetry` run stalled later, on its expressway escape, after contac
 
 The two catalog cars the player did not pick are rival crews running the same job (`RivalDirector`, driver profiles `Racer_Vex` and `Racer_Kade`). They spawn in the clear lane to the player's left on W Avenue and launch with the player. They use the same road graph, gate states, physics and vehicle audio as the player, with no shortcuts and no teleporting while driving.
 
-Their behaviour is mission data: **rival orders** (`MissionDefinition.RivalOrders`). Each order is a world event and a reaction delay, plus per crew a marker route (`via>goal`), whether to stop there, whether arriving finishes the race, and the radio line shown when the crew arrives.
+### Rival heists and qualifying (October 2026)
 
-| World event | VEX (fast, aggressive) | KADE | HUD |
-|---|---|---|---|
-| `mission.start` (+0.6 s) | Races to **overwatch** beside the compound drive, north of the core | Scouts the **expressway checkpoint**: via North Boulevard so it lands on the southbound carriageway, facing the way it will leave | "VEX: ON STATION AT THE CORE", "KADE: SCOUTING THE EXPRESSWAY CHECKPOINT" |
-| `core.extract.begin` (+0.8 s) | Moves to the **north gate**, ready to run | Stages **above the checkpoint** | "VEX: HOLDING THE NORTH GATE", "KADE: STAGED ABOVE THE CHECKPOINT" |
-| `core.breached` (+0.15 s) | Breaks for the **Rift Gate** | Breaks for the **Rift Gate** | "RIVAL CREWS BREAKING FOR THE RIFT GATE", then "… EXTRACTED" as each one arrives |
+The crews no longer escort the player. Each runs **its own heist** in parallel, from the start of the mission. The heist is mission data: **rival tasks** (`MissionDefinition.RivalTasks`, `RivalTask`). Each task gives a marker route per crew (`via>goal`), the race-panel labels, and a work time with ±15 % spread, during which the crew stops and hacks. A magenta beacon column and light (`RivalWorkFx_n`) stand over the car while it works. The last task finishes the crew's race.
 
-Objectives can still name a `rivalGoalId`. An objective without one now leaves the crews on their current orders instead of stopping them, and the crews only stop when the mission ends. Standings, the race board, gaps, rubber band and finishing positions work as before. Rivals re-plan when gates change, so a sealed checkpoint sends them another way.
+| Task | VEX (Spire relay) | KADE (Kowloon relay) | Work | HUD |
+|---|---|---|---|---|
+| 1. Relay hack | Spire Boulevard, eastbound kerb lane (x 80) | Lantern Street, northbound kerb lane (z 20) | 12 s | "VEX: SPIRE RELAY CRACKED" |
+| 2. Core trunk tap | Spire Avenue southbound, north of North Blvd | North Boulevard eastbound, west of Access Rd | 16 s | "KADE HAS A CORE PACKAGE · RUNNING FOR THE GATE" |
+| 3. Extraction | Rift Gate | Rift Gate | — | "VEX EXTRACTED" |
+
+Every stop is a kerb lane on the road graph, facing the way the crew leaves. That avoids U-turns across medians, and means the player's lockdown never shuts a crew inside the compound. Two earlier placements failed in validation. Uplink bays inside the compound got sealed by the lockdown, and taps in the S7 car park lot made the two drivers deadlock while yielding to each other.
+
+**Standings** compare the whole remaining job, not just the next leg. For a crew that is route metres to its goal, plus the work left (at 22 m/s), plus every later leg (cached at bind). For the player it is the route to the current objective, plus the later objective legs, plus 9 s per interaction objective. The race panel shows each crew's live status ("KADE · HACKING RELAY 40%"), rebuilt in 10 % steps so it does not allocate every frame. The rubber band works on the same gap.
+
+**Qualifying:** only the first `QualifyingPlaces` (2) crews out qualify for the next operation. A player who finishes third still completes the mission, but the debrief reads "NOT QUALIFIED · ONLY THE FIRST 2 OUT ADVANCE", the crews list marks who qualified, and `MissionRecords.HasQualified` stays false. When the rivals fill the places, the HUD warns "1 QUALIFYING PLACE LEFT" and then "QUALIFYING CLOSED".
+
+Validation (`MissionSeries`, boulevard runs at 2× speed). With the final placements, VEX extracted at 124.9 s in one run, just ahead of the scripted player at about 125 s. In the other, the player won at 127.8 s ("P1 qualified, grade A") with both crews about 390 m from the gate. A run near par fights for the win, and a slow one (3:20) finishes third.
+
+**Lockdown drones** now tail the crews. Three Mech Drones fly behind and above the player, and one locks on to each rival still running. Each holds its searchlight on its car, so the light on the cars after the theft visibly comes from the drones (`SecurityDrones`, model `PF_Drone_Mech`).
 
 | Launch: all three cars together | VEX breaks north from the compound | KADE through the checkpoint on the expressway |
 |---|---|---|

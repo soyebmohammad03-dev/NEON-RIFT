@@ -196,6 +196,10 @@ namespace NeonRift.Gameplay
             foreach (var objective in Progress.Definition.Objectives)
                 if (objective != null && !targets.ContainsKey(objective.TargetId))
                     Debug.LogError($"[Mission] Objective '{objective.Id}' targets '{objective.TargetId}', which is not in the scene.", this);
+            var positions = new List<Vector3?>();
+            foreach (var objective in Progress.Definition.Objectives)
+                positions.Add(objective != null && targets.TryGetValue(objective.TargetId, out var t) ? t.WaypointPosition : null);
+            World.ObjectivePositions = positions;
             foreach (var c in components) c.Bind(World);
         }
 
@@ -548,7 +552,7 @@ namespace NeonRift.Gameplay
             if (!visible) { hud.SetRace(false, 0, 0, null, null); return; }
             raceRows.Clear();
             var standings = rivals.Standings;
-            for (int i = 0; i < standings.Count; i++) raceRows.Add((standings[i].Name, standings[i].Finished, standings[i].IsPlayer));
+            for (int i = 0; i < standings.Count; i++) raceRows.Add((standings[i].Row, standings[i].Finished, standings[i].IsPlayer));
             // The gap line only changes when the rounded distance, the side or the other car changes.
             string gap = null;
             if (rivals.TryGetGap(out var other, out float metres, out bool ahead))
@@ -655,15 +659,21 @@ namespace NeonRift.Gameplay
             bool success = Progress.Phase == MissionPhase.Completed;
             float t = Progress.Elapsed;
             bool raced = rivals != null && rivals.HasRivals;
+            // Qualifying: the first crews out advance to the next operation; a later finish still completes the job.
+            int places = raced ? def.QualifyingPlaces : 0;
+            bool qualified = success && (places <= 0 || FinishPosition <= places);
             var d = new MissionHud.Debrief
             {
                 Success = success,
                 Kicker = "DEBRIEF  ·  " + def.DisplayName.ToUpperInvariant(),
                 Title = success ? "MISSION COMPLETE" : "MISSION FAILED",
-                Reason = success ? "EXTRACTION CONFIRMED  ·  DATA CORE SECURED" : Progress.FailReason
+                Reason = !success ? Progress.FailReason
+                    : qualified ? "EXTRACTION CONFIRMED  ·  DATA CORE SECURED" + (places > 0 ? "  ·  QUALIFIED" : string.Empty)
+                    : $"DATA CORE SECURED  ·  NOT QUALIFIED  ·  ONLY THE FIRST {places} OUT ADVANCE"
             };
             d.Stats.Add(("TIME", MissionRecords.FormatTime(t)));
             if (success && raced) d.Stats.Add(("POSITION", $"{FinishPosition}/{rivals.Count}"));
+            if (success && places > 0) d.Stats.Add(("QUALIFYING", qualified ? $"TOP {places}  ·  QUALIFIED" : "NOT QUALIFIED"));
             d.Stats.Add(("HEAT", $"{Mathf.RoundToInt(Progress.Heat * 100f)}%"));
             d.Stats.Add(("SECURITY", Progress.Security.ToString().ToUpperInvariant()));
             d.Stats.Add(("HARD CONTACTS", contacts.ToString()));
@@ -684,8 +694,9 @@ namespace NeonRift.Gameplay
                 finished.Sort((x, y) => x.FinishTime.CompareTo(y.FinishTime));
                 running.Sort((x, y) => x.Remaining.CompareTo(y.Remaining));
                 int place = 1;
-                foreach (var r in finished) d.Crews.Add(($"P{place++}  {r.Name}", "EXTRACTED", false));
-                if (success) d.Crews.Add(($"P{place++}  YOU", "EXTRACTED", true));
+                string Out(int p) => places > 0 && p <= places ? "QUALIFIED" : "EXTRACTED";
+                foreach (var r in finished) { d.Crews.Add(($"P{place}  {r.Name}", Out(place), false)); place++; }
+                if (success) { d.Crews.Add(($"P{place}  YOU", qualified ? Out(place) : "NOT QUALIFIED", true)); place++; }
                 foreach (var r in running) d.Crews.Add(($"P{place++}  {r.Name}", "STILL RUNNING", false));
                 if (!success) d.Crews.Add(("--  YOU", "TRACED", true));
             }
@@ -698,10 +709,11 @@ namespace NeonRift.Gameplay
                 d.Grade = grade.Letter;
                 d.Score = grade.Score;
                 d.NewBest = MissionRecords.Submit(def.Id, t, grade.Score, out previous);
+                if (qualified) MissionRecords.MarkQualified(def.Id);
                 d.Best = previous <= 0f ? "FIRST CLEAR  ·  PERSONAL BEST SET"
                     : d.NewBest ? $"NEW PERSONAL BEST  ·  {MissionRecords.FormatTime(previous - t)} FASTER"
                     : $"PERSONAL BEST  {MissionRecords.FormatTime(previous)}  ·  +{MissionRecords.FormatTime(t - previous)}";
-                Debug.Log($"[Mission] debrief: grade {grade.Letter} ({grade.Score}: pace {grade.Pace:0}, quiet {grade.Quiet:0}, position {grade.Position:0}, clean {grade.Clean:0}), contacts {contacts}, new best {d.NewBest}");
+                Debug.Log($"[Mission] debrief: P{FinishPosition}{(places > 0 ? (qualified ? " qualified" : " not qualified") : string.Empty)}, grade {grade.Letter} ({grade.Score}: pace {grade.Pace:0}, quiet {grade.Quiet:0}, position {grade.Position:0}, clean {grade.Clean:0}), contacts {contacts}, new best {d.NewBest}");
             }
             else
             {

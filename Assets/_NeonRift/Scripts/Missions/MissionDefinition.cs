@@ -37,8 +37,12 @@ namespace NeonRift.Missions
         [Header("Rivals")]
         [Tooltip("Rival crews spawned from the vehicle catalog (the cars the player did not pick). 0 = solo run.")]
         [SerializeField, Min(0)] private int maxRivals = 2;
-        [Tooltip("Event-driven taskings for the rival crews (roles in the operation, reactions to the heist).")]
-        [SerializeField] private List<RivalOrder> rivalOrders = new();
+        [Tooltip("Each rival crew's own heist, in order (relay hack, uplink, extraction); crews run it in parallel with the player.")]
+        [SerializeField] private List<RivalTask> rivalTasks = new();
+        [Tooltip("Seconds after the mission starts before the crews set off.")]
+        [SerializeField, Min(0f)] private float rivalStartDelay = 0.6f;
+        [Tooltip("Crews that qualify for the next operation: the first N out (player included). 0 = no qualifying.")]
+        [SerializeField, Min(0)] private int qualifyingPlaces = 2;
         [Tooltip("The briefing's crew line per rival slot (their role in the job); the last repeats.")]
         [SerializeField] private string[] crewRoles = Array.Empty<string>();
 
@@ -67,7 +71,9 @@ namespace NeonRift.Missions
         public float HeatTimePenalty => heatTimePenalty;
         public float MinimumTimeLimit => minimumTimeLimit;
         public int MaxRivals => maxRivals;
-        public IReadOnlyList<RivalOrder> RivalOrders => rivalOrders;
+        public IReadOnlyList<RivalTask> RivalTasks => rivalTasks;
+        public float RivalStartDelay => rivalStartDelay;
+        public int QualifyingPlaces => qualifyingPlaces;
         public float ParTime => parTime;
         public string CrewRoleFor(int index) => crewRoles == null || crewRoles.Length == 0 ? null : crewRoles[Mathf.Min(index, crewRoles.Length - 1)];
 
@@ -91,7 +97,12 @@ namespace NeonRift.Missions
         }
 
 #if UNITY_EDITOR
-        public void EditorConfigureRivals(List<RivalOrder> orders) => rivalOrders = orders ?? new List<RivalOrder>();
+        public void EditorConfigureRivals(List<RivalTask> tasks, float startDelay, int qualifying)
+        {
+            rivalTasks = tasks ?? new List<RivalTask>();
+            rivalStartDelay = startDelay;
+            qualifyingPlaces = qualifying;
+        }
 
         public void EditorConfigureDebrief(float par, string[] roles)
         {

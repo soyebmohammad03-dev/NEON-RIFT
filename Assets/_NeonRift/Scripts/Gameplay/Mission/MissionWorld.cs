@@ -22,6 +22,12 @@ namespace NeonRift.Gameplay
         public float Heat => progress.Heat;
         public MissionPhase Phase => progress.Phase;
         public MissionDefinition Mission => progress.Definition;
+        /// <summary>Index of the player's current objective (-1 before the first).</summary>
+        public int ObjectiveIndex => progress.ObjectiveIndex;
+        /// <summary>Waypoint per objective (null where the target is missing): the player's whole route, for race standings.</summary>
+        public IReadOnlyList<Vector3?> ObjectivePositions { get; internal set; } = Array.Empty<Vector3?>();
+        /// <summary>Seconds since the mission started running.</summary>
+        public float Elapsed => progress.Elapsed;
         /// <summary>Where a lockdown starts spreading from (the theft location), world space.</summary>
         public Vector3 AlertOrigin { get; set; }
 

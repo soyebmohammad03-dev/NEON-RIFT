@@ -9,6 +9,17 @@ namespace NeonRift.Missions
 
         public static string TimeKey(string missionId) => Prefix + missionId + ".time";
         public static string GradeKey(string missionId) => Prefix + missionId + ".grade";
+        public static string QualifiedKey(string missionId) => Prefix + missionId + ".qualified";
+
+        /// <summary>Whether the player has ever qualified out of this mission (unlocks the next operation).</summary>
+        public static bool HasQualified(string missionId) => PlayerPrefs.GetInt(QualifiedKey(missionId), 0) == 1;
+
+        public static void MarkQualified(string missionId)
+        {
+            if (HasQualified(missionId)) return;
+            PlayerPrefs.SetInt(QualifiedKey(missionId), 1);
+            PlayerPrefs.Save();
+        }
 
         /// <summary>The best completed time, s, or 0 when there is none.</summary>
         public static float BestTime(string missionId) => PlayerPrefs.GetFloat(TimeKey(missionId), 0f);
@@ -33,6 +44,7 @@ namespace NeonRift.Missions
         {
             PlayerPrefs.DeleteKey(TimeKey(missionId));
             PlayerPrefs.DeleteKey(GradeKey(missionId));
+            PlayerPrefs.DeleteKey(QualifiedKey(missionId));
         }
 
         /// <summary>m:ss.cc</summary>

@@ -160,3 +160,18 @@ Not checked by ear.
 | Hero framing | Switching SLS AMG → SLS AMG GT3 (frames at 0.1–2.2 s) |
 |---|---|
 | ![](Screenshots/CarSelect2/hero.jpg) | ![](Screenshots/CarSelect2/switch_sequence.jpg) |
+
+## City life in the intro (October 2026)
+
+The intro's streets and sky were empty, because traffic, crowds and drones only run during missions. `IntroCityLife`, built by `IntroBuilder.CityLife.cs`, adds life that runs on the Timeline clock, so every play and every Skip looks the same. Each element is only active inside its shot window.
+
+- **Traffic:** 9 lanes, 36 pack cars (visual-only copies: no physics, AI or sound; wheels turn). They drive both directions on W Avenue (03a), on Market Street (03b) and past the garage (06/07a, and the odd car across the title shot). Lanes avoid the low street-level cameras.
+- **Drones (Mech Drone, searchlight and beam):** sky traffic across the descent (02), patrols down W Avenue, along Market Street and across the garage, two guards over the compound gate (04b), and three drones circling the Data Core (04b–05b and the montage).
+- **Crowds:** 26 more pedestrian groups on both pavements of W Avenue and Market Street along the shot paths (88 groups, 400 figures in total).
+- **Compound sentries:** two Buster Drones (posed, baked to static meshes) hover and scan over the compound in the intro and in missions (`HoverSentry`).
+
+In the editor, the first play after a rebuild can show cars as flat cyan for a moment. That is Unity's placeholder while it compiles shader variants in the background, not a material problem.
+
+## Car Select departure fix (October 2026)
+
+After Confirm, the car used to leave the garage at an angle, sliding sideways. The showroom car is the gameplay prefab, and its kinematic Rigidbody was **interpolated**: every frame, interpolation wrote back a pose one physics step old. That fought the turntable swing, so the car lagged the turn and left pointing off the exit line. `VehicleShowroom` now turns interpolation off on the presentation car and squares it to the door exactly before pulling away. The car then drives along its own nose, and the per-frame step is capped so a frame hitch cannot jump it down the street. Verified in Play Mode: heading 180° held through the pull-out, travel straight along −Z.

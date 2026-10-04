@@ -153,3 +153,5 @@ Profiler, Night Run start (three cars, about 37 budgeted lamps on): PlayerLoop �
 
 
 The build log prints podiums, towers, lamps and signals. The scene has about 11.6 k GameObjects, about 3.3 k renderers (one combined mesh per block and material, static batching flags) and about 6.4 k simple colliders. Real-time lights are capped by the budget; mission lights stay off until lockdown. Generated meshes are stored in Git LFS.
+
+**Traffic collider fix (October 2026).** `TrafficCarBuilder` sized each car's box collider from `Mesh.vertices`, but the pack's FBX is not Read/Write enabled. Whenever the meshes were not already cached as readable, every pack car got a zero-size collider. It now reads `Mesh.AcquireReadOnlyMeshData`, which works on non-readable meshes. Sedan: 2.10 × 1.20 × 4.76 m again.

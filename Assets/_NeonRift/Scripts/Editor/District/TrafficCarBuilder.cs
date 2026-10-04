@@ -99,7 +99,12 @@ namespace NeonRift.EditorTools.District
                 // From the vertices themselves: some pack meshes are baked at an angle, so their local bounds overstate the car.
                 foreach (var r in body.GetComponentsInChildren<MeshRenderer>())
                 {
-                    foreach (var vertex in r.GetComponent<MeshFilter>().sharedMesh.vertices)
+                    // Read-only mesh data works on the pack's non-readable import (Mesh.vertices does not, and left
+                    // the colliders zero-sized when the meshes were not already cached as readable).
+                    using var data = Mesh.AcquireReadOnlyMeshData(r.GetComponent<MeshFilter>().sharedMesh);
+                    using var vertices = new Unity.Collections.NativeArray<Vector3>(data[0].vertexCount, Unity.Collections.Allocator.Temp);
+                    data[0].GetVertices(vertices);
+                    foreach (var vertex in vertices)
                     {
                         var p = root.transform.InverseTransformPoint(r.transform.TransformPoint(vertex));
                         if (first) { b = new Bounds(p, Vector3.zero); first = false; } else b.Encapsulate(p);

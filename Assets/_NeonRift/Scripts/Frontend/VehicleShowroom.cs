@@ -266,6 +266,10 @@ namespace NeonRift.Frontend
                 if (door != null) door.localPosition = doorClosed + Vector3.up * (doorOpenHeight * Mathf.SmoothStep(0f, 1f, t / 2.4f));
                 yield return null;
             }
+            // Square to the door exactly before pulling away: the car drives out along its own nose.
+            turntable.rotation = Quaternion.Euler(0f, targetYaw, 0f);
+            Quaternion heading = Quaternion.LookRotation(Vector3.ProjectOnPlane(exitDirection, Vector3.up).normalized);
+            current.transform.rotation = heading;
             SetCamera(departCamera, 30);
             if (engine != null) engine.Blip(0.7f, 0.12f);
             yield return Wait(0.55f);
@@ -278,11 +282,12 @@ namespace NeonRift.Frontend
             float distance = 0f, speed = 0f;
             for (float t = 0f; t < 2.6f; t += Time.unscaledDeltaTime)
             {
-                float dt = Time.unscaledDeltaTime;
+                // Capped so a frame hitch never jumps the car down the street.
+                float dt = Mathf.Min(Time.unscaledDeltaTime, 0.05f);
                 if (door != null) door.localPosition = doorClosed + Vector3.up * doorOpenHeight;
                 speed = Mathf.Min(speed + 7.5f * dt, 24f);
                 distance += speed * dt;
-                car.position = start + exitDirection.normalized * distance;
+                car.SetPositionAndRotation(start + heading * Vector3.forward * distance, heading);
                 if (rig != null)
                     foreach (var w in rig.Wheels)
                         if (w.Spin != null && w.Radius > 0.01f) w.Spin.Rotate(speed * dt / w.Radius * Mathf.Rad2Deg, 0f, 0f, Space.Self);
@@ -309,6 +314,9 @@ namespace NeonRift.Frontend
             {
                 body.isKinematic = true;
                 body.detectCollisions = false;
+                // An interpolated body writes its (one physics step old) pose back to the transform every frame, which
+                // fights the turntable and the departure: the car lagged the swing and left the garage at an angle.
+                body.interpolation = RigidbodyInterpolation.None;
             }
             foreach (var col in instance.GetComponentsInChildren<Collider>(true))
                 col.enabled = false;

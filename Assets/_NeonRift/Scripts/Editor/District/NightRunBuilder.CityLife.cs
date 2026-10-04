@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using NeonRift.EditorTools.World;
 using NeonRift.Gameplay;
 using NeonRift.World;
 using UnityEditor;
@@ -16,13 +17,14 @@ namespace NeonRift.EditorTools.District
     {
         private const int RoamingCars = 14, ParkedCars = 26;
 
-        private static void BuildCityLife(Context c, CityNavigation navigation, Transform core)
+        private static void BuildCityLife(Context c, CityNavigation navigation, Transform core, RivalDirector rivals)
         {
             var root = new GameObject("CityLife").transform;
             root.SetParent(c.Gameplay, false);
             BuildTraffic(c, root, navigation);
             BuildCrowds(c, root, navigation);
-            BuildDrones(c, root, core);
+            BuildDrones(c, root, core, rivals);
+            BuildSentries(c, root, core);
         }
 
         private static void BuildTraffic(Context c, Transform root, CityNavigation navigation)
@@ -82,6 +84,26 @@ namespace NeonRift.EditorTools.District
                 placed++;
             }
 
+            // Street life along the intro's street-level shots: both pavements of W Avenue north of the garage and of
+            // Market Street east of W Avenue (people facing the road, in bigger groups: the city is busy at night).
+            // side: +1 when the pavement lies to the right of a→b (away from the road), -1 when to the left.
+            void Pavement(Vector3 a, Vector3 b, float side, int groups)
+            {
+                Vector3 dir = (b - a).normalized;
+                Vector3 normal = Vector3.Cross(Vector3.up, dir) * side;
+                for (int i = 0; i < groups; i++)
+                {
+                    Vector3 p = Vector3.Lerp(a, b, (i + 0.5f) / groups + ((float)rng.NextDouble() - 0.5f) * 0.4f / groups);
+                    var flat = new Vector2(p.x, p.z);
+                    if (CityLayout.Reserved.Any(r => r.Contains(flat))) continue;
+                    points.Add((new Vector3(p.x, CityLayout.KerbHeight, p.z), Mathf.Atan2(-normal.x, -normal.z) * Mathf.Rad2Deg + 90f, 4 + rng.Next(4)));
+                }
+            }
+            Pavement(new Vector3(-9.8f, 0f, -232f), new Vector3(-9.8f, 0f, -112f), -1f, 7);
+            Pavement(new Vector3(9.8f, 0f, -232f), new Vector3(9.8f, 0f, -112f), 1f, 7);
+            Pavement(new Vector3(24f, 0f, -91.2f), new Vector3(130f, 0f, -91.2f), -1f, 6);
+            Pavement(new Vector3(24f, 0f, -108.8f), new Vector3(130f, 0f, -108.8f), 1f, 6);
+
             var crowdRoot = new GameObject("Crowds").transform;
             crowdRoot.SetParent(root, false);
             var groups = new List<Transform>();
@@ -111,22 +133,19 @@ namespace NeonRift.EditorTools.District
             c.Log.AppendLine($"  crowds: {groups.Count} groups, {figures} figures (Detail layer, step aside within 16 m)");
         }
 
-        private static void BuildDrones(Context c, Transform root, Transform core)
+        /// <summary>
+        /// Five security drones (the Mech Drone model): three tail the player and one locks on to each rival crew once
+        /// the counter-intrusion starts. Each carries red/blue strobes and a searchlight with a visible beam that it
+        /// holds on its car.
+        /// </summary>
+        private static void BuildDrones(Context c, Transform root, Transform core, RivalDirector rivals)
         {
-            var hull = new MeshBuilder();
-            hull.OrientedBox(new Vector3(0f, 0f, 0f), new Vector3(0.9f, 0.22f, 1.1f), Quaternion.identity, 1f);
-            foreach (float x in new[] { -0.7f, 0.7f })
-                foreach (float z in new[] { -0.7f, 0.7f })
-                {
-                    hull.OrientedBox(new Vector3(x * 0.6f, 0.02f, z * 0.6f), new Vector3(0.6f, 0.06f, 0.08f), Quaternion.Euler(0f, 45f, 0f), 1f);
-                    hull.Cylinder(new Vector3(x, 0.08f, z), 0.32f, 0.03f, 12, true);
-                }
-            var hullMesh = DistrictKit.SaveMesh(hull, "Drone_Hull");
+            var model = DroneModels.Mech();
             var strobe = new MeshBuilder();
-            strobe.OrientedBox(new Vector3(0f, -0.15f, 0f), new Vector3(0.5f, 0.08f, 0.5f), Quaternion.identity, 1f);
+            strobe.OrientedBox(new Vector3(0f, 0f, 0f), new Vector3(0.7f, 0.08f, 0.18f), Quaternion.identity, 1f);
             var strobeMesh = DistrictKit.SaveMesh(strobe, "Drone_Strobe");
             var beamMesh = new MeshBuilder();
-            beamMesh.Cone(Vector3.up, 2.2f, 1f, 16, 0.08f);
+            beamMesh.Cone(Vector3.up, 2.6f, 1f, 16, 0.12f);
             var beamAsset = DistrictKit.SaveMesh(beamMesh, "Drone_Beam");
             var strobeMat = DistrictKit.Lit("Drone_Strobe", Color.black, 0.8f, 0f, emission: new Color(0.001f, 0f, 0f));
             var beamMat = DistrictKit.Glow("Drone_Beam", new Color(0.12f, 0.13f, 0.15f), c.Kit.Textures.GlowGradient, 1.6f);
@@ -138,25 +157,26 @@ namespace NeonRift.EditorTools.District
             var strobes = new List<Renderer>();
             var lights = new List<Light>();
             var beams = new List<Transform>();
-            for (int i = 0; i < 4; i++)
+            for (int i = 0; i < 5; i++)
             {
                 var d = new GameObject($"Drone_{i}").transform;
                 d.SetParent(rootGo.transform, false);
-                var h = DistrictKit.Renderer("Hull", d, hullMesh, c.Kit.DarkPlastic, 0, shadows: false);
-                GameObjectUtility.SetStaticEditorFlags(h, 0);
+                var body = (GameObject)PrefabUtility.InstantiatePrefab(model, d);
+                body.transform.localPosition = new Vector3(0f, -1.3f, 0f);   // model pivot at its feet: centre it on the drone
                 var s = DistrictKit.Renderer("Strobe", d, strobeMesh, strobeMat, 0, shadows: false);
+                s.transform.localPosition = new Vector3(0f, 1.25f, -0.1f);
                 GameObjectUtility.SetStaticEditorFlags(s, 0);
                 strobes.Add(s.GetComponent<Renderer>());
                 var lightGo = new GameObject("Searchlight");
                 lightGo.transform.SetParent(d, false);
-                lightGo.transform.localPosition = new Vector3(0f, -0.25f, 0.3f);
+                lightGo.transform.localPosition = new Vector3(0f, -0.6f, 0.45f);
                 var l = lightGo.AddComponent<Light>();
                 l.type = LightType.Spot;
                 l.color = new Color(0.85f, 0.92f, 1f);
-                l.intensity = 900f;
-                l.range = 60f;
-                l.spotAngle = 22f;
-                l.innerSpotAngle = 12f;
+                l.intensity = 1100f;
+                l.range = 45f;
+                l.spotAngle = 30f;
+                l.innerSpotAngle = 14f;
                 l.shadows = LightShadows.None;
                 lights.Add(l);
                 var beam = DistrictKit.Renderer("Beam", lightGo.transform, beamAsset, beamMat, 0, shadows: false);
@@ -164,8 +184,34 @@ namespace NeonRift.EditorTools.District
                 beams.Add(beam.transform);
                 drones.Add(d);
             }
-            rootGo.AddComponent<SecurityDrones>().EditorConfigure(drones.ToArray(), strobes.ToArray(), lights.ToArray(), beams.ToArray(), new[] { EventExtractTrace });
-            c.Log.AppendLine("  security drones: 4 (launch on counter-intrusion / lockdown)");
+            rootGo.AddComponent<SecurityDrones>().EditorConfigure(drones.ToArray(), strobes.ToArray(), lights.ToArray(), beams.ToArray(), new[] { EventExtractTrace }, rivals);
+            c.Log.AppendLine("  security drones: 5 Mech Drones (3 on the player, 1 per rival; launch on counter-intrusion / lockdown)");
+        }
+
+        /// <summary>Two Buster Drone sentries holding station over the Data Core compound (intro and missions).</summary>
+        private static void BuildSentries(Context c, Transform root, Transform core)
+        {
+            var model = DroneModels.Buster();
+            var sentryRoot = new GameObject("CompoundSentries").transform;
+            sentryRoot.SetParent(root, false);
+            var spots = new (Vector3 offset, float yaw)[] { (new Vector3(-26f, 24f, 38f), 150f), (new Vector3(30f, 28f, -24f), -40f) };
+            for (int i = 0; i < spots.Length; i++)
+            {
+                var s = new GameObject($"Sentry_{i}").transform;
+                s.SetParent(sentryRoot, false);
+                s.SetPositionAndRotation(core.position + spots[i].offset, Quaternion.Euler(0f, spots[i].yaw, 0f));
+                PrefabUtility.InstantiatePrefab(model, s);
+                var eye = new GameObject("Eye").AddComponent<Light>();
+                eye.transform.SetParent(s, false);
+                eye.transform.localPosition = new Vector3(0f, -0.4f, 1.6f);
+                eye.type = LightType.Point;
+                eye.color = new Color(1f, 0.12f, 0.1f);
+                eye.intensity = 40f;
+                eye.range = 9f;
+                eye.shadows = LightShadows.None;
+                s.gameObject.AddComponent<HoverSentry>();
+            }
+            c.Log.AppendLine($"  compound sentries: {spots.Length} Buster Drones (static mesh, hovering)");
         }
     }
 }

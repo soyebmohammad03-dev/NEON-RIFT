@@ -38,6 +38,8 @@ namespace NeonRift.Intro
         [SerializeField] private AudioClip ignitionClip;
         [SerializeField] private CityNavigation navigation;
         [SerializeField] private RacerProfile[] departureProfiles = new RacerProfile[0];
+        [Tooltip("Intro-only street and sky life (traffic lanes, patrol drones), active while the intro plays.")]
+        [SerializeField] private GameObject cityLife;
         [SerializeField] private Transform departureTarget;
         [Tooltip("Mission HUD in the same scene: hidden while the intro plays.")]
         [SerializeField] private UIDocument missionHud;
@@ -88,6 +90,7 @@ namespace NeonRift.Intro
             settings = context.Config.Intro;
             if (missionHud != null && missionHud.rootVisualElement != null) missionHud.rootVisualElement.style.display = DisplayStyle.None;
             if (shots != null) shots.SetActive(true);
+            if (cityLife != null) cityLife.SetActive(true);
             overlay.gameObject.SetActive(true);
             overlay.Clear();
             foreach (var l in stageLights) if (l != null) l.enabled = true;
@@ -119,6 +122,7 @@ namespace NeonRift.Intro
             if (surveillanceVolume != null) surveillanceVolume.weight = 0f;
             if (pushCamera != null) pushCamera.gameObject.SetActive(false);
             if (shots != null) shots.SetActive(false);
+            if (cityLife != null) cityLife.SetActive(false);
             overlay.gameObject.SetActive(false);
             Time.timeScale = 1f;
             phase = Phase.Idle;
@@ -493,6 +497,8 @@ namespace NeonRift.Intro
         }
 
 #if UNITY_EDITOR
+        public void EditorConfigureCityLife(GameObject life) => cityLife = life;
+
         public void EditorConfigure(PlayableDirector playableDirector, IntroOverlay introOverlay, VehicleSpawnPoint[] slots, GameObject shotRoot,
                                     CinemachineCamera push, Light[] lights, Volume cctv, AudioSource ambience, AudioSource music, AudioSource effects,
                                     AudioSource[] moreMusic, AudioClip ignition, CityNavigation nav, RacerProfile[] profiles, Transform target,

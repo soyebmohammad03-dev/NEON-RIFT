@@ -28,7 +28,7 @@ namespace NeonRift.EditorTools.Intro
     /// <see cref="IntroCueTrack"/> clips and the soundtrack is audio tracks. Edit the table and rebuild with
     /// <c>Neon Rift ▸ Intro ▸ Build Intro (open Night Run scene)</c>, or it is rebuilt with the city.
     /// </summary>
-    public static class IntroBuilder
+    public static partial class IntroBuilder
     {
         public const string DataFolder = "Assets/_NeonRift/Data/Intro";
         public const string TimelinePath = DataFolder + "/Intro_NightRun.playable";
@@ -226,6 +226,7 @@ namespace NeonRift.EditorTools.Intro
                 entry.EditorConfigureGarage(garage, path, look, GarageBuilder.OpeningFov, 4.6f, Route(-1f), Route(1f),
                                             new[] { 3.5f, 4.5f, 5f, 6f, 8f, 13f, 22f, 26f }, 1.7f);
             }
+            entry.EditorConfigureCityLife(BuildCityLife(root.transform, playable, core, gatePos, log));
             RegisterInConfig(settings);
             log.AppendLine($"  {shots.Count} shots, timeline {Duration:0.0}s, title at {TitleTime:0.0}s, hold at {HoldTime:0.0}s; core {core:F0}, gate {gatePos:F0}, signal {signal:F1}");
             return log.ToString();
