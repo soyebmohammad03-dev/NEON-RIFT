@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using NeonRift.EditorTools.Audio;
 using NeonRift.EditorTools.District;
+using NeonRift.EditorTools.Frontend;
 using NeonRift.EditorTools.Vehicles;
 using NeonRift.Game;
 using NeonRift.Gameplay;
@@ -37,7 +38,7 @@ namespace NeonRift.EditorTools.Intro
         private static readonly Vector3 LineupCentre = new(0f, 0f, -285f);
         private const float LineupSpacing = 3.6f;
 
-        public const float TitleTime = 52.5f, HoldTime = 56f, Duration = 62f;
+        public const float TitleTime = 75.2f, HoldTime = 79.2f, Duration = 84f;
 
         private readonly struct Shot
         {
@@ -106,17 +107,19 @@ namespace NeonRift.EditorTools.Intro
             var brain = Object.FindAnyObjectByType<CinemachineBrain>();
             Vector3 signal = SignalHead(log);
 
-            // ---- Lineup slots and stage lights
+            // ---- Lineup: in the crew garage (hero on the turntable, two cars in the bays facing the door)
+            var garage = Object.FindAnyObjectByType<CrewGarage>();
             var slots = new VehicleSpawnPoint[3];
             for (int i = 0; i < 3; i++)
             {
                 var go = new GameObject($"LineupSlot_{i}");
                 go.transform.SetParent(root.transform, false);
-                go.transform.SetPositionAndRotation(LineupCentre + Vector3.right * (i - 1) * LineupSpacing, Quaternion.identity);
+                if (garage != null && garage.IntroSlots.Length == 3)
+                    go.transform.SetPositionAndRotation(garage.IntroSlots[i].position, garage.IntroSlots[i].rotation);
+                else go.transform.SetPositionAndRotation(LineupCentre + Vector3.right * (i - 1) * LineupSpacing, Quaternion.identity);
                 slots[i] = go.AddComponent<VehicleSpawnPoint>();
             }
-            var key = StageLight(root.transform, "KeyLight", LineupCentre + new Vector3(-7f, 4.5f, 6f), new Color(1f, 0.82f, 0.62f), 70f, 18f);
-            var rim = StageLight(root.transform, "RimLight", LineupCentre + new Vector3(6f, 3.5f, -8f), new Color(0.45f, 0.75f, 1f), 90f, 16f);
+            if (garage == null) log.AppendLine("  WARNING: no CrewGarage in the scene; lineup falls back to W Avenue");
 
             // ---- Surveillance grade (weight driven by the Surveillance cue)
             var cctvProfile = SurveillanceProfile();
@@ -160,7 +163,9 @@ namespace NeonRift.EditorTools.Intro
             // ---- Shot cameras
             var shotRoot = new GameObject("Shots");
             shotRoot.transform.SetParent(root.transform, false);
-            var shots = Shots(core, gatePos, signal);
+            var cctvCam = Object.FindObjectsByType<SecurityCamera>().OrderBy(cam => Vector3.Distance(cam.transform.position, new Vector3(8f, 0f, -108f))).FirstOrDefault();
+            Vector3 cctvHead = cctvCam != null ? cctvCam.transform.TransformPoint(new Vector3(0f, 5.25f, 0.9f)) : new Vector3(8.7f, 5.4f, -107.7f);
+            var shots = Shots(core, gatePos, signal, cctvHead);
             var cameras = new List<CinemachineCamera>();
             foreach (var s in shots)
             {
@@ -201,9 +206,24 @@ namespace NeonRift.EditorTools.Intro
                 AssetDatabase.LoadAssetAtPath<RacerProfile>("Assets/_NeonRift/Data/Racing/Racer_Vex.asset"),
                 AssetDatabase.LoadAssetAtPath<RacerProfile>("Assets/_NeonRift/Data/Racing/Racer_Kade.asset")
             };
-            entry.EditorConfigure(playable, overlay, slots, shotRoot, push, new[] { key, rim }, cctv, ambienceSource, droneSource, effects,
+            entry.EditorConfigure(playable, overlay, slots, shotRoot, push, new Light[0], cctv, ambienceSource, droneSource, effects,
                                   new[] { pulseSource, riserSource, hitSource, scanSource }, clips.Ignition, navigation, profiles,
                                   staging != null ? staging.transform : null, hud != null ? hud.GetComponent<UIDocument>() : null, TitleTime, HoldTime);
+            if (garage != null)
+            {
+                // Confirm: from the title shot on W Avenue through the open door, round the hero, to Car Select's opening frame.
+                var path = new[] { G(0.6f, 1.9f, -24f), G(1.4f, 1.6f, -14.5f), G(3.4f, 1.1f, -2.5f), G(GarageBuilder.OpeningPosition) };
+                var look = new[] { G(0f, 1.3f, -6f), G(0f, 1.0f, -2f), G(0.8f, 0.8f, 1.6f), G(GarageBuilder.OpeningLook) };
+                // Out of the bays, through the door, across the southbound lanes and north up W Avenue.
+                // From the bay along its heading (angled in), through the door centre, out over the apron.
+                Vector3[] Route(float side) => new[]
+                {
+                    G(side * 5.4f, 0f, -13.8f), G(side * 1.2f, 0f, -17f), G(side * 0.3f, 0f, -20f), G(0f, 0f, -23.5f),
+                    new Vector3(1.2f, 0f, -246f), new Vector3(3.5f, 0f, -228f), new Vector3(3.5f, 0f, -170f), new Vector3(3.5f, 0f, -60f)
+                };
+                entry.EditorConfigureGarage(garage, path, look, GarageBuilder.OpeningFov, 4.6f, Route(-1f), Route(1f),
+                                            new[] { 3.5f, 4.5f, 5f, 6f, 8f, 13f, 22f, 26f }, 1.7f);
+            }
             RegisterInConfig(settings);
             log.AppendLine($"  {shots.Count} shots, timeline {Duration:0.0}s, title at {TitleTime:0.0}s, hold at {HoldTime:0.0}s; core {core:F0}, gate {gatePos:F0}, signal {signal:F1}");
             return log.ToString();
@@ -211,62 +231,88 @@ namespace NeonRift.EditorTools.Intro
 
         // ---------------- Shot table ----------------
 
-        private static List<Shot> Shots(Vector3 core, Vector3 gate, Vector3 signal)
+        /// <summary>Garage-local point to world (the crew garage on W Avenue).</summary>
+        private static Vector3 G(Vector3 local) => NightRunBuilder.GarageToWorld(local);
+        private static Vector3 G(float x, float y, float z) => G(new Vector3(x, y, z));
+
+        /// <summary>
+        /// The story, about 84 s. Black → the city → down through the skyline → street life → the security grid and the
+        /// Data Core → the grid watching W Avenue → the hidden garage: lights strike, three cars, crew preparation →
+        /// engines, the door lifts, two cars roll out → montage as security notices → NEON RIFT / NIGHT RUN over the open
+        /// garage door → Confirm pushes through the door to Car Select's opening frame.
+        /// </summary>
+        private static List<Shot> Shots(Vector3 core, Vector3 gate, Vector3 signal, Vector3 cctv)
         {
-            Vector3 L = LineupCentre;
-            float right = LineupSpacing, left = -LineupSpacing;
+            Vector3 bay = new(-8.2f, 0f, -8.5f);
+            Vector3 bayFront = Quaternion.Euler(0f, 152f, 0f) * Vector3.forward;
             var list = new List<Shot>
             {
-                // 1. Out of black: the city from far away.
-                new("01_City", 0f, 7.5f, 0f, 40f, new Vector3(-700f, 320f, -1050f), new Vector3(-600f, 285f, -925f), new Vector3(200f, 60f, 150f), new Vector3(180f, 70f, 150f)),
-                // 2. High over Sector 7: scale, skyline, roads, lights.
-                new("02_Sector7", 7.5f, 14.5f, 2.5f, 45f, new Vector3(-300f, 200f, -470f), new Vector3(-185f, 172f, -345f), new Vector3(160f, 30f, 170f), new Vector3(150f, 40f, 170f)),
-                // 3. Down into the streets, towards the industrial and commercial districts.
-                new("03_Streets", 14.5f, 21f, 2f, 55f, new Vector3(0f, 18f, -250f), new Vector3(0f, 9.5f, -95f), new Vector3(0f, 6f, -100f), new Vector3(60f, 5f, 100f)),
-                // 4. The lineup: headlight and wheel, a slide along the hero, the three cars from the front.
-                new("04a_Headlight", 21f, 24f, 0f, 35f, L + new Vector3(right + 2f, 0.45f, 4.6f), L + new Vector3(right + 1.4f, 0.5f, 3.8f), L + new Vector3(right + 0.65f, 0.6f, 2.2f), L + new Vector3(right + 0.5f, 0.55f, 1.7f)),
-                new("04b_Slide", 24f, 27f, 0f, 40f, L + new Vector3(1.8f, 0.85f, -4.5f), L + new Vector3(1.8f, 0.95f, 2f), L + new Vector3(0.6f, 0.7f, -1.5f), L + new Vector3(0.5f, 0.75f, 2.5f)),
-                new("04c_Lineup", 27f, 30.5f, 0.8f, 42f, L + new Vector3(-6.5f, 1f, 9f), L + new Vector3(-4.6f, 1.15f, 7.4f), L + new Vector3(0f, 0.75f, 0f), L + new Vector3(0.2f, 0.8f, 0.5f)),
-                // 5. The Data Core compound: gates, cameras, infrastructure.
-                new("05_Facility", 30.5f, 37f, 0f, 50f, gate + new Vector3(50f, 30f, 51f), gate + new Vector3(30f, 22f, 31f), core + new Vector3(3f, 10f, 25f), core + new Vector3(1f, 8f, 10f)),
-                // 7. The Data Core itself.
-                new("07_DataCore", 37f, 42f, 1.5f, 45f, core + new Vector3(16f, 4f, 22f), core + new Vector3(11f, 6f, -10f), core + new Vector3(0f, 3f, 0f), core + new Vector3(0f, 4f, 0f)),
-                // 8. A security camera watching the lineup.
-                new("08_Surveillance", 42f, 46.5f, 0f, 52f, L + new Vector3(12.5f, 8.5f, 17f), L + new Vector3(12.5f, 8.5f, 17f), L + new Vector3(1.5f, 0.5f, 1f), L + new Vector3(-1.5f, 0.5f, 0f)),
-                // 9. Quick cuts.
-                new("09a_Ignition", 46.5f, 47.25f, 0f, 38f, L + new Vector3(0.4f, 0.5f, -5.6f), L + new Vector3(0.3f, 0.55f, -5.9f), L + new Vector3(0f, 0.55f, -2.4f), L + new Vector3(0f, 0.55f, -2.4f)),
-                new("09b_Headlights", 47.25f, 48f, 0f, 34f, L + new Vector3(0.9f, 0.7f, 4.4f), L + new Vector3(0.85f, 0.72f, 4.1f), L + new Vector3(0.65f, 0.62f, 2.3f), L + new Vector3(0.65f, 0.62f, 2.3f)),
-                new("09c_Wheels", 48f, 48.75f, 0f, 36f, L + new Vector3(left - 2.3f, 0.38f, 1f), L + new Vector3(left - 2.3f, 0.38f, 0.4f), L + new Vector3(left - 0.8f, 0.35f, 1.1f), L + new Vector3(left - 0.8f, 0.35f, 1.4f)),
-                new("09d_Street", 48.75f, 49.5f, 0f, 60f, new Vector3(3f, 1.2f, -160f), new Vector3(3f, 1.3f, -125f), new Vector3(3f, 1f, -60f), new Vector3(3f, 1f, -30f)),
-                new("09e_Gate", 49.5f, 50.25f, 0f, 42f, gate + new Vector3(16f, 1.6f, 13f), gate + new Vector3(13f, 1.8f, 11f), gate + new Vector3(-2f, 3.4f, 0f), gate + new Vector3(-3f, 3.4f, 0f)),
-                new("09f_Signal", 50.25f, 51f, 0f, 32f, signal + new Vector3(-3.2f, -1.4f, -7.5f), signal + new Vector3(-2.8f, -1.3f, -6.6f), signal, signal),
-                new("09g_Core", 51f, 51.75f, 0f, 38f, core + new Vector3(15f, 2.5f, 19f), core + new Vector3(13f, 3f, 16f), core + new Vector3(0f, 4f, 0f), core + new Vector3(0f, 4.5f, 0f)),
-                new("09h_Avenue", 51.75f, 52.5f, 0f, 48f, L + new Vector3(5.5f, 0.7f, 27f), L + new Vector3(5.2f, 0.75f, 26f), L + new Vector3(0f, 0.9f, 0f), L + new Vector3(0f, 0.9f, 0f)),
-                // 10. Title: low behind the hero car, looking up W Avenue into the city.
-                new("10_Title", TitleTime, Duration, 0f, 50f, L + new Vector3(1.6f, 1.35f, -14.5f), L + new Vector3(1.2f, 1.55f, -11.5f), L + new Vector3(0f, 1f, 5f), L + new Vector3(0f, 2.4f, 45f)),
+                // 1–2. Out of black: the city from far away, then down through the skyline towards W Avenue.
+                new("01_City", 0f, 9f, 0f, 40f, new Vector3(-700f, 320f, -1050f), new Vector3(-590f, 280f, -915f), new Vector3(200f, 60f, 150f), new Vector3(170f, 66f, 120f)),
+                new("02_Descent", 9f, 16f, 2.2f, 48f, new Vector3(-260f, 180f, -560f), new Vector3(-62f, 34f, -352f), new Vector3(60f, 30f, -120f), new Vector3(8f, 8f, -220f)),
+                // 3. Street level: the avenue's shopfronts and steam, then signals and signs on Market Street.
+                new("03a_Avenue", 16f, 20.5f, 1.2f, 52f, new Vector3(-4.5f, 1.3f, -215f), new Vector3(-4.5f, 1.7f, -185f), new Vector3(-3f, 1.8f, -120f), new Vector3(-2f, 2.2f, -100f)),
+                new("03b_Market", 20.5f, 25f, 0f, 50f, new Vector3(8.5f, 3.2f, -103f), new Vector3(16f, 2.8f, -102.5f), new Vector3(90f, 4f, -100f), new Vector3(112f, 4.5f, -99f)),
+                // 4. Security infrastructure: a street camera turning, the compound gate.
+                new("04a_Camera", 25f, 28f, 0f, 34f, cctv + new Vector3(1.6f, -1.4f, 2.6f), cctv + new Vector3(1.1f, -1.0f, 1.9f), cctv, cctv + Vector3.down * 0.05f),
+                new("04b_Gate", 28f, 31f, 0f, 44f, gate + new Vector3(16f, 1.6f, 13f), gate + new Vector3(12f, 2.2f, 9f), gate + new Vector3(-2f, 3.4f, 0f), gate + new Vector3(-3f, 3.6f, 0f)),
+                // 5. The Data Core facility and the core itself.
+                new("05a_Facility", 31f, 35f, 0f, 50f, gate + new Vector3(50f, 30f, 51f), gate + new Vector3(32f, 23f, 33f), core + new Vector3(3f, 10f, 25f), core + new Vector3(1f, 8f, 10f)),
+                new("05b_Core", 35f, 39.5f, 1.5f, 45f, core + new Vector3(16f, 4f, 22f), core + new Vector3(11f, 6f, -10f), core + new Vector3(0f, 3f, 0f), core + new Vector3(0f, 4f, 0f)),
+                // 6. The grid watches W Avenue: a camera across the road on an anonymous roller door.
+                new("06_Surveillance", 39.5f, 43.5f, 0f, 46f, new Vector3(8.6f, 7.6f, -273f), new Vector3(8.6f, 7.6f, -272f), new Vector3(-11f, 2f, -257f), new Vector3(-11f, 2f, -253f)),
+                // 7. The hidden garage: the door from the street, then inside as the lights strike.
+                new("07a_Exterior", 43.5f, 47f, 0f, 46f, new Vector3(6f, 1.0f, -232f), new Vector3(1.5f, 1.25f, -243f), new Vector3(-11f, 2.4f, -255f), new Vector3(-11.2f, 2.7f, -255f)),
+                new("07b_Reveal", 47f, 52.5f, 0f, 50f, G(9f, 5.5f, 12.5f), G(6.5f, 4f, 10.5f), G(0f, 0.8f, -3f), G(0f, 0.7f, -4f)),
+                // 8. Three cars: the hero's headlight, a slide along it, a rival in its bay.
+                new("08a_Headlight", 52.5f, 55f, 0f, 34f, G(1.9f, 0.55f, 4.8f), G(1.25f, 0.66f, 3.6f), G(0.75f, 0.62f, 2.2f), G(GarageBuilder.OpeningLook)),
+                new("08b_Slide", 55f, 57.5f, 0f, 40f, G(2.7f, 0.85f, -3.5f), G(2.7f, 0.95f, 2f), G(0.5f, 0.7f, -1.2f), G(0.4f, 0.75f, 2.6f)),
+                new("08c_Bay", 57.5f, 60f, 0f, 40f, G(bay + bayFront * 5f + new Vector3(1.2f, 0.7f, 0f)), G(bay + bayFront * 4.4f + new Vector3(0.8f, 0.85f, 0.4f)), G(bay + Vector3.up * 0.6f), G(bay + Vector3.up * 0.7f)),
+                // 9. Crew preparation: the planning wall (the city, the target), then ignition.
+                new("09a_Planning", 60f, 62.5f, 0f, 42f, G(9.8f, 2.7f, 3.6f), G(10.6f, 2.85f, 4.6f), G(12.9f, 2.8f, 6f), G(12.9f, 2.85f, 6.2f)),
+                new("09b_Ignition", 62.5f, 64f, 0f, 38f, G(0.45f, 0.5f, -5.6f), G(0.35f, 0.55f, -5.9f), G(0f, 0.55f, -2.4f), G(0f, 0.55f, -2.4f)),
+                // 10. The door lifts onto the street; two cars roll out into W Avenue.
+                new("10a_Door", 64f, 67.5f, 0f, 46f, G(4.5f, 1.6f, 2.5f), G(3.8f, 1.5f, 0.5f), G(0f, 2.2f, -18f), G(0f, 1.8f, -20f)),
+                new("10b_RollOut", 67.5f, 71f, 0f, 52f, new Vector3(3.2f, 0.9f, -268f), new Vector3(2.6f, 1.05f, -265f), new Vector3(-9f, 1.1f, -256f), new Vector3(0f, 1f, -242f)),
+                // 11. Montage: the grid notices.
+                new("11a_Gate", 71f, 71.7f, 0f, 42f, gate + new Vector3(14f, 1.8f, 11f), gate + new Vector3(13f, 1.9f, 10f), gate + new Vector3(-3f, 3.4f, 0f), gate + new Vector3(-3f, 3.4f, 0f)),
+                new("11b_Signal", 71.7f, 72.4f, 0f, 32f, signal + new Vector3(-3.2f, -1.4f, -7.5f), signal + new Vector3(-2.8f, -1.3f, -6.6f), signal, signal),
+                new("11c_Core", 72.4f, 73.1f, 0f, 38f, core + new Vector3(15f, 2.5f, 19f), core + new Vector3(13f, 3f, 16f), core + new Vector3(0f, 4f, 0f), core + new Vector3(0f, 4.5f, 0f)),
+                new("11d_Camera", 73.1f, 73.8f, 0f, 30f, cctv + new Vector3(1.4f, -0.8f, 2.2f), cctv + new Vector3(1.2f, -0.7f, 1.9f), cctv, cctv),
+                new("11e_Avenue", 73.8f, 74.5f, 0f, 48f, new Vector3(3.5f, 1.2f, -236f), new Vector3(3.5f, 1.2f, -232f), new Vector3(3f, 1f, -180f), new Vector3(3f, 1f, -170f)),
+                new("11f_Compound", 74.5f, 75.2f, 0f, 46f, gate + new Vector3(30f, 22f, 31f), gate + new Vector3(28f, 21f, 29f), core + new Vector3(0f, 8f, 0f), core + new Vector3(0f, 8f, 0f)),
+                // 12. Title: across W Avenue, looking into the open, lit garage with the hero on the turntable.
+                new("12_Title", TitleTime, Duration, 0f, 50f, new Vector3(1.2f, 1.05f, -262.5f), new Vector3(-0.8f, 1.15f, -259.2f), G(0f, 2.6f, -4f), G(0f, 2.4f, -2f)),
             };
             return list;
         }
 
-        private static List<Cue> Cues() => new()
+        private static List<Cue> Cues()
         {
-            new(IntroCueKind.Letterbox, 0f, Duration),
-            new(IntroCueKind.FadeIn, 0f, 5f),
-            new(IntroCueKind.SkipHint, 1.5f, TitleTime),
-            new(IntroCueKind.Dip, 20.6f, 21.4f),
-            new(IntroCueKind.Headlights, 22f, 22.2f),
-            new(IntroCueKind.Dip, 30.1f, 30.9f),
-            new(IntroCueKind.Card, 31.2f, 36.5f, "IN NEON RIFT, INFORMATION IS POWER.", "WHOEVER RUNS THE GRID RUNS THE CITY."),
-            new(IntroCueKind.Card, 37.4f, 41.7f, "TONIGHT, A CREW GOES FOR THE DATA CORE.", "ONE RUN. NO SECOND CHANCE."),
-            new(IntroCueKind.Surveillance, 42f, 46.5f, "UNUSUAL ACTIVITY  ·  W AVENUE"),
-            new(IntroCueKind.Ignition, 46.5f, 46.7f),
-            new(IntroCueKind.Departure, 48f, 48.2f),
-            new(IntroCueKind.Flash, 46.5f, 46.62f), new(IntroCueKind.Flash, 47.25f, 47.37f), new(IntroCueKind.Flash, 48f, 48.12f),
-            new(IntroCueKind.Flash, 48.75f, 48.87f), new(IntroCueKind.Flash, 49.5f, 49.62f), new(IntroCueKind.Flash, 50.25f, 50.37f),
-            new(IntroCueKind.Flash, 51f, 51.12f), new(IntroCueKind.Flash, 51.75f, 51.87f),
-            new(IntroCueKind.Flash, TitleTime, TitleTime + 0.35f),
-            new(IntroCueKind.Title, 53f, Duration),
-        };
+            var cues = new List<Cue>
+            {
+                new(IntroCueKind.Letterbox, 0f, Duration),
+                new(IntroCueKind.FadeIn, 1.2f, 6f),
+                new(IntroCueKind.SkipHint, 2f, TitleTime),
+                new(IntroCueKind.Card, 25.5f, 29.8f, "IN NEON RIFT, INFORMATION IS POWER.", "AND THE GRID WATCHES EVERY STREET."),
+                new(IntroCueKind.Card, 34.2f, 39.2f, "AT ITS HEART: THE SECTOR 7 DATA CORE.", "EVERY SECRET IN THE CITY PASSES THROUGH IT."),
+                new(IntroCueKind.Surveillance, 39.5f, 43.5f, "UNUSUAL ACTIVITY  ·  W AVENUE  ·  UNIT 7"),
+                new(IntroCueKind.Dip, 43.2f, 43.8f),
+                new(IntroCueKind.Dip, 46.7f, 47.3f),
+                new(IntroCueKind.GarageLights, 47.6f, 47.8f),
+                new(IntroCueKind.Card, 48.4f, 52.2f, "TONIGHT, A CREW GOES IN FOR IT.", "EXTRACT THE PACKAGE. OUTRUN THE LOCKDOWN."),
+                new(IntroCueKind.Headlights, 53f, 53.2f),
+                new(IntroCueKind.Card, 60.2f, 63.6f, "THREE CARS. ONE RUN.", "NO SECOND CHANCE."),
+                new(IntroCueKind.Ignition, 62.6f, 62.8f),
+                new(IntroCueKind.DoorOpen, 64.2f, 64.4f),
+                new(IntroCueKind.Departure, 65.6f, 65.8f),
+                new(IntroCueKind.Surveillance, 73.1f, 73.8f, "VEHICLE MOVEMENT  ·  SECTOR 7 PERIMETER"),
+                new(IntroCueKind.Flash, TitleTime, TitleTime + 0.35f),
+                new(IntroCueKind.Title, TitleTime + 0.5f, Duration),
+            };
+            for (float t = 71f; t < TitleTime - 0.1f; t += 0.7f) cues.Add(new(IntroCueKind.Flash, t, t + 0.12f));
+            return cues;
+        }
 
         // ---------------- Timeline ----------------
 
@@ -346,16 +392,16 @@ namespace NeonRift.EditorTools.Intro
             }
             Audio("Ambience", ambienceSource, (ambience, 0f, Duration, true));
             Audio("Drone (placeholder music)", droneSource, (clips.Drone, 0.5f, TitleTime + 1f, true));
-            Audio("Pulse (placeholder music)", pulseSource, (clips.Pulse, 46.5f, Duration, true));
+            Audio("Pulse (placeholder music)", pulseSource, (clips.Pulse, 62.6f, Duration, true));
             Audio("Riser", riserSource, (clips.Riser, TitleTime - 6f, TitleTime, false));
             var hits = new List<(AudioClip, float, float, bool)>
             {
-                (clips.Impact, 21f, 24f, false), (clips.Impact, 30.9f, 33.9f, false)
+                (clips.Impact, 31f, 34f, false), (clips.Impact, 47.6f, 50.6f, false)
             };
-            for (float t = 46.5f; t < TitleTime - 0.1f; t += 0.75f) hits.Add((clips.Whoosh, t, t + 0.7f, false));
+            for (float t = 71f; t < TitleTime - 0.1f; t += 0.7f) hits.Add((clips.Whoosh, t, t + 0.7f, false));
             hits.Add((clips.Impact, TitleTime, TitleTime + 3f, false));
             Audio("Hits", hitSource, hits.ToArray());
-            Audio("Scan", scanSource, (clips.Scan, 42.2f, 46.2f, false));
+            Audio("Scan", scanSource, (clips.Scan, 39.7f, 43.7f, false));
 
             EditorUtility.SetDirty(timeline);
             AssetDatabase.SaveAssets();

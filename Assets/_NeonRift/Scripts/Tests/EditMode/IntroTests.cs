@@ -100,6 +100,24 @@ namespace NeonRift.Tests
                 Assert.IsFalse(root.transform.Find("Shots").gameObject.activeSelf);
                 Assert.IsFalse(root.transform.Find("IntroOverlay").gameObject.activeSelf);
                 Assert.IsTrue(root.GetComponentsInChildren<Light>(true).All(l => !l.enabled));
+
+                // The story runs 60–90 s and goes through the crew garage, whose lights are off and door shut for missions.
+                Assert.That(timeline.duration, Is.InRange(60.0, 90.0));
+                var kinds = cues.GetClips().Select(c => ((IntroCueClip)c.asset).kind).ToList();
+                foreach (var k in new[] { IntroCueKind.GarageLights, IntroCueKind.DoorOpen, IntroCueKind.Departure, IntroCueKind.Surveillance, IntroCueKind.Card })
+                    Assert.Contains(k, kinds, $"cue {k}");
+                var garage = scene.GetRootGameObjects().SelectMany(g => g.GetComponentsInChildren<NeonRift.Gameplay.CrewGarage>(true)).Single();
+                var exterior = garage.transform.Find("Exterior");
+                Assert.IsTrue(garage.GetComponentsInChildren<Light>(true).Where(l => exterior == null || !l.transform.IsChildOf(exterior)).All(l => !l.enabled),
+                              "the hall's lights are intro-only (only the door lamp and the two street lamps outside stay on)");
+                var eso = new SerializedObject(root.GetComponent<IntroSceneEntry>());
+                Assert.AreEqual(garage, eso.FindProperty("garage").objectReferenceValue);
+                // Match cut: the push-in ends exactly on Car Select's opening frame (same garage, same lens).
+                var path = eso.FindProperty("pushPath");
+                Assert.GreaterOrEqual(path.arraySize, 3);
+                Vector3 end = path.GetArrayElementAtIndex(path.arraySize - 1).vector3Value;
+                Assert.Less(Vector3.Distance(end, NeonRift.EditorTools.District.NightRunBuilder.GarageToWorld(NeonRift.EditorTools.Frontend.GarageBuilder.OpeningPosition)), 0.01f);
+                Assert.AreEqual(NeonRift.EditorTools.Frontend.GarageBuilder.OpeningFov, eso.FindProperty("pushEndFov").floatValue, 0.01f);
             }
             finally
             {

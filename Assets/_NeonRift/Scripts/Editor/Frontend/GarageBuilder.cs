@@ -34,69 +34,37 @@ namespace NeonRift.EditorTools.Frontend
         public const float HallHalfWidth = 13f, HallBack = -16f, HallFront = 14f, HallHeight = 7.5f;
         public const float DoorHalfWidth = 5f, DoorHeight = 5.6f;
         public static readonly Vector3 Focus = new(0f, 0.6f, 0f);
+        /// <summary>Car Select's opening shot (a headlight close-up), garage-local. The intro's last move ends exactly here.</summary>
+        public static readonly Vector3 OpeningPosition = new(1.05f, 0.72f, 3.2f), OpeningLook = new(0.7f, 0.66f, 2.1f);
+        public const float OpeningFov = 34f;
 
         private static int showroomLayer;
 
         [MenuItem("Neon Rift/Car Select/Build Garage")]
         public static void BuildFromMenu() => Debug.Log(Build());
 
+        /// <summary>The garage hall without the showroom machinery: the same building is used by Car Select and, in the city, by the intro.</summary>
+        public sealed class Shell
+        {
+            public Transform Root, Turntable, Door;
+            public Light Key, RimCool, RimWarm;
+            public readonly List<Light> Stage = new();
+            public readonly List<Light> All = new();
+            public readonly List<Renderer> Strips = new();
+            public Transform[] Slots;
+        }
+
         public static string Build()
         {
             var log = new System.Text.StringBuilder("[Garage] build\n");
-            VehiclePrefabBuilder.EnsureFolder(MeshFolder);
-            VehiclePrefabBuilder.EnsureFolder(MaterialFolder);
-            showroomLayer = LayerMask.NameToLayer("Showroom");
-
             var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
-            var m = Materials();
             ConfigureRendering();
-
-            var env = new GameObject("Garage").transform;
-            var meshes = new Dictionary<Material, MeshBuilder>();
-            MeshBuilder B(Material mat) { if (!meshes.TryGetValue(mat, out var b)) meshes[mat] = b = new MeshBuilder(); return b; }
-            var strips = new List<Renderer>();
-
-            Hall(B, m);
-            Workshop(B, m);
-            var (turntable, ring) = Turntable(m);
-            var door = Door(m);
-            Street(B, m, env);
-            var stripMesh = SoftBoxes(m, env, strips);
-            foreach (var pair in meshes)
-            {
-                var go = Emit(pair.Value, $"Garage_{pair.Key.name.Replace("Garage_", "").Replace("District_", "")}", pair.Key, env);
-                if (pair.Key == m.Strip) strips.Add(go.GetComponent<Renderer>());
-            }
-            _ = stripMesh;
-            ring.transform.SetParent(env, true);
-
-            // Stage lights: key, two rims, three soft-box fills; dim parking-bay rims.
-            var lights = new GameObject("Lights").transform;
-            var key = Spot(lights, "Key", new Vector3(1.5f, 6.8f, 4.5f), Focus, new Color(1f, 0.96f, 0.9f), 120f, 16f, 46f, LightShadows.Soft);
-            var rimL = Spot(lights, "Rim_Cool", new Vector3(-6.5f, 4.2f, -5.5f), Focus + Vector3.up * 0.3f, new Color(0.62f, 0.85f, 1f), 110f, 16f, 40f, LightShadows.None);
-            var rimR = Spot(lights, "Rim_Warm", new Vector3(6.5f, 3.8f, -5f), Focus + Vector3.up * 0.3f, new Color(1f, 0.72f, 0.5f), 90f, 16f, 40f, LightShadows.None);
-            var fills = new List<Light>();
-            for (int i = -1; i <= 1; i++)
-                fills.Add(Spot(lights, $"SoftBox_{i + 1}", new Vector3(i * 2.4f, HallHeight - 0.5f, 0f), new Vector3(i * 2.4f, 0f, 0f), new Color(0.95f, 0.97f, 1f), 26f, 12f, 120f, LightShadows.None));
-            Spot(lights, "Bay_Left", new Vector3(-9f, 5.5f, -3f), new Vector3(-8.2f, 0.5f, -8.5f), new Color(0.55f, 0.7f, 1f), 80f, 12f, 50f, LightShadows.None);
-            Spot(lights, "Bay_Right", new Vector3(9f, 5.5f, -3f), new Vector3(8.2f, 0.5f, -8.5f), new Color(1f, 0.7f, 0.5f), 70f, 12f, 50f, LightShadows.None);
-            Spot(lights, "Workbench", new Vector3(-11.5f, 3.4f, 6f), new Vector3(-12f, 0.9f, 6f), new Color(1f, 0.85f, 0.65f), 14f, 6f, 100f, LightShadows.None);
-            // Wall washers: the hall reads as a space (columns, panels, door, sign) without lighting the car.
-            foreach (float x in new[] { -9f, 0f, 9f })
-                Spot(lights, $"Wash_Back_{x:0}", new Vector3(x, HallHeight - 0.6f, HallBack + 2.2f), new Vector3(x, 1.5f, HallBack), new Color(0.75f, 0.82f, 1f), x == 0f ? 175f : 130f, 19f, 110f, LightShadows.None);
-            foreach (float sx in new[] { -1f, 1f })
-                foreach (float z in new[] { -9f, 0f, 9f })
-                    Spot(lights, $"Wash_Side_{sx:0}_{z:0}", new Vector3(sx * (HallHalfWidth - 2.2f), HallHeight - 0.6f, z), new Vector3(sx * HallHalfWidth, 1.2f, z),
-                         sx < 0f ? new Color(1f, 0.82f, 0.62f) : new Color(0.7f, 0.82f, 1f), 90f, 17f, 110f, LightShadows.None);
-            // The street outside the door: a sodium wash on the road and the facade across it (seen when the door lifts).
-            Spot(lights, "Street_Road", new Vector3(-4f, 7f, HallBack - 9f), new Vector3(0f, 0f, HallBack - 6f), new Color(1f, 0.62f, 0.3f), 160f, 18f, 95f, LightShadows.None);
-            Spot(lights, "Street_Facade", new Vector3(6f, 9f, HallBack - 8f), new Vector3(2f, 6f, -36f), new Color(0.75f, 0.6f, 1f), 120f, 25f, 80f, LightShadows.None);
-            Spot(lights, "PlanningWall", new Vector3(10.5f, 4f, 7f), new Vector3(12.8f, 2.2f, 7f), new Color(0.6f, 0.85f, 1f), 10f, 6f, 90f, LightShadows.None);
-            var stage = new List<Light> { key, rimL, rimR };
-            stage.AddRange(fills);
-
-            // Parking bays for the cars not chosen.
-            var slots = new[] { Slot("ParkedSlot_Left", new Vector3(-8.2f, 0f, -8.5f), 32f), Slot("ParkedSlot_Right", new Vector3(8.2f, 0f, -8.5f), -32f) };
+            var shell = BuildShell(withStreet: true);
+            var turntable = shell.Turntable;
+            var door = shell.Door;
+            var stage = shell.Stage;
+            var strips = shell.Strips;
+            var slots = shell.Slots;
 
             // Showroom, engine, cameras.
             var showroomGo = new GameObject("Showroom");
@@ -119,8 +87,89 @@ namespace NeonRift.EditorTools.Frontend
             BakeProbe();
             EditorSceneManager.SaveScene(scene, ScenePath);
             log.AppendLine($"  scene saved: {ScenePath}");
-            log.AppendLine($"  meshes: {meshes.Count} materials, stage lights {stage.Count}, strips {strips.Count}");
+            log.AppendLine($"  lights {shell.All.Count}, stage lights {stage.Count}, strips {strips.Count}");
             return log.ToString();
+        }
+
+        /// <summary>
+        /// Builds the hall, workshop, turntable, roller door and lights under one root at the origin (so the caller can
+        /// move the whole building). <paramref name="withStreet"/> adds the stand-in street seen through the door in
+        /// Car Select; the city version sits on a real street instead.
+        /// </summary>
+        public static Shell BuildShell(bool withStreet)
+        {
+            VehiclePrefabBuilder.EnsureFolder(MeshFolder);
+            VehiclePrefabBuilder.EnsureFolder(MaterialFolder);
+            showroomLayer = LayerMask.NameToLayer("Showroom");
+            var shell = new Shell { Root = new GameObject("GarageShell").transform };
+            var m = Materials();
+
+            var env = new GameObject("Garage").transform;
+            env.SetParent(shell.Root, false);
+            var meshes = new Dictionary<Material, MeshBuilder>();
+            MeshBuilder B(Material mat) { if (!meshes.TryGetValue(mat, out var b)) meshes[mat] = b = new MeshBuilder(); return b; }
+            var strips = shell.Strips;
+
+            Hall(B, m);
+            Workshop(B, m);
+            var (turntable, ring) = Turntable(m);
+            var door = Door(m);
+            if (withStreet) Street(B, m, env);
+            SoftBoxes(m, env, strips);
+            foreach (var pair in meshes)
+            {
+                var go = Emit(pair.Value, $"Garage_{pair.Key.name.Replace("Garage_", "").Replace("District_", "")}", pair.Key, env);
+                if (pair.Key == m.Strip) strips.Add(go.GetComponent<Renderer>());
+            }
+            ring.transform.SetParent(env, true);
+            turntable.SetParent(shell.Root, true);
+            door.SetParent(shell.Root, true);
+            // Loose parts emitted at the scene root (door frame, beacon).
+            foreach (var name in new[] { "Garage_DoorFrame", "Garage_DoorBeacon" })
+            {
+                var loose = GameObject.Find(name);
+                if (loose != null && loose.transform.parent == null) loose.transform.SetParent(env, true);
+            }
+
+            // Stage lights: key, two rims, three soft-box fills; dim parking-bay rims.
+            var lights = new GameObject("Lights").transform;
+            lights.SetParent(shell.Root, false);
+            var key = Spot(lights, "Key", new Vector3(1.5f, 6.8f, 4.5f), Focus, new Color(1f, 0.96f, 0.9f), 120f, 16f, 46f, LightShadows.Soft);
+            var rimL = Spot(lights, "Rim_Cool", new Vector3(-6.5f, 4.2f, -5.5f), Focus + Vector3.up * 0.3f, new Color(0.62f, 0.85f, 1f), 110f, 16f, 40f, LightShadows.None);
+            var rimR = Spot(lights, "Rim_Warm", new Vector3(6.5f, 3.8f, -5f), Focus + Vector3.up * 0.3f, new Color(1f, 0.72f, 0.5f), 90f, 16f, 40f, LightShadows.None);
+            var fills = new List<Light>();
+            for (int i = -1; i <= 1; i++)
+                fills.Add(Spot(lights, $"SoftBox_{i + 1}", new Vector3(i * 2.4f, HallHeight - 0.5f, 0f), new Vector3(i * 2.4f, 0f, 0f), new Color(0.95f, 0.97f, 1f), 26f, 12f, 120f, LightShadows.None));
+            Spot(lights, "Bay_Left", new Vector3(-9f, 5.5f, -3f), new Vector3(-8.2f, 0.5f, -8.5f), new Color(0.55f, 0.7f, 1f), 80f, 12f, 50f, LightShadows.None);
+            Spot(lights, "Bay_Right", new Vector3(9f, 5.5f, -3f), new Vector3(8.2f, 0.5f, -8.5f), new Color(1f, 0.7f, 0.5f), 70f, 12f, 50f, LightShadows.None);
+            Spot(lights, "Workbench", new Vector3(-11.5f, 3.4f, 6f), new Vector3(-12f, 0.9f, 6f), new Color(1f, 0.85f, 0.65f), 14f, 6f, 100f, LightShadows.None);
+            // Wall washers: the hall reads as a space (columns, panels, door, sign) without lighting the car.
+            foreach (float x in new[] { -9f, 0f, 9f })
+                Spot(lights, $"Wash_Back_{x:0}", new Vector3(x, HallHeight - 0.6f, HallBack + 2.2f), new Vector3(x, 1.5f, HallBack), new Color(0.75f, 0.82f, 1f), x == 0f ? 175f : 130f, 19f, 110f, LightShadows.None);
+            foreach (float sx in new[] { -1f, 1f })
+                foreach (float z in new[] { -9f, 0f, 9f })
+                    Spot(lights, $"Wash_Side_{sx:0}_{z:0}", new Vector3(sx * (HallHalfWidth - 2.2f), HallHeight - 0.6f, z), new Vector3(sx * HallHalfWidth, 1.2f, z),
+                         sx < 0f ? new Color(1f, 0.82f, 0.62f) : new Color(0.7f, 0.82f, 1f), 90f, 17f, 110f, LightShadows.None);
+            if (withStreet)
+            {
+                // The street outside the door: a sodium wash on the road and the facade across it (seen when the door lifts).
+                Spot(lights, "Street_Road", new Vector3(-4f, 7f, HallBack - 9f), new Vector3(0f, 0f, HallBack - 6f), new Color(1f, 0.62f, 0.3f), 160f, 18f, 95f, LightShadows.None);
+                Spot(lights, "Street_Facade", new Vector3(6f, 9f, HallBack - 8f), new Vector3(2f, 6f, -36f), new Color(0.75f, 0.6f, 1f), 120f, 25f, 80f, LightShadows.None);
+            }
+            Spot(lights, "PlanningWall", new Vector3(10.5f, 4f, 7f), new Vector3(12.8f, 2.2f, 7f), new Color(0.6f, 0.85f, 1f), 10f, 6f, 90f, LightShadows.None);
+            shell.Key = key;
+            shell.RimCool = rimL;
+            shell.RimWarm = rimR;
+            shell.Stage.AddRange(new[] { key, rimL, rimR });
+            shell.Stage.AddRange(fills);
+            shell.All.AddRange(lights.GetComponentsInChildren<Light>(true));
+
+            // Parking bays for the cars not chosen.
+            shell.Slots = new[] { Slot("ParkedSlot_Left", new Vector3(-8.2f, 0f, -8.5f), 32f), Slot("ParkedSlot_Right", new Vector3(8.2f, 0f, -8.5f), -32f) };
+            foreach (var slot in shell.Slots) slot.SetParent(shell.Root, true);
+            shell.Turntable = turntable;
+            shell.Door = door;
+            return shell;
         }
 
         // ---------------- Materials ----------------
@@ -193,7 +242,10 @@ namespace NeonRift.EditorTools.Frontend
                 LampHead = Load("District_LampHeadSodium"),
             };
             m.Work = Lit("Garage_WorkStrip", Color.white, 0.5f, 0f, emission: new Color(2.2f, 2.1f, 1.9f));
-            m.Screens = Enumerable.Range(0, 4).Select(i => Load($"District_Billboard{i}")).Where(x => x != null).ToArray();
+            // The planning wall: the crew's map of the city with the route to the core, a core schematic, and two feeds.
+            var plan = GaragePlanningWall.Screens();
+            var feeds = Enumerable.Range(0, 2).Select(i => Load($"District_Billboard{i}")).Where(x => x != null).ToList();
+            m.Screens = new[] { plan[0], plan[1], feeds.Count > 0 ? feeds[0] : plan[1], plan[0] };
             return m;
         }
 
@@ -502,8 +554,8 @@ namespace NeonRift.EditorTools.Frontend
             departTarget.position = new Vector3(0f, 1.1f, HallBack - 10f);
             var depart = V("CM_Depart", new Vector3(1.6f, 1.05f, 6.2f), 38f, 0, 0.5f, departTarget);
             var openingLook = new GameObject("OpeningLook").transform;
-            openingLook.position = new Vector3(0.7f, 0.66f, 2.1f);
-            var opening = V("CM_Opening", new Vector3(1.05f, 0.72f, 3.2f), 34f, 0, 0.2f, openingLook);
+            openingLook.position = OpeningLook;
+            var opening = V("CM_Opening", OpeningPosition, OpeningFov, 0, 0.2f, openingLook);
             // The pull-back from the headlight is a long, slow move.
             var blends = ScriptableObject.CreateInstance<CinemachineBlenderSettings>();
             blends.CustomBlends = new[]

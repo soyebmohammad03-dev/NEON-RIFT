@@ -1,5 +1,7 @@
 # Opening cinematic
 
+> October 2026: the intro was reworked into an 84 s story set around the crew's garage. See **The story** below. The older 62 s shot table further down is kept for history.
+
 Game launch → **intro** (real-time, in the city) → **NEON RIFT / NIGHT RUN** title → Enter / A → the camera pushes into the hero car → **Car Select** → Night Run. Original work throughout: no footage, music, dialogue or characters from other games.
 
 ## How it fits the game flow
@@ -35,18 +37,58 @@ Menu: **Neon Rift ▸ Intro ▸ Reset 'Intro Seen'** shows it again on the next 
   - the signal shot from the actual signal lens geometry on W Avenue;
   - the rivals' departure goal from the `core_staging` race marker.
 
-| # | Time (s) | Shot |
+### The story (84 s, October 2026 rework)
+
+The intro now tells the premise without exposition: a crew in a hidden garage on W Avenue goes after the Sector 7 Data Core. It ends inside that same garage, which is also the Car Select hall.
+
+| Time (s) | Section | Shots and beats |
 |---|---|---|
-| 1 | 0–7.5 | Out of black: the city from far away (city ambience, drone) |
-| 2 | 7.5–14.5 | High over Sector 7: scale, skyline, roads, lights (2.5 s blend) |
-| 3 | 14.5–21 | Down into the streets towards the industrial and commercial districts |
-| 4 | 21–30.5 | Lineup: headlight close-up (the lights switch on), slide along the hero car, the three cars from the front (impact on the dip) |
-| 5 | 30.5–37 | The Data Core compound. Card: *IN NEON RIFT, INFORMATION IS POWER.* / *WHOEVER RUNS THE GRID RUNS THE CITY.* |
-| 7 | 37–42 | The Data Core. Card: *TONIGHT, A CREW GOES FOR THE DATA CORE.* / *ONE RUN. NO SECOND CHANCE.* |
-| 8 | 42–46.5 | Security camera on the lineup: CCTV overlay, green grade, scanner beeps, *UNUSUAL ACTIVITY · W AVENUE* |
-| 9 | 46.5–52.5 | Eight 0.75 s cuts with flash and whoosh: ignition (engines start), headlights, wheels (the rivals pull away), street, security gate, traffic signal, Data Core, the avenue. Riser and pulse build |
-| 10 | 52.5–62 | Impact. NEON RIFT, then NIGHT RUN, over W Avenue behind the hero car. From 56 s: hold and **PRESS ENTER · A** |
-| 11 | on Confirm | 2.4 s push-in to the hero car's front three-quarter, fade, then Car Select |
+| 0–9 | Black, then the city | Fade from black to the whole city at night; distant ambience and drone |
+| 9–16 | Down through the skyline | A long descent between towers towards W Avenue |
+| 16–25 | Street life | Low dolly up W Avenue (shopfronts, steam), then signals and signs on Market Street |
+| 25–31 | Security infrastructure | A real street camera (read from the scene), the compound gate. Card: *IN NEON RIFT, INFORMATION IS POWER. / AND THE GRID WATCHES EVERY STREET.* |
+| 31–39.5 | The Data Core | The compound from above, the core. Card: *AT ITS HEART: THE SECTOR 7 DATA CORE. / EVERY SECRET IN THE CITY PASSES THROUGH IT.* |
+| 39.5–43.5 | Surveillance | CCTV view of an anonymous roller door on W Avenue: *UNUSUAL ACTIVITY · W AVENUE · UNIT 7* |
+| 43.5–52.5 | The hidden garage | The door from the street, then inside: the hall's lights strike bank by bank (flicker, clunks), three cars. Card: *TONIGHT, A CREW GOES IN FOR IT. / EXTRACT THE PACKAGE. OUTRUN THE LOCKDOWN.* |
+| 52.5–60 | The cars | The hero's headlight comes on, a slide along it, a rival car in its bay |
+| 60–64 | Crew preparation | The planning wall: a map generated from the real road data with the route to the core, and a core schematic. Card: *THREE CARS. ONE RUN. / NO SECOND CHANCE.* Ignition |
+| 64–71 | Rolling out | The roller door lifts onto the street; the two bay cars drive out and up W Avenue (real physics and engines, `WaypointDriver`) |
+| 71–75.2 | The grid notices | Six 0.7 s cuts with flashes: gate, signal, core, a camera (*VEHICLE MOVEMENT · SECTOR 7 PERIMETER*), the avenue, the compound |
+| 75.2–84 | Title | Across W Avenue, looking into the open, lit garage where the hero waits on the turntable: **NEON RIFT**, **NIGHT RUN**, then **PRESS ENTER · A** |
+| Confirm | Into Car Select | A 4.6 s move through the garage door, round the hero, ending exactly on Car Select's opening frame (same garage, same lens), a short fade, then Car Select opens on that close-up and pulls back |
+
+### The crew garage in the city
+
+The Car Select hall (`GarageBuilder.BuildShell`) now also stands in the city, on the west side of W Avenue, with its roller door facing the avenue (`NightRunBuilder.Garage`, a reserved lot in `CityLayout`). The same building is in both scenes, so leaving the intro for Car Select is a match cut, not a jump to a different place.
+
+- The walls, roof and door collide, and the turntable carries a car.
+- It has its own box-projected reflection probe, baked with the hall lit.
+- The hall's 19 lights are intro-only. During a mission they are off, so they cost nothing and never leak through the walls. A door lamp and two street lamps outside stay on.
+- `CrewGarage` strikes the light banks and lifts the door. `IntroSceneEntry` stands the hero on the turntable and the two rivals in the bays, facing the door.
+- **The Night Run now starts just outside the garage door** (spawn (3.5, −238)). Car Select's departure drives the chosen car out of that door, and the mission picks it up on the avenue.
+
+### Validation (Play Mode)
+
+- Fresh boot → the full intro played to the title (84 s timeline, 25 shots). Frames were captured at every section and the problems found were fixed: shots inside buildings, wrongly mirrored bay headings that pinned the rivals beside the door, a dark exterior, and a weak title framing.
+- Both bay cars drove out and were 200 m up W Avenue by the title.
+- Confirm → push through the door to the headlight close-up → Car Select opened cut, not blended, on the matching close-up, held through the fade and pulled back to the hero shot.
+- Car Select: Right Arrow ×2 (SLS AMG → GT3 → Terzo), Enter → the turntable swings to the door, the Terzo drives out, loading → Night Run with the **Terzo** as the player at the new spawn. The SLS AMG (VEX) and GT3 (KADE) took their roles.
+- Mission regression from the new spawn: 2× `BoulevardInAlleyOut` completed, 0 collisions, 0 rival contacts.
+- A Skip pressed before the Timeline's first evaluation is now deferred a frame. Before this, it was overwritten when the graph was created.
+
+| | | |
+|---|---|---|
+| ![](Screenshots/Intro2/01_03.0s.jpg) | ![](Screenshots/Intro2/02_12.5s.jpg) | ![](Screenshots/Intro2/03_22.5s.jpg) |
+| ![](Screenshots/Intro2/04_26.5s.jpg) | ![](Screenshots/Intro2/05_37.0s.jpg) | ![](Screenshots/Intro2/06_41.0s.jpg) |
+| ![](Screenshots/Intro2/07_48.5s.jpg) | ![](Screenshots/Intro2/08_53.5s.jpg) | ![](Screenshots/Intro2/09_58.5s.jpg) |
+| ![](Screenshots/Intro2/10_61.0s.jpg) | ![](Screenshots/Intro2/11_67.0s.jpg) | ![](Screenshots/Intro2/12_68.5s.jpg) |
+| ![](Screenshots/Intro2/13_80.5s.jpg) | ![](Screenshots/Intro2/14_match_00_4.3s.jpg) (end of the push-in) | ![](Screenshots/Intro2/15_match_05_7.0s.jpg) (Car Select, opening) |
+
+**Known limits:**
+- The street-level shots have no traffic or people yet (city life is a later phase).
+- The garage exterior is a plain box.
+- The music is still the placeholder drone and pulse.
+- The audio balance has not been judged by ear.
 
 ## Audio
 

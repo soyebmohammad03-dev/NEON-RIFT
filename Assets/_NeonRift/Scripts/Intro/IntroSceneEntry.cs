@@ -47,6 +47,20 @@ namespace NeonRift.Intro
         [SerializeField] private float holdTime = 56.5f;
         [SerializeField, Min(0.5f)] private float pushSeconds = 2.4f;
 
+        [Header("Crew garage")]
+        [Tooltip("The garage the crew leaves from (same building as Car Select). When set, the lineup stands in it.")]
+        [SerializeField] private CrewGarage garage;
+        [Tooltip("Confirm: the camera travels along these points (world) from the title shot into the garage, ending on " +
+                 "Car Select's opening frame, so the scene change is a match cut.")]
+        [SerializeField] private Vector3[] pushPath = new Vector3[0];
+        [SerializeField] private Vector3[] pushLookPath = new Vector3[0];
+        [SerializeField] private float pushEndFov = 34f;
+        [Tooltip("Roll-out routes for the two bay cars (world), in departure order.")]
+        [SerializeField] private Vector3[] departureA = new Vector3[0];
+        [SerializeField] private Vector3[] departureB = new Vector3[0];
+        [SerializeField] private float[] departureSpeeds = new float[0];
+        [SerializeField] private float departureGap = 1.6f;
+
         private GameContext context;
         private IntroSettings settings;
         private Phase phase = Phase.Idle;
@@ -56,7 +70,8 @@ namespace NeonRift.Intro
         private Vector3 pushFrom, pushTo, lookFrom, lookTo;
         private Transform pushLook;
         private VideoPlayer video;
-        private bool headlightsOn, enginesOn, departed;
+        private bool headlightsOn, enginesOn, departed, skipPending;
+        private double lastTime;
         private NeonRiftControls.MenuActions menu;
 
         public bool IsPlaying => phase != Phase.Idle;
@@ -99,6 +114,7 @@ namespace NeonRift.Intro
             if (video != null) Destroy(video);
             foreach (var c in cars) if (c != null) Destroy(c.gameObject);
             cars.Clear();
+            if (garage != null) garage.ResetForMission();
             foreach (var l in stageLights) if (l != null) l.enabled = false;
             if (surveillanceVolume != null) surveillanceVolume.weight = 0f;
             if (pushCamera != null) pushCamera.gameObject.SetActive(false);
@@ -134,6 +150,7 @@ namespace NeonRift.Intro
             foreach (var v in catalog.Vehicles) if (v != heroDef) order.Add(v);
             int middle = lineup.Length / 2;
             int next = 0;
+            if (garage != null) middle = 0;   // garage lineup: [0] hero on the turntable, [1] [2] the bays
             for (int i = 0; i < lineup.Length; i++)
             {
                 var def = i == middle ? heroDef : next < order.Count ? order[next++] : null;
@@ -157,6 +174,7 @@ namespace NeonRift.Intro
 
         private void Play(double from)
         {
+            Debug.Log($"[Intro] play from {from:0.0}s (was {(director != null ? director.time : -1):0.00}s, frame {Time.frameCount})");
             phase = Phase.Playing;
             director.time = from;
             director.Play();
@@ -184,6 +202,9 @@ namespace NeonRift.Intro
             {
                 case Phase.Video:
                 case Phase.Playing:
+                    if (skipPending && director.time >= 0.05) SkipToTitle();
+                    if (director.time < lastTime - 1.0) Debug.LogWarning($"[Intro] timeline jumped back {lastTime:0.0}s → {director.time:0.0}s at frame {Time.frameCount}");
+                    lastTime = director.time;
                     if (settings != null && settings.Skippable) overlay.SetSkipHint(phase == Phase.Video);
                     if (phase == Phase.Playing && director.time >= holdTime) EnterTitle();
                     break;
@@ -216,6 +237,14 @@ namespace NeonRift.Intro
         /// <summary>Jumps to the title shot with the world in the state the skipped shots would have left it.</summary>
         public void SkipToTitle()
         {
+            // The Timeline graph is created on the director's first evaluation; a skip in that same frame would be
+            // overwritten, so try again next frame.
+            if (phase == Phase.Playing && director != null && director.time < 0.05)
+            {
+                skipPending = true;
+                return;
+            }
+            skipPending = false;
             if (video != null)
             {
                 video.Stop();
@@ -229,6 +258,11 @@ namespace NeonRift.Intro
             overlay.SetFlash(0f);
             OnCueStart(IntroCueKind.Headlights);
             OnCueStart(IntroCueKind.Ignition);
+            if (garage != null)
+            {
+                garage.LightsOnImmediate();
+                garage.OpenDoor(immediate: true);
+            }
             // The rivals had driven off before the title: in a skip they are simply gone.
             for (int i = cars.Count - 1; i >= 0; i--)
                 if (cars[i] != hero)
@@ -253,14 +287,29 @@ namespace NeonRift.Intro
             director.Pause();
             pushFrom = cam.position;
             lookFrom = cam.position + cam.forward * 20f;
-            if (hero != null)
+            pushStartFov = Camera.main.fieldOfView;
+            if (pushPath.Length >= 1 && pushLookPath.Length == pushPath.Length)
             {
+                // Through the garage door to Car Select's opening frame (a match cut).
+                route.Clear();
+                lookRoute.Clear();
+                route.Add(pushFrom);
+                lookRoute.Add(lookFrom);
+                route.AddRange(pushPath);
+                lookRoute.AddRange(pushLookPath);
+                pushTo = route[^1];
+                lookTo = lookRoute[^1];
+            }
+            else if (hero != null)
+            {
+                route.Clear();
                 Vector3 nose = hero.transform.position + hero.transform.forward * 2.8f + Vector3.up * 0.7f;
                 pushTo = hero.transform.position + hero.transform.forward * 5.2f + hero.transform.right * 2.2f + Vector3.up * 1.0f;
                 lookTo = nose;
             }
             else
             {
+                route.Clear();
                 pushTo = pushFrom + cam.forward * 15f;
                 lookTo = lookFrom;
             }
@@ -269,27 +318,51 @@ namespace NeonRift.Intro
             pushCamera.transform.SetPositionAndRotation(pushFrom, cam.rotation);
             pushCamera.LookAt = pushLook;
             pushCamera.Priority.Value = 1000;
-            pushCamera.Lens.FieldOfView = Camera.main.fieldOfView;
+            pushCamera.Lens.FieldOfView = pushStartFov;
             pushCamera.gameObject.SetActive(true);
             director.Stop();
             pushStart = Time.unscaledTime;
-            Debug.Log("[Intro] confirm: pushing in to the hero car");
+            Debug.Log($"[Intro] confirm: pushing in to the hero car ({(route.Count > 0 ? "through the garage door" : "direct")})");
         }
+
+        private readonly List<Vector3> route = new(), lookRoute = new();
+        private float pushStartFov = 50f;
 
         private void UpdatePushIn()
         {
             float t = Mathf.Clamp01((Time.unscaledTime - pushStart) / pushSeconds);
             float e = t * t * (3f - 2f * t);
-            pushCamera.transform.position = Vector3.Lerp(pushFrom, pushTo, e);
-            pushLook.position = Vector3.Lerp(lookFrom, lookTo, e);
-            overlay.SetTitle(1f - t * 2f, 1f - t * 2f, 1f - t * 2f);
-            overlay.SetFade(Mathf.InverseLerp(0.55f, 1f, t));
+            if (route.Count >= 2)
+            {
+                pushCamera.transform.position = CatmullRom(route, e);
+                pushLook.position = CatmullRom(lookRoute, e);
+                pushCamera.Lens.FieldOfView = Mathf.Lerp(pushStartFov, pushEndFov, e);
+            }
+            else
+            {
+                pushCamera.transform.position = Vector3.Lerp(pushFrom, pushTo, e);
+                pushLook.position = Vector3.Lerp(lookFrom, lookTo, e);
+            }
+            overlay.SetTitle(1f - t * 3f, 1f - t * 3f, 1f - t * 3f);
+            // Fade only at the very end: the frame Car Select opens on is the one we arrive at.
+            overlay.SetFade(Mathf.InverseLerp(route.Count >= 2 ? 0.86f : 0.55f, 1f, t));
             if (t >= 1f && phase == Phase.PushIn)
             {
                 phase = Phase.Leaving;
                 context.Session.MarkIntroArrival();
                 context.Flow.GoToCarSelect();
             }
+        }
+
+        /// <summary>Centripetal-ish Catmull-Rom through <paramref name="points"/> at 0..1 (uniform per segment).</summary>
+        private static Vector3 CatmullRom(List<Vector3> points, float t)
+        {
+            int n = points.Count - 1;
+            float f = Mathf.Clamp01(t) * n;
+            int i = Mathf.Min(n - 1, Mathf.FloorToInt(f));
+            float u = f - i;
+            Vector3 p0 = points[Mathf.Max(0, i - 1)], p1 = points[i], p2 = points[i + 1], p3 = points[Mathf.Min(n, i + 2)];
+            return 0.5f * (2f * p1 + (-p0 + p2) * u + (2f * p0 - 5f * p1 + 4f * p2 - p3) * u * u + (-p0 + 3f * p1 - 3f * p2 + p3) * u * u * u);
         }
 
         // ---------------- Cues ----------------
@@ -311,6 +384,12 @@ namespace NeonRift.Intro
                     break;
                 case IntroCueKind.Departure:
                     Depart();
+                    break;
+                case IntroCueKind.GarageLights:
+                    if (garage != null) garage.LightsOn();
+                    break;
+                case IntroCueKind.DoorOpen:
+                    if (garage != null) garage.OpenDoor();
                     break;
             }
         }
@@ -383,7 +462,23 @@ namespace NeonRift.Intro
         /// <summary>The rival cars pull away through the normal AI driver, so they leave with real physics and engine audio.</summary>
         private void Depart()
         {
-            if (departed || departureTarget == null || navigation == null) return;
+            if (departed) return;
+            if (garage != null && departureA.Length > 1)
+            {
+                // Out of the bays, through the door and north up W Avenue on scripted lines (real physics and audio).
+                departed = true;
+                int k = 0;
+                foreach (var c in cars)
+                {
+                    if (c == null || c == hero) continue;
+                    var path = k == 0 ? departureA : departureB;
+                    var speeds = new List<float>(departureSpeeds);
+                    c.SetInputSource(new WaypointDriver(c, path, speeds, k * departureGap));
+                    k++;
+                }
+                return;
+            }
+            if (departureTarget == null || navigation == null) return;
             departed = true;
             int p = 0;
             foreach (var c in cars)
@@ -403,6 +498,7 @@ namespace NeonRift.Intro
                                     AudioSource[] moreMusic, AudioClip ignition, CityNavigation nav, RacerProfile[] profiles, Transform target,
                                     UIDocument hud, float title, float hold)
         {
+            garage = null;
             director = playableDirector;
             overlay = introOverlay;
             lineup = slots;
@@ -421,6 +517,20 @@ namespace NeonRift.Intro
             missionHud = hud;
             titleTime = title;
             holdTime = hold;
+        }
+
+        public void EditorConfigureGarage(CrewGarage crewGarage, Vector3[] path, Vector3[] look, float endFov, float seconds,
+                                          Vector3[] routeA, Vector3[] routeB, float[] speeds, float gap)
+        {
+            garage = crewGarage;
+            pushPath = path;
+            pushLookPath = look;
+            pushEndFov = endFov;
+            pushSeconds = seconds;
+            departureA = routeA;
+            departureB = routeB;
+            departureSpeeds = speeds;
+            departureGap = gap;
         }
 #endif
     }

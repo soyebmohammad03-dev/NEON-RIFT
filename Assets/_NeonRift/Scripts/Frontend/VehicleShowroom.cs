@@ -153,11 +153,19 @@ namespace NeonRift.Frontend
         }
 
         /// <summary>Opens on the headlight close-up, then pulls back to the hero shot (continuity with the intro's push-in).</summary>
-        public IEnumerator OpeningPullBack()
+        public IEnumerator OpeningPullBack(float holdSeconds = 0.6f)
         {
             if (openingCamera == null) yield break;
+            // Cut (no blend) to the close-up so the first visible frame matches the intro's last one, hold it while the
+            // loading fade clears, then the slow pull-back to the hero shot.
+            var brain = Camera.main != null ? Camera.main.GetComponent<CinemachineBrain>() : null;
+            var blend = brain != null ? brain.DefaultBlend : default;
+            if (brain != null) brain.DefaultBlend = new CinemachineBlendDefinition(CinemachineBlendDefinition.Styles.Cut, 0f);
             SetCamera(openingCamera, 20);
-            yield return Wait(0.6f);
+            yield return null;
+            yield return null;
+            if (brain != null) brain.DefaultBlend = blend;
+            yield return Wait(holdSeconds);
             SetCamera(heroCamera, 12);
         }
 

@@ -28,7 +28,9 @@ namespace NeonRift.EditorTools.District
             "LOCKDOWN", "SECTOR SEALED", "TURN BACK", "DANGER", "CONSTRUCTION", "NIGHT MARKET", "PHARMACY", "PACHINKO",
             "KARAOKE", "SUSHI", "BAR", "CYBERWARE", "TATTOO", "24/7", "DOCK 4", "CARGO", "SPIRE", "ZONE B", "60", "STOP",
             // Regulatory kerb signs.
-            "30", "NO PARKING", "BUS", "LOADING", "ONE WAY"
+            "30", "NO PARKING", "BUS", "LOADING", "ONE WAY",
+            // The crew garage's door plate.
+            "UNIT 7"
         };
         public const int SignAtlasWidth = 1024;
         public const int SignAtlasHeight = 4096;

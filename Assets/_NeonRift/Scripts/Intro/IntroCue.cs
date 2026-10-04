@@ -29,7 +29,11 @@ namespace NeonRift.Intro
         /// <summary>"Skip" hint visible for the clip's length.</summary>
         SkipHint,
         /// <summary>Letterbox bars for the clip's length.</summary>
-        Letterbox
+        Letterbox,
+        /// <summary>One-shot: the crew garage's lights strike, bank by bank.</summary>
+        GarageLights,
+        /// <summary>One-shot: the garage's roller door lifts.</summary>
+        DoorOpen
     }
 
     /// <summary>Receives cue clips from the <see cref="IntroCueTrack"/> (implemented by the intro scene entry).</summary>

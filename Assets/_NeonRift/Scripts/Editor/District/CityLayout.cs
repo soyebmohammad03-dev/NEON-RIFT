@@ -140,6 +140,7 @@ namespace NeonRift.EditorTools.District
         {
             Rect.MinMaxRect(105f, 60f, 215f, 195f),        // Data Core compound
             Rect.MinMaxRect(306f, -477f, 334f, -403f),     // Rift Gate tunnel
+            Rect.MinMaxRect(-44f, -271f, -7f, -239f),      // the crew garage on W Avenue (door and apron onto the avenue)
         };
 
         public static readonly Lot[] Lots =

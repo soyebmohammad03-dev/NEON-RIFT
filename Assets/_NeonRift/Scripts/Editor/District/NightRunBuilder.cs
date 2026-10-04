@@ -52,7 +52,8 @@ namespace NeonRift.EditorTools.District
         public const string NetworkPath = "Assets/_NeonRift/Data/World/RoadNetwork_NightRun.asset";
 
         public static readonly Vector3 CorePosition = new(160f, 0f, 127.5f);
-        public static readonly Vector3 SpawnPosition = new(3.5f, 0f, -292f);
+        /// <summary>Just north of the crew garage's door on W Avenue: the car has pulled out and turned north.</summary>
+        public static readonly Vector3 SpawnPosition = new(3.5f, 0f, -238f);
 
         private sealed class Context
         {
@@ -66,6 +67,7 @@ namespace NeonRift.EditorTools.District
             public readonly List<Light> MissionLights = new();
             public DataCoreChamber Chamber;
             public readonly List<GateLockSystem> GateLocks = new();
+            public readonly List<Light> GarageLights = new();
             public readonly StringBuilder Log = new();
         }
 
@@ -124,6 +126,7 @@ namespace NeonRift.EditorTools.District
                 (CityLayout.HarborCheckpointId, harborCheckpoint), (CityLayout.SkywayGateId, skywayGate)
             });
             BuildSecurityCameras(c);
+            BuildCrewGarage(c);
 
             var (entry, director, camera, chase) = BuildMissionRig(c, core, volumes, navigation);
             if (c.Chamber != null) c.Chamber.EditorSetChaseCamera(chase);
@@ -135,7 +138,10 @@ namespace NeonRift.EditorTools.District
 
             Lightmapping.lightingSettings = LightingSettingsAsset();
             EditorSceneManager.SaveScene(c.Scene, ScenePath);
+            // The garage probe is baked with the hall lit (as in Car Select); its lights are intro-only afterwards.
+            foreach (var l in c.GarageLights) l.enabled = true;
             if (bakeProbes) BakeProbes(c);
+            foreach (var l in c.GarageLights) l.enabled = false;
             EditorSceneManager.SaveScene(c.Scene, ScenePath);
             RegisterInProject(mission, c);
             RemoveStaleMeshes(c);
@@ -1000,8 +1006,8 @@ namespace NeonRift.EditorTools.District
             }
             var slots = new[]
             {
-                new RivalDirector.Slot { spawn = Spawn("RivalSpawn_A", new Vector3(-1.8f, 0f, -296f)), profile = vex },
-                new RivalDirector.Slot { spawn = Spawn("RivalSpawn_B", new Vector3(-1.8f, 0f, -305f)), profile = kade },
+                new RivalDirector.Slot { spawn = Spawn("RivalSpawn_A", new Vector3(-1.8f, 0f, -242f)), profile = vex },
+                new RivalDirector.Slot { spawn = Spawn("RivalSpawn_B", new Vector3(-1.8f, 0f, -251f)), profile = kade },
             };
             RaceMarker Marker(string id, Vector3[] points)
             {
@@ -1178,14 +1184,14 @@ namespace NeonRift.EditorTools.District
             routes.SetParent(dev.transform, false);
             // Lane-centre waypoints (right-hand traffic). The alley weaves through the jersey-barrier chicane.
             var alleyNorth = new[] { V(162, -80), V(162, -66), V(158.2f, -58), V(158.2f, -47), V(161.5f, -38), V(161.5f, 12), V(162.3f, 30), V(160.5f, 50), V(160, 66) };
-            var alleyRoute = Route(routes, "Route_AlleyIn_ExpresswayOut", new List<Vector2> { V(3.5f, -292), V(3.5f, -103) }
+            var alleyRoute = Route(routes, "Route_AlleyIn_ExpresswayOut", new List<Vector2> { V(3.5f, -238), V(3.5f, -103) }
                 .Concat(new[] { V(162, -103) }).Concat(alleyNorth)
                 .Concat(new[] { V(160, 108), V(151.5f, 117), V(151.5f, 138), V(160, 147), V(160, 296.5f), V(315.5f, 296.5f), V(315.5f, -420), V(320, -455), V(320, -470) }).ToList());
             // Southbound takes the same line: the chicane, not the lanes, decides where the car can be.
             var alleySouth = alleyNorth.Reverse().ToArray();
             var boulevardRoute = Route(routes, "Route_BoulevardIn_AlleyOut", new List<Vector2>
                 {
-                    V(3.5f, -292), V(3.5f, 296.5f), V(157, 296.5f), V(157, 150), V(151.5f, 138), V(151.5f, 117), V(158, 106)
+                    V(3.5f, -238), V(3.5f, 296.5f), V(157, 296.5f), V(157, 150), V(151.5f, 138), V(151.5f, 117), V(158, 106)
                 }.Concat(alleySouth).Concat(new[] { V(162, -103), V(315.5f, -103), V(315.5f, -420), V(320, -455), V(320, -470) }).ToList());
             dev.AddComponent<NightRunValidator>().EditorConfigure(alleyRoute, boulevardRoute);
         }

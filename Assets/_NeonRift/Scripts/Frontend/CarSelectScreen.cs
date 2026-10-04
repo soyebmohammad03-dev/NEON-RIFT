@@ -85,7 +85,7 @@ namespace NeonRift.Frontend
             root.AddToClassList("nr-cs--intro");
             yield return null;
             root.RemoveFromClassList("nr-cs--intro");
-            if (context != null && context.Session.ArrivedFromIntro) yield return showroom.OpeningPullBack();
+            if (context != null && context.Session.ArrivedFromIntro) yield return showroom.OpeningPullBack(context.Config.FadeSeconds + 0.6f);
             context?.Session.ClearIntroArrival();
         }
 
