@@ -59,6 +59,13 @@ User volumes are exposed parameters on the parent groups (`AudioMixerService.Set
 
 `GameRoot` switches Menu ↔ Gameplay on game-state changes. The mission director switches to Lockdown when the district locks down and to Results at the end.
 
+## Music (supplied tracks)
+
+- **Gameplay:** `machine-speed-sport-aggressive-electronic.mp3` (111 s, streamed Vorbis) loops on the Score group at a low 0.30 (`MissionAudioSet.musicTrack`). It fades in at the start and out at the end, when the outro plays. It ignores the listener pause, so it keeps playing (ducked by the Ducked snapshot) under the pause menu. When a track is assigned it replaces the procedural stems below, which remain as the fallback.
+- **Opening cinematic:** `danger-chaos-cinematic-trailer-hybrid.mp3` (102 s) is the Timeline's "Soundtrack" track from 0 to 84 s, with a 0.4 s fade-in and a 2.5 s fade-out into Car Select.
+- **Music on/off:** **M** (gamepad **Y**) anywhere in the game. `GameSettings` sets the Music bus to −80 dB or back to the music volume, and saves the choice. The HUD shows `M · MUSIC ON/OFF` at the bottom, and the title shows the hint. The pause menu's Settings page has the same switch plus master / music / effects / interface volumes.
+- The mixer runs on unscaled time, so the pause ducking fades while the game is frozen.
+
 ## Adaptive score
 
 The game's music is original and fully procedural (`ScoreComposer`, editor only; no samples, no licensed material). It is one 8-bar theme in A minor at ≈96 bpm: Am(add9) – Fmaj7 – Dm9 – Esus4 → E, two bars each. The theme is rendered as four stems of exactly the same length (882,048 samples, a whole number of 128-sample ADPCM blocks, so the loop never gains a gap). The tempo is derived from that length (95.995 bpm), so the runtime beat grid matches the audio.

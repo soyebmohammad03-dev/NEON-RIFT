@@ -11,6 +11,8 @@ namespace NeonRift.Frontend
         private Button startButton;
         private Button quitButton;
         private Button introButton;
+        private Button optionsButton;
+        private OptionsMenu options;
 
         public void Enter(GameContext gameContext)
         {
@@ -25,6 +27,10 @@ namespace NeonRift.Frontend
             startButton.clicked += OnStart;
             quitButton.clicked += OnQuit;
             if (introButton != null) introButton.clicked += OnIntro;
+            optionsButton = root.Q<Button>("options-button");
+            if (optionsButton != null) optionsButton.clicked += OnOptions;
+            options = new OptionsMenu(root, context);
+            options.BackFromRoot += () => { options.Close(); startButton.Focus(); };
             startButton.Focus();
         }
 
@@ -33,6 +39,8 @@ namespace NeonRift.Frontend
             if (startButton != null) startButton.clicked -= OnStart;
             if (quitButton != null) quitButton.clicked -= OnQuit;
             if (introButton != null) introButton.clicked -= OnIntro;
+            if (optionsButton != null) optionsButton.clicked -= OnOptions;
+            options?.Close();
             context = null;
         }
 
@@ -41,5 +49,17 @@ namespace NeonRift.Frontend
         private void OnQuit() => context?.Flow.QuitGame();
 
         private void OnIntro() => context?.Flow.PlayIntro();
+
+        /// <summary>Settings and controls, shared with the pause menu.</summary>
+        private void OnOptions()
+        {
+            if (context == null || options.IsOpen) return;
+            options.Open("OPTIONS", new System.Collections.Generic.List<OptionsMenu.Row>
+            {
+                options.Button("SETTINGS", options.PushSettings),
+                options.Button("CONTROLS", options.PushControls),
+                options.Button("BACK", () => { options.Close(); startButton.Focus(); })
+            });
+        }
     }
 }

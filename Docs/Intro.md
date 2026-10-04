@@ -94,7 +94,7 @@ The Car Select hall (`GarageBuilder.BuildShell`) now also stands in the city, on
 Original and procedural (`IntroAudioGenerator`, `Audio/Generated/Intro`):
 
 - **Sound effects:** riser, impact, whoosh, scanner beeps, ignition.
-- **Music:** the game's own theme from `ScoreComposer` (see Audio.md): `Intro_Bed` (pad, from 0.5 s to the title) and `Intro_Groove` (pulse and arpeggio, from 62.6 s). The groove's `clipIn` puts it on the bed's bar and chord.
+- **Music:** the supplied trailer track `danger-chaos-cinematic-trailer-hybrid.mp3` on the "Soundtrack" Timeline track, 0–84 s, with a 2.5 s fade-out. If it is missing, the builder falls back to the game's own procedural theme (`Intro_Bed` / `Intro_Groove`).
 - **Ambience:** the existing city ambience.
 - **Engines:** the cars' own engine audio starts at the ignition cue.
 

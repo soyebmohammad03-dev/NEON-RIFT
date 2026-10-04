@@ -78,6 +78,8 @@ namespace NeonRift.Gameplay
             }
             scenario = run;
             autopilot = new RouteAutopilot(route, vehicle) { SpeedScale = 1f, PlannedDeceleration = 7f };
+            trafficMask = LayerMask.GetMask("Traffic");
+            TrafficBrakes = 0;
             foreach (var receiver in vehicle.GetComponentsInChildren<IVehicleInputReceiver>()) receiver.SetInputSource(input);
             director.InteractionInputOverride = () => held;
             director.Progress.ObjectiveStarted += o => Note(o != null ? $"objective → {o.Id} ({o.Title}){(director.Progress.HasTimer ? $" timer {director.Progress.TimeRemaining:0.0}s" : string.Empty)}" : "objectives done");
@@ -146,7 +148,7 @@ namespace NeonRift.Gameplay
                         Enter(Stage.Parked);
                         break;
                     }
-                    input.Current = autopilot.ReadInput();
+                    input.Current = FollowTraffic(autopilot.ReadInput());
                     if (traceInterval > 0f && Time.time >= nextTrace)
                     {
                         nextTrace = Time.time + traceInterval;
@@ -237,6 +239,29 @@ namespace NeonRift.Gameplay
         /// Brake while rolling forwards, handbrake for the last few km/h and at a standstill. Holding the brake pedal
         /// near a standstill selects reverse, and in reverse the brake pedal drives backwards.
         /// </summary>
+        /// <summary>
+        /// The scripted line takes no notice of other cars; like a driver, brake for city traffic on that line ahead
+        /// (it would otherwise rear-end slower cars at full speed and wedge itself).
+        /// </summary>
+        private DrivingInput FollowTraffic(DrivingInput drive)
+        {
+            var body = vehicle.Body;
+            Vector3 fwd = vehicle.transform.forward;
+            float v = Vector3.Dot(body.linearVelocity, fwd);
+            if (v < 3f) return drive;
+            Vector3 origin = body.position + Vector3.up * 0.8f + fwd * 2.6f;
+            if (!Physics.SphereCast(origin, 1.1f, fwd, out var hit, 6f + v * 1.3f, trafficMask, QueryTriggerInteraction.Ignore)) return drive;
+            float theirs = hit.rigidbody != null ? Mathf.Max(0f, Vector3.Dot(hit.rigidbody.linearVelocity, fwd)) : 0f;
+            float safe = Mathf.Sqrt(theirs * theirs + 2f * 7f * Mathf.Max(0f, hit.distance - 4f));
+            if (v <= safe) return drive;
+            TrafficBrakes++;
+            return new DrivingInput { Steer = drive.Steer, Brake = Mathf.Clamp((v - safe) / 6f, 0.15f, 0.6f) };
+        }
+
+        private int trafficMask = -1;
+        /// <summary>Frames on which the driver braked for traffic ahead (report).</summary>
+        public int TrafficBrakes { get; private set; }
+
         private DrivingInput Hold() => vehicle.Telemetry.ForwardSpeed > 2f ? new DrivingInput { Brake = 1f } : new DrivingInput { Handbrake = true };
 
         private void CheckStall()
@@ -271,7 +296,7 @@ namespace NeonRift.Gameplay
             if (progress != null)
                 report.AppendLine($"  result {progress.Phase}, elapsed {progress.Elapsed:0.0}s, heat {progress.Heat:0.00}, security {progress.Security}, " +
                                   $"objective {progress.ObjectiveIndex}/{progress.Definition.Objectives.Count}, interactions {interactions}, " +
-                                  $"collisions {collisions} (max impact {maxImpact:0.0} m/s)");
+                                  $"collisions {collisions} (max impact {maxImpact:0.0} m/s), braked for traffic {TrafficBrakes} frames");
             var rivals = FindAnyObjectByType<RivalDirector>();
             if (rivals != null && rivals.HasRivals) report.Append(rivals.DescribeAi());
             report.Append(log);

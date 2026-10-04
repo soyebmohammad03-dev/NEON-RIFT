@@ -39,7 +39,10 @@ namespace NeonRift.Gameplay
         /// <summary>The navigator's map (dev tooling reads its state).</summary>
         public CityMinimap Minimap => minimap;
         private float nextMinimapRepaint;
-        private string lastStreet, lastDistrict, lastRoute, lastGap;
+        private string lastStreet, lastDistrict, lastRoute, lastGap, lastStreetRaw;
+        private int lastRouteKey = int.MinValue, lastHeatPercent = -1;
+        private SecurityLevel? lastSecurity;
+        private readonly List<int> raceRowKeys = new();
         private int lastRacePosition = -1;
         private readonly List<(Label label, float expires)> activeToasts = new();
         private float bannerHideAt;
@@ -49,6 +52,18 @@ namespace NeonRift.Gameplay
         public event Action RetryClicked;
         public event Action ContinueClicked;
         public bool ResultsVisible => results != null && !results.ClassListContains("nr-hidden");
+        /// <summary>The HUD's root element (the pause menu overlays it).</summary>
+        public VisualElement Root => root;
+
+        /// <summary>Bottom hint: "M  MUSIC ON / OFF".</summary>
+        public void SetMusicHint(bool on)
+        {
+            var hint = root?.Q<Label>("music-hint");
+            if (hint == null) return;
+            hint.text = on ? "M  ·  MUSIC ON" : "M  ·  MUSIC OFF";
+            hint.EnableInClassList("nr-music-hint--off", !on);
+        }
+
         public bool BriefingVisible => briefing != null && briefing.ClassListContains("nr-brief--in");
 
         /// <summary>The operation card shown as a mission starts.</summary>
@@ -184,6 +199,10 @@ namespace NeonRift.Gameplay
             banner.RemoveFromClassList("nr-banner--visible");
             SetLetterbox(false);
             frame.style.opacity = 0f;
+            lastSecurity = null;
+            lastHeatPercent = -1;
+            lastRouteKey = int.MinValue;
+            raceRowKeys.Clear();
             toasts.Clear();
             activeToasts.Clear();
             SetSecurity(SecurityLevel.Calm, 0f);
@@ -241,10 +260,20 @@ namespace NeonRift.Gameplay
         {
             if (minimap == null) return;
             if (district != lastDistrict) { lastDistrict = district; navDistrict.text = district ?? string.Empty; }
-            string s = string.IsNullOrEmpty(street) ? "—" : street.ToUpperInvariant();
-            if (s != lastStreet) { lastStreet = s; navStreet.text = s; }
-            string r = route != null && route.Count > 1 ? $"ROUTE  {Mathf.RoundToInt(routeMetres / 10f) * 10} M" : hasTarget ? "NO OPEN ROUTE" : string.Empty;
-            if (r != lastRoute) { lastRoute = r; navRoute.text = r; }
+            // Strings are only built when the underlying value changes (no allocation per frame).
+            if (!ReferenceEquals(street, lastStreetRaw) || lastStreet == null)
+            {
+                lastStreetRaw = street;
+                string s = string.IsNullOrEmpty(street) ? "—" : street.ToUpperInvariant();
+                if (s != lastStreet) { lastStreet = s; navStreet.text = s; }
+            }
+            int routeKey = route != null && route.Count > 1 ? Mathf.RoundToInt(routeMetres / 10f) * 10 : hasTarget ? -1 : -2;
+            if (routeKey != lastRouteKey)
+            {
+                lastRouteKey = routeKey;
+                lastRoute = routeKey >= 0 ? $"ROUTE  {routeKey} M" : routeKey == -1 ? "NO OPEN ROUTE" : string.Empty;
+                navRoute.text = lastRoute;
+            }
             navigator.EnableInClassList("nr-nav--lockdown", lockdown);
             if (Time.unscaledTime < nextMinimapRepaint) return;
             nextMinimapRepaint = Time.unscaledTime + 1f / 15f;
@@ -283,8 +312,14 @@ namespace NeonRift.Gameplay
                 bool used = i < rows.Count;
                 Show(l, used);
                 if (!used) continue;
-                string text = $"{i + 1}  {rows[i].name}{(rows[i].finished ? "  ·  OUT" : string.Empty)}";
-                if (l.text != text) l.text = text;
+                // Rebuild the row text only when its racer or finished flag changes.
+                int key = (rows[i].name?.GetHashCode() ?? 0) * 31 + (rows[i].finished ? 1 : 0);
+                if (i >= raceRowKeys.Count) raceRowKeys.Add(int.MinValue);
+                if (raceRowKeys[i] != key)
+                {
+                    raceRowKeys[i] = key;
+                    l.text = $"{i + 1}  {rows[i].name}{(rows[i].finished ? "  ·  OUT" : string.Empty)}";
+                }
                 l.EnableInClassList("nr-race__row--player", rows[i].player);
                 l.EnableInClassList("nr-race__row--finished", rows[i].finished);
             }
@@ -363,11 +398,15 @@ namespace NeonRift.Gameplay
 
         public void SetSecurity(SecurityLevel level, float heat)
         {
+            int percent = Mathf.RoundToInt(Mathf.Clamp01(heat) * 100f);
+            if (level == lastSecurity && percent == lastHeatPercent) return;
+            lastSecurity = level;
+            lastHeatPercent = percent;
             securityState.text = level switch { SecurityLevel.Lockdown => "LOCKDOWN", SecurityLevel.Alert => "ALERT", _ => "CALM" };
             security.EnableInClassList("nr-security--alert", level == SecurityLevel.Alert);
             security.EnableInClassList("nr-security--lockdown", level == SecurityLevel.Lockdown);
-            heatFill.style.width = Length.Percent(Mathf.Clamp01(heat) * 100f);
-            heatLabel.text = $"HEAT {Mathf.RoundToInt(heat * 100f)}%";
+            heatFill.style.width = Length.Percent(percent);
+            heatLabel.text = $"HEAT {percent}%";
             frame.style.opacity = level == SecurityLevel.Lockdown ? 1f : 0f;
         }
 

@@ -42,6 +42,12 @@ namespace NeonRift.EditorTools.District
 
         public Dictionary<Use, int> Counts { get; } = System.Enum.GetValues(typeof(Use)).Cast<Use>().ToDictionary(u => u, _ => 0);
         public int Vehicles { get; private set; }
+        /// <summary>
+        /// Parking spots for real, physical cars (x, y, z = bay centre at ground level, w = yaw in degrees). Sedan and
+        /// hatch bays in lots, garage decks and kerbside runs are recorded here instead of being built as static
+        /// meshes; <c>CityTraffic</c> fills the ones near the player with pack cars.
+        /// </summary>
+        public List<Vector4> CarSpots { get; } = new();
         public int YardLamps { get; private set; }
         public float FilledArea { get; private set; }
         public float FreeAreaBefore { get; private set; }
@@ -798,6 +804,12 @@ namespace NeonRift.EditorTools.District
         /// </summary>
         private void Vehicle(Vector3 p, Quaternion rot, Kind kind)
         {
+            if (kind is Kind.Sedan or Kind.Hatch)
+            {
+                CarSpots.Add(new Vector4(p.x, p.y, p.z, rot.eulerAngles.y));
+                Vehicles++;
+                return;
+            }
             // Cars and vans are below the shadow budget's interest (soft moon shadows, Detail layer); trucks still cast.
             bool shadows = kind == Kind.BoxTruck;
             MeshBuilder Mat(Material m) => shadows ? detail[m] : detail.Unshadowed(m);

@@ -40,6 +40,8 @@ MonoBehaviour:
   - eventId: core.breached
     clip: {fileID: 8300000, guid: 5dc08ced53a9f4e699749188ebd37ebb, type: 3}
     volume: 1
+  musicTrack: {fileID: 8300000, guid: b4243b000ca20432eac9259f0c4225ae, type: 3}
+  musicTrackVolume: 0.3
   scoreStems:
   - {fileID: 8300000, guid: 3d6191f1cc89146cea0582c2e65c8e91, type: 3}
   - {fileID: 8300000, guid: 15aa7ef1fd772410d888ccf84aa8ba8d, type: 3}

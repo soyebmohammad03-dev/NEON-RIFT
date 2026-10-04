@@ -1139,6 +1139,11 @@ namespace NeonRift.EditorTools.District
             rp.cascade2Split = 0.3f;
             EditorUtility.SetDirty(rp);
             var so = new SerializedObject(rp);
+            // Soft-shadow filtering Low: the GPU bench in the lockdown escape measured −37 % GPU time against High
+            // (median 18.5 → 11.0 ms at 1080p) with no visible difference (mean 0.48/255 per pixel). See Docs/Performance.md.
+            var softQuality = so.FindProperty("m_SoftShadowQuality");
+            softQuality.enumValueIndex = System.Array.IndexOf(softQuality.enumNames, "Low");
+            so.ApplyModifiedPropertiesWithoutUndo();
             var list = so.FindProperty("m_RendererDataList");
             for (int i = 0; i < list.arraySize; i++)
                 if (list.GetArrayElementAtIndex(i).objectReferenceValue is ScriptableRendererData data)
@@ -1153,7 +1158,7 @@ namespace NeonRift.EditorTools.District
                             f.ApplyModifiedPropertiesWithoutUndo();
                         }
             AssetDatabase.SaveAssets();
-            c.Log.AppendLine($"  pipeline: HDR grading, MSAA {rp.msaaSampleCount}x, shadow distance {rp.shadowDistance} m, {rp.shadowCascadeCount} cascades");
+            c.Log.AppendLine($"  pipeline: HDR grading, MSAA {rp.msaaSampleCount}x, shadow distance {rp.shadowDistance} m, {rp.shadowCascadeCount} cascades, soft shadows {softQuality.enumNames[softQuality.enumValueIndex]}");
         }
 
         /// <summary>Deletes generated district meshes the rebuilt scene and prefabs no longer use (from disk, no dialogs).</summary>

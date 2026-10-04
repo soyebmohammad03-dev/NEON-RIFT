@@ -15,9 +15,13 @@ namespace NeonRift.Game
         public NeonRiftControls Controls { get; }
         /// <summary>Mixer snapshots and user volumes.</summary>
         public AudioMixerService Audio { get; }
+        /// <summary>Volumes, music on/off and graphics options (persisted).</summary>
+        public GameSettings Settings { get; }
 
-        public GameContext(GameConfig config, RunSession session, IGameFlow flow, NeonRiftControls controls, AudioMixerService audio)
+        public GameContext(GameConfig config, RunSession session, IGameFlow flow, NeonRiftControls controls, AudioMixerService audio,
+                           GameSettings settings = null)
         {
+            Settings = settings ?? new GameSettings(audio);
             Config = config;
             Session = session;
             Flow = flow;

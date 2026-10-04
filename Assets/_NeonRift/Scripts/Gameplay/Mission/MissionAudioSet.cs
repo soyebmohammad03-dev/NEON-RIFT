@@ -38,6 +38,14 @@ namespace NeonRift.Gameplay
         [Tooltip("Stingers played when a world event fires (data acquired, breach detected …).")]
         [SerializeField] private EventStinger[] eventStingers = System.Array.Empty<EventStinger>();
 
+        [Header("Music")]
+        [Tooltip("Gameplay background music (licensed track in ThirdParty/SoundAudio). When set it replaces the procedural score stems.")]
+        [SerializeField] private AudioClip musicTrack;
+        [SerializeField, Range(0f, 1f)] private float musicTrackVolume = 0.3f;
+
+        public AudioClip MusicTrack => musicTrack;
+        public float MusicTrackVolume => musicTrackVolume;
+
         [Header("Score")]
         [Tooltip("Adaptive score stems (Bed, Pulse, Arp, Drive): the same length and tempo, layered sample-locked.")]
         [SerializeField] private AudioClip[] scoreStems = System.Array.Empty<AudioClip>();
@@ -97,6 +105,12 @@ namespace NeonRift.Gameplay
         };
 
 #if UNITY_EDITOR
+        public void EditorConfigureMusic(AudioClip track, float volume)
+        {
+            musicTrack = track;
+            musicTrackVolume = volume;
+        }
+
         public void EditorConfigureScore(AudioClip[] stems, AudioClip success, AudioClip failure, float bpm)
         {
             scoreStems = stems;

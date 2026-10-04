@@ -117,19 +117,33 @@ The night look (sky, fog, skyline rings, lamp levels, Volume grade) and its befo
 | Alarm | — | 10 sirens, beacons on gates |
 | HUD | Cyan route | Magenta route, closed gates red on the minimap, lockdown frame |
 
-## City life (lightweight)
+## City life
 
-Signs of life without a traffic or pedestrian simulation. None of these have physics or colliders, and each system runs one `Update` for its whole set with no per-frame allocations. Built by `NightRunBuilder.CityLife.cs`.
+Traffic uses real cars with physics. Pedestrians and drones stay lightweight. Built by `NightRunBuilder.CityLife.cs`.
 
 | System | What it is | Rules |
 |---|---|---|
-| `AmbientTraffic` | 40 pooled low-poly cars (5 meshes, 6 paints) with lit head and tail lamps. They drive the road graph's kerb-side lanes and avoid alleys, service roads and tunnels | Dealt out 70–300 m around the player when the mission binds. A car stops for the player or a rival within 45 m ahead in its lane. Cars near the player are recycled further out once off screen; new cars appear behind the camera when close. A car the player drives into is recycled at once, so nothing ghosts through a driver. Cars beyond 420 m are recycled closer. In a lockdown they pull over and flash their hazards |
+| `CityTraffic` + `TrafficCar` | Cars from the **generic passenger car pack** (10 models assembled into prefabs by `TrafficCarBuilder`: body + its four wheels re-framed, URP materials from the pack's textures, box collider, Rigidbody 1350–1900 kg). **14 roaming** + **26 parked**, tinted variants | **Physics:** four raycast springs (ride height, pitch and roll), lateral tyre grip up to ~0.95 g, drive/brake force, yaw steering toward the lane. **Roaming:** kerb-side lane of the road graph (no alleys, service roads, tunnels or the Data Core compound), slow for corners, keep a braking distance from anything ahead (other traffic, the player, the rivals: forward sphere cast), **give way at junctions** when the player or a rival will reach it within ~3.5 s, pull over and stop in a lockdown. **Parked:** 2,073 bays recorded from the parking lots and garage decks (they replaced the static block cars). The nearest 26 to the player are filled; parked cars are kinematic until something hits them. **Collisions:** the Traffic layer ignores itself (traffic never collides with traffic) but collides with the player, the rivals and the world. A hit makes the car dynamic, shunts and spins it with the momentum share of the hitting car, plays an impact sound by strength and stops it driving for 2.5–7 s, after which it rejoins the nearest road. **Pooling:** cars are only placed or recycled out of the camera's view (no popping): far away, overturned, stuck, or disturbed and left behind. **Sound:** a 3D engine loop pitched by speed (low voice priority) and impact one-shots. Rivals' obstacle probes include the Traffic layer |
 | `CrowdGroups` | 62 groups, 270 static figures (Detail layer) on plazas, the night market and pavements | A group steps out of sight when the player comes within 16 m; it never stands in the road. A slow sway; six groups are checked per frame |
 | `SecurityDrones` | 4 drones with red and blue strobes and a searchlight spot | Dormant until `core.extract.trace` or a lockdown. They then lift off from the Data Core and orbit a point that trails the player at altitude, sweeping the street |
 
-Validation: the BoulevardInAlleyOut heist with all three systems running gave 0 player collisions and 0 rival contacts. Traffic is visible on W Avenue and the boulevard during the run.
+Validation (Play Mode): every heist scenario completes with traffic live, 14 roaming and 26 parked, 29 cars within 150 m of the player. A scripted crash into a parking row woke four parked cars: they were shoved, took 2–4 hits each and came to rest upright. The scripted validation driver follows a fixed line and does not steer around traffic, so its runs now include some traffic contacts. A player steers around them. The validation driver brakes for traffic on its line (gently, so following rivals can react).
 
-![Traffic on the run](Screenshots/Life/traffic_run_sheet.png)
+Two causes found and fixed on the way:
+- **Stranded at the compound gate.** The approach road ends at the gated compound, which traffic is excluded from. Cars drove up the spur and stopped at its end, blocking the player and VEX. Dead ends are now pruned from the traffic network: nodes with one drivable edge are removed repeatedly until none remain.
+- **Crossing in front of the player.** Traffic now gives way at junctions to the player and the rivals.
+
+Final regression series with traffic (`MissionSeries`, Play Mode):
+
+| Run | Scenario | Result | Player collisions | Rival contacts |
+|---|---|---|---|---|
+| 1 | BoulevardInAlleyOut | Completed 132.5 s | 0 | 0 |
+| 2 | AlleyInExpresswayOut | Ends at the sealed expressway checkpoint (by design) | 2 (the barrier) | 0 |
+| 3 | BoulevardInAlleyOut | Completed 127.6 s | 0 | 0 |
+
+![Pack traffic at a junction](Screenshots/Life/pack_traffic_junction.png)
+![Parked pack cars after a crash](Screenshots/Life/pack_parked_crash.png)
+![The ten pack cars](Screenshots/Life/pack_lineup.png)
 ![Drones over the compound](Screenshots/Life/drones_lockdown.png)
 ![Plaza crowd](Screenshots/Life/crowd_plaza.png)
 

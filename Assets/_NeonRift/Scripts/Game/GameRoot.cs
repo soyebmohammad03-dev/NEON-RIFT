@@ -1,6 +1,7 @@
 using System;
 using NeonRift.Audio;
 using NeonRift.Input;
+using UnityEngine.InputSystem;
 using UnityEngine;
 
 namespace NeonRift.Game
@@ -18,6 +19,8 @@ namespace NeonRift.Game
         private NeonRiftControls controls;
         private GameFlow flow;
         private AudioMixerService audio;
+        private GameSettings settings;
+        private UnityEngine.InputSystem.InputAction musicToggle;
 
         private void Awake()
         {
@@ -31,8 +34,18 @@ namespace NeonRift.Game
             controls = new NeonRiftControls();
             var session = new RunSession();
             audio = new AudioMixerService(config.AudioMixer);
+            // Snapshot fades must run while the game is paused (time scale 0).
+            if (config.AudioMixer != null && config.AudioMixer.Mixer != null) config.AudioMixer.Mixer.updateMode = UnityEngine.Audio.AudioMixerUpdateMode.UnscaledTime;
             flow = new GameFlow(config, session, loadingOverlay);
-            flow.Initialize(new GameContext(config, session, flow, controls, audio));
+            settings = new GameSettings(audio);
+            settings.Load();
+            flow.Initialize(new GameContext(config, session, flow, controls, audio, settings));
+            // M (or gamepad Y) toggles the music anywhere in the game.
+            musicToggle = new UnityEngine.InputSystem.InputAction("ToggleMusic", UnityEngine.InputSystem.InputActionType.Button);
+            musicToggle.AddBinding("<Keyboard>/m");
+            musicToggle.AddBinding("<Gamepad>/buttonNorth");
+            musicToggle.performed += _ => settings.ToggleMusic();
+            musicToggle.Enable();
             flow.StateChanged += OnStateChanged;
         }
 
@@ -43,6 +56,9 @@ namespace NeonRift.Game
         private async void Start()
         {
             if (flow == null) return;
+            // Mixer parameters set in Awake are ignored; apply the saved settings here.
+            settings.ApplyAudio();
+            settings.ApplyGraphics();
             try
             {
                 await flow.BootAsync(gameObject.scene);
@@ -60,6 +76,7 @@ namespace NeonRift.Game
         {
             if (flow != null) flow.StateChanged -= OnStateChanged;
             controls?.Dispose();
+            musicToggle?.Dispose();
         }
     }
 }

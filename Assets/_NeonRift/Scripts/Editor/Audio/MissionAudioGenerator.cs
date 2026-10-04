@@ -18,6 +18,8 @@ namespace NeonRift.EditorTools.Audio
     public static class MissionAudioGenerator
     {
         public const string ClipFolder = VehicleAudioGenerator.ClipRoot + "/Mission";
+        public const string GameplayMusicPath = "Assets/ThirdParty/SoundAudio/machine-speed-sport-aggressive-electronic.mp3";
+        public const string IntroMusicPath = "Assets/ThirdParty/SoundAudio/danger-chaos-cinematic-trailer-hybrid.mp3";
         public const string SetPath = "Assets/_NeonRift/Data/Missions/MissionAudio_NightRun.asset";
         private const float Tau = Mathf.PI * 2f;
 
@@ -78,6 +80,10 @@ namespace NeonRift.EditorTools.Audio
             };
             set.EditorConfigureScore(stems, Save("Score_OutroSuccess", ScoreComposer.OutroSuccess(), false, log),
                 Save("Score_OutroFailure", ScoreComposer.OutroFailure(), false, log), ScoreComposer.Bpm);
+            // Gameplay background music: the licensed track supplied with the project, kept low under the driving.
+            var track = AssetDatabase.LoadAssetAtPath<AudioClip>(GameplayMusicPath);
+            set.EditorConfigureMusic(track, 0.3f);
+            log.AppendLine(track != null ? $"  music: {track.name} ({track.length:0}s) at 0.30" : "  music: track missing, procedural score");
             EditorUtility.SetDirty(set);
             AssetDatabase.SaveAssets();
             clips.Set = set;

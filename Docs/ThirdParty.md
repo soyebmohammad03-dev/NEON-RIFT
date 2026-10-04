@@ -94,6 +94,14 @@ Notes:
 - The Asian pack's `WINDOW_MASK` textures were kept for the window-lighting shader in the lighting phase.
 - `.blend`, `.blend1`, `.obj` and `.mtl` source files were not imported. Unity would try to open the `.blend` files with Blender.
 
+## Supplied by the project owner (October 2026)
+
+| Asset | Path | Use | Notes |
+|---|---|---|---|
+| Generic passenger car pack (10 cars: compact, coupe, hatchback, minivan, off-roader, pickup, sedan, sport, SUV, wagon) | `Assets/ThirdParty/Sketchfab/Vehicles/generic-passenger-car-pack` | City traffic (`TrafficCarBuilder` → `Prefabs/Traffic`) | One FBX (`source/fab.fbx`) and textures; no licence or author file is included in the folder. Record the source and licence here before any distribution. |
+| `machine-speed-sport-aggressive-electronic.mp3` (111 s) | `Assets/ThirdParty/SoundAudio` | Gameplay background music (`MissionAudioSet.musicTrack`, volume 0.30, streamed) | No licence file included; record the source and licence. |
+| `danger-chaos-cinematic-trailer-hybrid.mp3` (102 s) | `Assets/ThirdParty/SoundAudio` | Opening cinematic soundtrack (Timeline track "Soundtrack", 0–84 s, 2.5 s fade-out) | No licence file included; record the source and licence. |
+
 ## Known issues carried forward
 
 1. **NaN pixels on smooth/emissive surfaces at runtime** (flat cyan). Mitigated by *Stop NaN* on all scene cameras and by remapping glTFast clearcoat materials. Root cause to be found in the lighting phase using the Rendering Debugger.

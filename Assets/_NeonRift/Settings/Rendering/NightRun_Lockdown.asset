@@ -1,6 +1,71 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!114 &-9000205647544291154
+--- !u!114 &-8530335281242360158
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 81180773991d8724ab7f2d216912b564, type: 3}
+  m_Name: ChromaticAberration
+  m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Runtime::UnityEngine.Rendering.Universal.ChromaticAberration
+  active: 1
+  intensity:
+    m_OverrideState: 1
+    m_Value: 0.07
+--- !u!114 &-5723950650390782069
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fcd77264108d84502a21dbca607f4fd9, type: 3}
+  m_Name: GroundHaze
+  m_EditorClassIdentifier: NeonRift.Rendering::NeonRift.Rendering.GroundHaze
+  active: 1
+  density:
+    m_OverrideState: 1
+    m_Value: 0
+  baseHeight:
+    m_OverrideState: 1
+    m_Value: 0
+  falloff:
+    m_OverrideState: 1
+    m_Value: 20
+  startDistance:
+    m_OverrideState: 1
+    m_Value: 35
+  color:
+    m_OverrideState: 1
+    m_Value: {r: 0.11, g: 0.05, b: 0.05, a: 1}
+  maxOpacity:
+    m_OverrideState: 1
+    m_Value: 0.8
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d7fd9488000d3734a9e00ee676215985, type: 3}
+  m_Name: NightRun_Lockdown
+  m_EditorClassIdentifier: Unity.RenderPipelines.Core.Runtime::UnityEngine.Rendering.VolumeProfile
+  components:
+  - {fileID: 1509276046942940275}
+  - {fileID: 2144439441677254957}
+  - {fileID: -8530335281242360158}
+  - {fileID: 4977215069267988835}
+  - {fileID: -5723950650390782069}
+--- !u!114 &1509276046942940275
 MonoBehaviour:
   m_ObjectHideFlags: 3
   m_CorrespondingSourceObject: {fileID: 0}
@@ -28,7 +93,7 @@ MonoBehaviour:
   saturation:
     m_OverrideState: 1
     m_Value: 2
---- !u!114 &-8976351939541379053
+--- !u!114 &2144439441677254957
 MonoBehaviour:
   m_ObjectHideFlags: 3
   m_CorrespondingSourceObject: {fileID: 0}
@@ -37,14 +102,26 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 81180773991d8724ab7f2d216912b564, type: 3}
-  m_Name: ChromaticAberration
-  m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Runtime::UnityEngine.Rendering.Universal.ChromaticAberration
+  m_Script: {fileID: 11500000, guid: 899c54efeace73346a0a16faa3afe726, type: 3}
+  m_Name: Vignette
+  m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Runtime::UnityEngine.Rendering.Universal.Vignette
   active: 1
+  color:
+    m_OverrideState: 1
+    m_Value: {r: 0.22, g: 0, b: 0.02, a: 1}
+  center:
+    m_OverrideState: 1
+    m_Value: {x: 0.5, y: 0.5}
   intensity:
     m_OverrideState: 1
-    m_Value: 0.07
---- !u!114 &-3074572628861261411
+    m_Value: 0.38
+  smoothness:
+    m_OverrideState: 1
+    m_Value: 0.2
+  rounded:
+    m_OverrideState: 1
+    m_Value: 0
+--- !u!114 &4977215069267988835
 MonoBehaviour:
   m_ObjectHideFlags: 3
   m_CorrespondingSourceObject: {fileID: 0}
@@ -94,80 +171,3 @@ MonoBehaviour:
   dirtIntensity:
     m_OverrideState: 1
     m_Value: 0
---- !u!114 &-2594287120166927581
-MonoBehaviour:
-  m_ObjectHideFlags: 3
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 899c54efeace73346a0a16faa3afe726, type: 3}
-  m_Name: Vignette
-  m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Runtime::UnityEngine.Rendering.Universal.Vignette
-  active: 1
-  color:
-    m_OverrideState: 1
-    m_Value: {r: 0.22, g: 0, b: 0.02, a: 1}
-  center:
-    m_OverrideState: 1
-    m_Value: {x: 0.5, y: 0.5}
-  intensity:
-    m_OverrideState: 1
-    m_Value: 0.38
-  smoothness:
-    m_OverrideState: 1
-    m_Value: 0.2
-  rounded:
-    m_OverrideState: 1
-    m_Value: 0
---- !u!114 &11400000
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d7fd9488000d3734a9e00ee676215985, type: 3}
-  m_Name: NightRun_Lockdown
-  m_EditorClassIdentifier: Unity.RenderPipelines.Core.Runtime::UnityEngine.Rendering.VolumeProfile
-  components:
-  - {fileID: -9000205647544291154}
-  - {fileID: -2594287120166927581}
-  - {fileID: -8976351939541379053}
-  - {fileID: -3074572628861261411}
-  - {fileID: 3139977033445419292}
---- !u!114 &3139977033445419292
-MonoBehaviour:
-  m_ObjectHideFlags: 3
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fcd77264108d84502a21dbca607f4fd9, type: 3}
-  m_Name: GroundHaze
-  m_EditorClassIdentifier: NeonRift.Rendering::NeonRift.Rendering.GroundHaze
-  active: 1
-  density:
-    m_OverrideState: 1
-    m_Value: 0
-  baseHeight:
-    m_OverrideState: 1
-    m_Value: 0
-  falloff:
-    m_OverrideState: 1
-    m_Value: 20
-  startDistance:
-    m_OverrideState: 1
-    m_Value: 35
-  color:
-    m_OverrideState: 1
-    m_Value: {r: 0.11, g: 0.05, b: 0.05, a: 1}
-  maxOpacity:
-    m_OverrideState: 1
-    m_Value: 0.8

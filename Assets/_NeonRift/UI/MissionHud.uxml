@@ -88,6 +88,8 @@
             <ui:Label name="vehicle-name" class="nr-speedo__vehicle" picking-mode="Ignore" />
         </ui:VisualElement>
 
+        <ui:Label name="music-hint" text="M  ·  MUSIC ON" class="nr-music-hint" picking-mode="Ignore" />
+
         <ui:VisualElement name="letterbox-top" class="nr-letterbox nr-letterbox--top" picking-mode="Ignore" />
         <ui:VisualElement name="letterbox-bottom" class="nr-letterbox nr-letterbox--bottom" picking-mode="Ignore" />
 

@@ -99,7 +99,7 @@ namespace NeonRift.Gameplay
             this.vehicle = vehicle;
             this.profile = profile;
             this.navigation = navigation;
-            probeMask = LayerMask.GetMask("Vehicle", "Environment");
+            probeMask = LayerMask.GetMask("Vehicle", "Environment", "Traffic");
             avoidCost = AvoidCost;
         }
 
@@ -368,8 +368,9 @@ namespace NeonRift.Gameplay
             Vector3 velocity = vehicle.Body.linearVelocity;
             Vector3 forward = rotation * Vector3.forward;
             float start = line.DistanceAt(index);
-            foreach (var other in Traffic)
+            for (int ti = 0; ti < Traffic.Count; ti++)   // index loop: no boxed enumerator per probe
             {
+                var other = Traffic[ti];
                 if (other == null || other == vehicle || other.Body == null) continue;
                 Vector3 p = other.Body.position, v = other.Body.linearVelocity;
                 Vector3 r = p - position;
@@ -453,7 +454,8 @@ namespace NeonRift.Gameplay
         private RacerDriver PeerOf(VehicleController car)
         {
             if (Peers == null) return null;
-            foreach (var p in Peers) if (p != this && p.vehicle == car) return p;
+            for (int i = 0; i < Peers.Count; i++)
+                if (Peers[i] != this && Peers[i].vehicle == car) return Peers[i];
             return null;
         }
 

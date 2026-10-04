@@ -25,7 +25,7 @@ More in [Docs/Screenshots](Docs/Screenshots).
 
 ## Flow
 
-Launch → opening cinematic (first launch; replay it from the Title's WATCH INTRO) → NEON RIFT title → Enter / A → Car Select → Night Run. Space / Start skips the cinematic to the title. See [Docs/Intro.md](Docs/Intro.md).
+Launch → opening cinematic (first launch; replay it from the Title's WATCH INTRO or the pause menu) → NEON RIFT title → Enter / A → Car Select → Night Run. Space / Start skips the cinematic to the title. The title's OPTIONS and the in-mission pause menu share the Settings (master / music / effects / interface volume, music on/off, graphics quality, fullscreen, V-sync; saved between sessions) and Controls pages. See [Docs/Intro.md](Docs/Intro.md).
 
 ## Driving
 
@@ -37,7 +37,8 @@ Launch → opening cinematic (first launch; replay it from the Title's WATCH INT
 | Handbrake | Space | B / Circle |
 | Interact (hold: hack, extract) · Retry on results | E | A / Cross |
 | Recover (right the car) | R | Select |
-| Back to title | Esc | Start |
+| Pause menu (resume, restart, controls, settings, replay intro, quit) | Esc | Start |
+| Music on / off (anywhere) | M | Y / Triangle |
 | Telemetry overlay (dev builds) | F3 | — |
 
 In the editor, keyboard input only reaches the game while the Game view has focus (click it once). When a
@@ -56,6 +57,10 @@ script in Play Mode.
 - **Rival AI.** Drivers that use the player's own input interface. They plan over the road graph (re-planning when gates close), follow a racing line with a braking planner, sweep ahead for cars and obstacles to overtake, back out when stuck, and apply a bounded, data-driven rubber band.
 - **The heist.** Data-driven objectives, heat, an Alert/Lockdown state machine, gates and checkpoints, cameras, sirens, a lockdown wave across lights and screens, and traffic signals flashing red. See [Docs/NightRun.md](Docs/NightRun.md).
 - **HUD.** Objective, distance, heat and security, trace timer, seal countdowns, interaction prompt, race standings, street and district readout, and a heading-up minimap with the live GPS route (closed gates shown red).
+- **Mission presentation.** Operation briefing card, split times on each objective, and a graded debrief (S–D from pace, heat, finishing position and clean driving) with personal bests.
+- **City traffic.** Cars from the generic passenger car pack with real Rigidbody physics (raycast suspension, tyre grip), engine and impact sounds: some roam the road graph (keeping their distance, giving way at junctions to the player and the rival crews, pulling over in a lockdown), others sit in the parking lots and garage decks. Traffic never collides with traffic; a player or rival hit shunts, spins and stops them. Plus pedestrian groups and security drones. See [Docs/City.md](Docs/City.md).
+- **Music.** Gameplay runs over a low background track and the cinematic over a trailer track (both supplied in `Assets/ThirdParty/SoundAudio`); M toggles music anywhere. A procedural adaptive score (`ScoreComposer`) remains as the fallback.
+- **Performance.** A full-route profiler, a GPU A/B bench and a player-build perf run (`-perfroute`). See [Docs/Performance.md](Docs/Performance.md).
 
 ## Layout
 
@@ -78,7 +83,9 @@ Night look and before/after shots: [Docs/Environment.md](Docs/Environment.md). S
 
 See [LICENSE.md](LICENSE.md) for ownership: first-party content is all rights reserved; third-party models keep their own licences.
 
-Code, generated art (district textures, signage font, meshes) and all audio are first-party.
+Code, generated art (district textures, signage font, meshes) and the procedural audio (engines, effects, score) are first-party.
+
+Supplied by the project owner (provenance and licence to be recorded in `Docs/ThirdParty.md`): the generic passenger car pack (`Assets/ThirdParty/Sketchfab/Vehicles/generic-passenger-car-pack`, used for city traffic) and the two music tracks in `Assets/ThirdParty/SoundAudio` (`machine-speed-sport-aggressive-electronic`, gameplay; `danger-chaos-cinematic-trailer-hybrid`, opening cinematic).
 
 Third-party 3D models (Sketchfab), used under their Creative Commons licences. Full details are in [Docs/ThirdParty.md](Docs/ThirdParty.md) and each folder's `ATTRIBUTION.txt`:
 

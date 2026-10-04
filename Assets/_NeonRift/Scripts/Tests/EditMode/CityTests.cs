@@ -172,16 +172,14 @@ namespace NeonRift.Tests
         }
 
         [Test]
-        public void NightRun_CityLifeIsLightweight()
+        public void NightRun_CityLifeIsSetUp()
         {
             var scene = EditorSceneManager.OpenScene("Assets/_NeonRift/Scenes/NightRun.unity", OpenSceneMode.Additive);
             try
             {
                 var roots = scene.GetRootGameObjects();
-                var traffic = roots.SelectMany(r => r.GetComponentsInChildren<AmbientTraffic>(true)).Single();
-                Assert.GreaterOrEqual(traffic.transform.childCount, 30, "traffic pool");
-                Assert.IsEmpty(traffic.GetComponentsInChildren<Collider>(true), "traffic cars must not collide");
-                Assert.IsEmpty(traffic.GetComponentsInChildren<Rigidbody>(true), "traffic cars must not simulate physics");
+                var traffic = roots.SelectMany(r => r.GetComponentsInChildren<CityTraffic>(true)).Single();
+                Assert.Greater(traffic.SpotCount, 50, "parking bays recorded for parked cars");
                 var crowd = roots.SelectMany(r => r.GetComponentsInChildren<CrowdGroups>(true)).Single();
                 Assert.Greater(crowd.Count, 20, "crowd groups");
                 Assert.IsEmpty(crowd.GetComponentsInChildren<Collider>(true), "pedestrians must not collide");
@@ -190,6 +188,29 @@ namespace NeonRift.Tests
             finally
             {
                 EditorSceneManager.CloseScene(scene, true);
+            }
+        }
+
+        [Test]
+        public void TrafficCars_ArePhysicalAndIgnoreEachOther()
+        {
+            var prefabs = AssetDatabase.FindAssets("t:Prefab", new[] { TrafficCarBuilder.PrefabFolder })
+                .Select(g => AssetDatabase.LoadAssetAtPath<GameObject>(AssetDatabase.GUIDToAssetPath(g))).ToList();
+            Assert.GreaterOrEqual(prefabs.Count, 10, "one prefab per car in the pack");
+            int traffic = LayerMask.NameToLayer("Traffic");
+            Assert.GreaterOrEqual(traffic, 0);
+            Assert.IsTrue(Physics.GetIgnoreLayerCollision(traffic, traffic), "traffic must not collide with traffic");
+            Assert.IsFalse(Physics.GetIgnoreLayerCollision(traffic, LayerMask.NameToLayer("Vehicle")), "traffic must collide with the player and rivals");
+            foreach (var p in prefabs)
+            {
+                Assert.AreEqual(traffic, p.layer, p.name);
+                var rb = p.GetComponent<Rigidbody>();
+                Assert.That(rb, Is.Not.Null, p.name);
+                Assert.Greater(rb.mass, 1000f, p.name);
+                Assert.That(p.GetComponent<BoxCollider>(), Is.Not.Null, p.name);
+                Assert.That(p.GetComponent<TrafficCar>(), Is.Not.Null, p.name);
+                Assert.AreEqual(4, p.GetComponentsInChildren<Transform>().Count(t => t.name == "Wheel"), p.name + " wheels");
+                Assert.That(p.GetComponents<AudioSource>().Length, Is.EqualTo(2), p.name + " engine + impact sources");
             }
         }
     }

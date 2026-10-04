@@ -74,6 +74,8 @@ namespace NeonRift.Gameplay
         /// <summary>Replaces the player's Interact button (validation tools).</summary>
         public Func<bool> InteractionInputOverride { get; set; }
         public bool ResultsShown => hud != null && hud.ResultsVisible;
+        /// <summary>The pause menu is open: the mission's unscaled-time logic (beat, briefing) holds still.</summary>
+        public bool Paused { get; set; }
 
         public void Begin(GameContext gameContext, MissionDefinition mission, VehicleController player, Camera camera)
         {
@@ -115,6 +117,13 @@ namespace NeonRift.Gameplay
             splits.Clear();
             contacts = 0;
             if (Player != null) Player.Collided += OnPlayerCollided;
+            if (context?.Settings != null)
+            {
+                context.Settings.Changed -= OnSettingsChanged;
+                context.Settings.Changed += OnSettingsChanged;
+                musicOn = context.Settings.MusicOn;
+                if (hud != null) hud.SetMusicHint(musicOn);
+            }
             Debug.Log($"[Mission] '{mission.Id}' started with {components.Count} world components, {targets.Count} targets.");
             Progress.Start();
         }
@@ -124,6 +133,7 @@ namespace NeonRift.Gameplay
             if (beatEndsAt >= 0f) EndBeat();
             if (Progress == null) return;
             if (Player != null) Player.Collided -= OnPlayerCollided;
+            if (context?.Settings != null) context.Settings.Changed -= OnSettingsChanged;
             briefingPending = false;
             if (hud != null) hud.HideBriefing();
             Progress.ObjectiveStarted -= OnObjectiveStarted;
@@ -191,7 +201,7 @@ namespace NeonRift.Gameplay
 
         private void Update()
         {
-            if (Progress == null) return;
+            if (Progress == null || Paused) return;
             float dt = Time.deltaTime;
             UpdateBeat();
             UpdateBriefing();
@@ -480,7 +490,14 @@ namespace NeonRift.Gameplay
                 bool tooFast = Player != null && Player.Telemetry.SpeedKph > d.MaxSpeedKph;
                 string hint = tooFast ? "STOP THE CAR TO INTERACT" : focused.InUse ? "KEEP HOLDING" : null;
                 string verb = d.IsSequence ? "PRESS" : "HOLD";
-                hud.SetPrompt(true, $"{verb}  {d.Verb}  ·  {focused.DisplayName}", focused.Progress, hint, tooFast);
+                // Rebuilt only when the device or verb changes (no string per frame).
+                if (promptFor != focused || promptVerb != verb)
+                {
+                    promptFor = focused;
+                    promptVerb = verb;
+                    promptText = $"{verb}  {d.Verb}  ·  {focused.DisplayName}";
+                }
+                hud.SetPrompt(true, promptText, focused.Progress, hint, tooFast);
             }
             else hud.SetPrompt(false, null, 0f, null, false);
             hud.SetTerminal(running ? terminalShown : null);
@@ -505,11 +522,20 @@ namespace NeonRift.Gameplay
             float heading = MinimapProjection.Heading(Player.transform.forward);
             rivalPositions.Clear();
             if (rivals != null)
-                foreach (var r in rivals.Rivals)
+                for (int i = 0; i < rivals.Rivals.Count; i++)   // index loop: foreach over IReadOnlyList boxes an enumerator
+                {
+                    var r = rivals.Rivals[i];
                     if (r.Car != null) rivalPositions.Add((r.Car.transform.position, MinimapProjection.Heading(r.Car.transform.forward)));
+                }
             hud.SetNavigator(p, heading, district, navigation.StreetAt(p), routeValid ? route.Points : null, routeValid ? route.Length : 0f,
                              hasTarget, target, rivalPositions, Progress.Security == SecurityLevel.Lockdown);
         }
+
+        private Interactable promptFor;
+        private string promptVerb, promptText, gapText;
+        private string gapOther;
+        private int gapMetres = -1;
+        private bool gapAhead;
 
         private void UpdateRace(bool running)
         {
@@ -521,10 +547,23 @@ namespace NeonRift.Gameplay
             bool visible = running && rivals.RaceActive && rivals.Standings.Count > 0;
             if (!visible) { hud.SetRace(false, 0, 0, null, null); return; }
             raceRows.Clear();
-            foreach (var r in rivals.Standings) raceRows.Add((r.Name, r.Finished, r.IsPlayer));
-            string gap = rivals.TryGetGap(out var other, out float metres, out bool ahead)
-                ? $"{Mathf.RoundToInt(metres)} M {(ahead ? "BEHIND" : "AHEAD OF")} {other.Split('·')[0].Trim()}"
-                : null;
+            var standings = rivals.Standings;
+            for (int i = 0; i < standings.Count; i++) raceRows.Add((standings[i].Name, standings[i].Finished, standings[i].IsPlayer));
+            // The gap line only changes when the rounded distance, the side or the other car changes.
+            string gap = null;
+            if (rivals.TryGetGap(out var other, out float metres, out bool ahead))
+            {
+                int m = Mathf.RoundToInt(metres);
+                if (m != gapMetres || ahead != gapAhead || !ReferenceEquals(other, gapOther))
+                {
+                    gapMetres = m;
+                    gapAhead = ahead;
+                    gapOther = other;
+                    int dot = other.IndexOf('·');
+                    gapText = $"{m} M {(ahead ? "BEHIND" : "AHEAD OF")} {(dot < 0 ? other : other.Substring(0, dot)).Trim()}";
+                }
+                gap = gapText;
+            }
             hud.SetRace(true, rivals.PlayerPosition, rivals.Count, gap, raceRows);
         }
 
@@ -548,6 +587,17 @@ namespace NeonRift.Gameplay
 
         /// <summary>Hard contacts with walls, props or cars so far this run.</summary>
         public int Contacts => contacts;
+
+        private bool musicOn = true;
+
+        private void OnSettingsChanged()
+        {
+            if (hud == null || context?.Settings == null) return;
+            bool on = context.Settings.MusicOn;
+            hud.SetMusicHint(on);
+            if (on != musicOn) hud.Toast(on ? "MUSIC ON" : "MUSIC OFF  ·  PRESS M TO TURN IT BACK ON", MessageTone.Info);
+            musicOn = on;
+        }
 
         private void OnPlayerCollided(VehicleCollision c)
         {

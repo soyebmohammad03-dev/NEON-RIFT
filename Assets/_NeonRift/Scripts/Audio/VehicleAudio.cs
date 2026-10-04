@@ -227,8 +227,10 @@ namespace NeonRift.Audio
             var c = profile.Chassis;
             float skidSum = 0f, scrubSum = 0f, looseSum = 0f, grounded = 0f, slipSum = 0f;
             float speed = t.Speed;
-            foreach (var w in vehicle.Wheels)
+            var wheels = vehicle.Wheels;
+            for (int wi = 0; wi < wheels.Count; wi++)   // index loop: foreach over IReadOnlyList boxes an enumerator each frame
             {
+                var w = wheels[wi];
                 if (!w.IsGrounded) continue;
                 grounded++;
                 float loadRatio = w.StaticLoad > 0f ? w.Load / w.StaticLoad : 1f;

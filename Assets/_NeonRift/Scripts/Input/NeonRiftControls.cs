@@ -449,6 +449,24 @@ namespace NeonRift.Input
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Up"",
+                    ""type"": ""Button"",
+                    ""id"": ""7a17b048-9220-4fd8-a48a-f5182ba7f429"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Down"",
+                    ""type"": ""Button"",
+                    ""id"": ""b77f7324-b82f-40d1-a91d-b9749b060c0d"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -660,6 +678,94 @@ namespace NeonRift.Input
                     ""action"": ""Skip"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""7b7e8ae5-ac3b-4a76-8cfc-e120a87540b1"",
+                    ""path"": ""<Keyboard>/upArrow"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""KeyboardMouse"",
+                    ""action"": ""Up"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""cddad2bc-b358-4c78-823f-19fbc918e68d"",
+                    ""path"": ""<Keyboard>/w"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""KeyboardMouse"",
+                    ""action"": ""Up"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""7ea803a1-0e85-4442-a7dd-b2df01a7e8f3"",
+                    ""path"": ""<Gamepad>/dpad/up"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Gamepad"",
+                    ""action"": ""Up"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""1bf91853-494a-414c-8a79-8e758ecbdcd2"",
+                    ""path"": ""<Gamepad>/leftStick/up"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Gamepad"",
+                    ""action"": ""Up"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""e1e5a869-075e-46dc-a27f-4510ccbca72e"",
+                    ""path"": ""<Keyboard>/downArrow"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""KeyboardMouse"",
+                    ""action"": ""Down"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""ce51c7f1-9731-4c79-9a3e-2fbf0159e237"",
+                    ""path"": ""<Keyboard>/s"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""KeyboardMouse"",
+                    ""action"": ""Down"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""89f80e99-80ad-488c-a593-b4abeb55e294"",
+                    ""path"": ""<Gamepad>/dpad/down"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Gamepad"",
+                    ""action"": ""Down"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""0c25dbed-7c2c-4768-9174-45a370e46ff0"",
+                    ""path"": ""<Gamepad>/leftStick/down"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Gamepad"",
+                    ""action"": ""Down"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -711,6 +817,8 @@ namespace NeonRift.Input
             m_Menu_Confirm = m_Menu.FindAction("Confirm", throwIfNotFound: true);
             m_Menu_Back = m_Menu.FindAction("Back", throwIfNotFound: true);
             m_Menu_Skip = m_Menu.FindAction("Skip", throwIfNotFound: true);
+            m_Menu_Up = m_Menu.FindAction("Up", throwIfNotFound: true);
+            m_Menu_Down = m_Menu.FindAction("Down", throwIfNotFound: true);
         }
 
         ~@NeonRiftControls()
@@ -960,6 +1068,8 @@ namespace NeonRift.Input
         private readonly InputAction m_Menu_Confirm;
         private readonly InputAction m_Menu_Back;
         private readonly InputAction m_Menu_Skip;
+        private readonly InputAction m_Menu_Up;
+        private readonly InputAction m_Menu_Down;
         /// <summary>
         /// Provides access to input actions defined in input action map "Menu".
         /// </summary>
@@ -995,6 +1105,14 @@ namespace NeonRift.Input
             /// Provides access to the underlying input action "Menu/Skip".
             /// </summary>
             public InputAction @Skip => m_Wrapper.m_Menu_Skip;
+            /// <summary>
+            /// Provides access to the underlying input action "Menu/Up".
+            /// </summary>
+            public InputAction @Up => m_Wrapper.m_Menu_Up;
+            /// <summary>
+            /// Provides access to the underlying input action "Menu/Down".
+            /// </summary>
+            public InputAction @Down => m_Wrapper.m_Menu_Down;
             /// <summary>
             /// Provides access to the underlying input action map instance.
             /// </summary>
@@ -1039,6 +1157,12 @@ namespace NeonRift.Input
                 @Skip.started += instance.OnSkip;
                 @Skip.performed += instance.OnSkip;
                 @Skip.canceled += instance.OnSkip;
+                @Up.started += instance.OnUp;
+                @Up.performed += instance.OnUp;
+                @Up.canceled += instance.OnUp;
+                @Down.started += instance.OnDown;
+                @Down.performed += instance.OnDown;
+                @Down.canceled += instance.OnDown;
             }
 
             /// <summary>
@@ -1068,6 +1192,12 @@ namespace NeonRift.Input
                 @Skip.started -= instance.OnSkip;
                 @Skip.performed -= instance.OnSkip;
                 @Skip.canceled -= instance.OnSkip;
+                @Up.started -= instance.OnUp;
+                @Up.performed -= instance.OnUp;
+                @Up.canceled -= instance.OnUp;
+                @Down.started -= instance.OnDown;
+                @Down.performed -= instance.OnDown;
+                @Down.canceled -= instance.OnDown;
             }
 
             /// <summary>
@@ -1233,6 +1363,20 @@ namespace NeonRift.Input
             /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
             /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
             void OnSkip(InputAction.CallbackContext context);
+            /// <summary>
+            /// Method invoked when associated input action "Up" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnUp(InputAction.CallbackContext context);
+            /// <summary>
+            /// Method invoked when associated input action "Down" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnDown(InputAction.CallbackContext context);
         }
     }
 }

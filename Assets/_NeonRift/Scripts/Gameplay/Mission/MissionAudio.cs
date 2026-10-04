@@ -16,7 +16,8 @@ namespace NeonRift.Gameplay
         [SerializeField, Range(0.5f, 2f)] private float interactPitchMin = 0.9f;
         [SerializeField, Range(0.5f, 3f)] private float interactPitchMax = 1.6f;
 
-        private AudioSource ambience, interact, cues, stingers, tension, outro;
+        private AudioSource ambience, interact, cues, stingers, tension, outro, track;
+        private float trackTarget;
         private readonly AudioSource[] score = new AudioSource[ScoreMix.LayerCount];
         private readonly float[] scoreGain = new float[ScoreMix.LayerCount];
         private readonly float[] scoreTarget = new float[ScoreMix.LayerCount];
@@ -126,7 +127,8 @@ namespace NeonRift.Gameplay
         {
             foreach (var loop in new[] { ambience, tension, interact })
                 if (loop != null && loop.clip != null && !loop.isPlaying) loop.Play();
-            if (scoreStart < 0.0 || scoreEnded) return;
+            if (track != null && track.clip != null && !track.isPlaying) track.Play();
+            if (scoreStart < 0.0 || scoreEnded || track != null) return;
             double at = AudioSettings.dspTime + 0.2;
             foreach (var stem in score)
                 if (stem != null && stem.clip != null)
@@ -146,6 +148,22 @@ namespace NeonRift.Gameplay
         {
             if (scoreStart >= 0.0) return;
             var group = mixer != null ? mixer.Music : null;
+            if (set.MusicTrack != null)
+            {
+                // The licensed background track: one low loop, keeps playing (ducked) while paused.
+                if (track == null) track = Create("Music_Track", group, 0);
+                track.clip = set.MusicTrack;
+                track.loop = true;
+                track.volume = 0f;
+                track.ignoreListenerPause = true;
+                track.Play();
+                trackTarget = set.MusicTrackVolume;
+                if (outro == null) outro = Create("Score_Outro", group, 0);
+                scoreStart = AudioSettings.dspTime;
+                scoreEnded = false;
+                Debug.Log($"[Music] background track '{set.MusicTrack.name}' at {set.MusicTrackVolume:0.00}");
+                return;
+            }
             double at = AudioSettings.dspTime + 0.2;
             bool any = false;
             for (int i = 0; i < score.Length; i++)
@@ -198,6 +216,12 @@ namespace NeonRift.Gameplay
         private void Update()
         {
             if (scoreStart < 0.0 || set == null) return;
+            if (track != null)
+            {
+                float goal = scoreEnded ? 0f : trackTarget;
+                track.volume = Mathf.MoveTowards(track.volume, goal, Time.unscaledDeltaTime * (scoreEnded ? 0.4f : 0.25f));
+                return;
+            }
             if (applyAt >= 0.0 && AudioSettings.dspTime >= applyAt)
             {
                 applyAt = -1.0;

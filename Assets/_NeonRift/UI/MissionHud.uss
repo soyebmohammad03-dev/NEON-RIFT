@@ -826,3 +826,16 @@
 /* While a terminal readout is up the objective keeps only its title, so the two never overlap. */
 .nr-hud--terminal .nr-objective__detail,
 .nr-hud--terminal .nr-objective__distance { display: none; }
+
+/* Music toggle hint, bottom centre. */
+.nr-music-hint {
+    position: absolute;
+    left: 0; right: 0;
+    bottom: 14px;
+    -unity-text-align: middle-center;
+    font-size: 12px;
+    letter-spacing: 4px;
+    color: rgba(140, 146, 180, 0.75);
+}
+.nr-music-hint--off { color: var(--nr-amber); }
+.nr-hud--debrief .nr-music-hint { opacity: 0; }

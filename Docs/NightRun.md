@@ -213,6 +213,25 @@ S ≥ 90, A ≥ 75, B ≥ 60, C ≥ 45, otherwise D. A failed run gets no grade.
 ![Operation briefing](Screenshots/Presentation/briefing.png)
 ![Debrief](Screenshots/Presentation/debrief.png)
 
+## Pause menu, settings and controls
+
+**Esc / Start** pauses the mission. Time scale goes to 0, gameplay audio pauses, the music keeps playing ducked, and driving input is switched off. The menu (`OptionsMenu`, shared with the title's OPTIONS) has: RESUME · RESTART MISSION · CONTROLS · SETTINGS · REPLAY INTRO · QUIT TO GARAGE · QUIT TO TITLE.
+
+- **Settings** (`GameSettings`, saved in PlayerPrefs): master / music / effects / interface volume (10 % steps, bar), music on/off, graphics quality, fullscreen, V-sync.
+- **Controls:** every keyboard and gamepad binding.
+- **Navigation:** ↑↓ / W S / d-pad / stick move, ←→ change a value, Enter / A confirm, Esc / B back (Back on the first page resumes). Every row also works with the mouse.
+- **M / Y** toggles music anywhere.
+- **R / Select** recovers the car. Results still use E to retry and Esc to go to the garage.
+
+Validated in Play Mode by driving the real keyboard device (`InputPlaytest`):
+- Esc paused (time scale 0, listener paused).
+- ↓↓↓ Enter opened Settings, and M switched the music off: mixer −80 dB, the setting saved, the HUD hint turned amber.
+- Esc, ↑, Enter opened Controls, and Esc Esc resumed (time scale 1).
+
+![Pause](Screenshots/QoL/pause_main.png)
+![Settings](Screenshots/QoL/pause_settings_musicoff.png)
+![Controls](Screenshots/QoL/pause_controls.png)
+
 ## Architecture
 
 | Piece | Where | Role |

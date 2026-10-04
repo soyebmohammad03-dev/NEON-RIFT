@@ -47,6 +47,15 @@ namespace NeonRift.Game
                 }
             }
 
+            // Performance run (player builds): straight into the default mission with the first car.
+            if (PerfRouteArgs.TryGet(out _) && config.DefaultMission != null && config.VehicleCatalog != null && config.VehicleCatalog.Count > 0)
+            {
+                session.SelectVehicle(config.VehicleCatalog.Vehicles[0], config.VehicleCatalog);
+                session.SelectMission(config.DefaultMission);
+                await TransitionAsync(GameState.Mission, config.DefaultMission.SceneName);
+                return;
+            }
+
             var intro = config.Intro;
             if (intro != null && intro.ShouldPlayOnBoot() && !string.IsNullOrEmpty(config.IntroScene))
                 await TransitionAsync(GameState.Intro, config.IntroScene);

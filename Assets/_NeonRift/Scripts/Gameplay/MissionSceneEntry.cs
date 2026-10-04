@@ -73,6 +73,7 @@ namespace NeonRift.Gameplay
         public void Exit()
         {
             if (context == null) return;
+            if (Paused) { pause.Close(); Time.timeScale = 1f; AudioListener.pause = false; }
             if (director != null) director.End();
             context.Controls.Driving.Pause.performed -= OnPause;
             context.Controls.Driving.ResetVehicle.performed -= OnResetVehicle;
@@ -95,12 +96,69 @@ namespace NeonRift.Gameplay
             if (chaseCamera != null) chaseCamera.Snap();
         }
 
-        // Returns to the title until the pause menu exists (UI phase).
+        // ---------------- Pause menu ----------------
+
+        private OptionsMenu pause;
+        private float pausedTimeScale = 1f;
+        private NeonRift.Audio.MixerState pausedMix;
+
+        public bool Paused => pause != null && pause.IsOpen;
+
         private void OnPause(InputAction.CallbackContext _)
         {
             if (director != null && director.TryHandlePause()) return;
-            if (context != null && !context.Flow.IsTransitioning)
-                context.Flow.GoToFrontend();
+            if (context == null || context.Flow.IsTransitioning || Paused) return;
+            OpenPause();
+        }
+
+        /// <summary>Freezes the mission and opens the pause menu (also used by validation tools).</summary>
+        public void OpenPause()
+        {
+            if (Paused || director == null || director.Hud == null) return;
+            if (pause == null)
+            {
+                pause = new OptionsMenu(director.Hud.Root, context);
+                pause.BackFromRoot += ResumeFromPause;
+            }
+            pausedTimeScale = Time.timeScale;
+            Time.timeScale = 0f;
+            AudioListener.pause = true;   // the music track ignores the listener pause and keeps playing, ducked
+            pausedMix = context.Audio.State;
+            context.Audio.TransitionTo(NeonRift.Audio.MixerState.Ducked, 0.3f);
+            context.Controls.Driving.Disable();
+            director.Paused = true;
+            pause.Open("PAUSED", new System.Collections.Generic.List<OptionsMenu.Row>
+            {
+                pause.Button("RESUME", ResumeFromPause),
+                pause.Button("RESTART MISSION", () => LeavePause(() => director.RestartMission())),
+                pause.Button("CONTROLS", pause.PushControls),
+                pause.Button("SETTINGS", pause.PushSettings),
+                pause.Button("REPLAY INTRO", () => LeavePause(() => context.Flow.PlayIntro())),
+                pause.Button("QUIT TO GARAGE", () => LeavePause(() => context.Flow.GoToCarSelect())),
+                pause.Button("QUIT TO TITLE", () => LeavePause(() => context.Flow.GoToFrontend())),
+            });
+            Debug.Log("[Mission] paused");
+        }
+
+        public void ResumeFromPause()
+        {
+            if (!Paused) return;
+            pause.Close();
+            Time.timeScale = pausedTimeScale;
+            AudioListener.pause = false;
+            context.Audio.TransitionTo(pausedMix, 0.3f);
+            context.Controls.Driving.Enable();
+            director.Paused = false;
+            Debug.Log("[Mission] resumed");
+        }
+
+        private void LeavePause(System.Action leave)
+        {
+            pause.Close();
+            Time.timeScale = 1f;
+            AudioListener.pause = false;
+            director.Paused = false;
+            leave();
         }
     }
 }

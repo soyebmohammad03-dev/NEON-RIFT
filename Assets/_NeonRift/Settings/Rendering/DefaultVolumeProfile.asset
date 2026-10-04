@@ -146,6 +146,37 @@ MonoBehaviour:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
+--- !u!114 &-6927488303136253698
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fcd77264108d84502a21dbca607f4fd9, type: 3}
+  m_Name: GroundHaze
+  m_EditorClassIdentifier: NeonRift.Rendering::NeonRift.Rendering.GroundHaze
+  active: 1
+  density:
+    m_OverrideState: 1
+    m_Value: 0
+  baseHeight:
+    m_OverrideState: 1
+    m_Value: 0
+  falloff:
+    m_OverrideState: 1
+    m_Value: 20
+  startDistance:
+    m_OverrideState: 1
+    m_Value: 35
+  color:
+    m_OverrideState: 1
+    m_Value: {r: 0.12, g: 0.09, b: 0.075, a: 1}
+  maxOpacity:
+    m_OverrideState: 1
+    m_Value: 0.8
 --- !u!114 &-6335409530604852063
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -379,6 +410,9 @@ MonoBehaviour:
   highQualityFiltering:
     m_OverrideState: 1
     m_Value: 0
+  filter:
+    m_OverrideState: 1
+    m_Value: 0
   downscale:
     m_OverrideState: 1
     m_Value: 0
@@ -465,6 +499,7 @@ MonoBehaviour:
   - {fileID: -6288072647309666549}
   - {fileID: 7518938298396184218}
   - {fileID: -1410297666881709256}
+  - {fileID: -6927488303136253698}
 --- !u!114 &853819529557874667
 MonoBehaviour:
   m_ObjectHideFlags: 3
