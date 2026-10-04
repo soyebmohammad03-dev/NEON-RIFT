@@ -25,6 +25,9 @@ namespace NeonRift.Gameplay
         private Label objectiveStep, objectiveTitle, objectiveDetail, objectiveDistance, waypointLabel, waypointDistance;
         private Label securityState, heatLabel, timer, countdown, promptText, promptHint, speed, gear, vehicleName, bannerTitle, bannerSubtitle, resultsTitle, resultsReason;
         private Button retryButton, continueButton;
+        private VisualElement briefing, briefObjectives, briefCrew, resultsGrade, resultsSplits, resultsCrews;
+        private Label briefKicker, briefTitle, briefTagline, briefText, briefBest, resultsKicker, resultsGradeLetter, resultsGradeScore, resultsBest;
+        private Label resultsSplitsCaption, resultsCrewsCaption;
         private VisualElement race, raceRows, navigator;
         private Label racePosition, raceCount, raceGap, navDistrict, navStreet, navRoute;
         private CityMinimap minimap;
@@ -46,6 +49,26 @@ namespace NeonRift.Gameplay
         public event Action RetryClicked;
         public event Action ContinueClicked;
         public bool ResultsVisible => results != null && !results.ClassListContains("nr-hidden");
+        public bool BriefingVisible => briefing != null && briefing.ClassListContains("nr-brief--in");
+
+        /// <summary>The operation card shown as a mission starts.</summary>
+        public sealed class Briefing
+        {
+            public string Kicker, Title, Tagline, Text, Best;
+            public readonly List<string> Objectives = new();
+            public readonly List<(string name, string role, bool player)> Crew = new();
+        }
+
+        /// <summary>The end-of-run debrief.</summary>
+        public sealed class Debrief
+        {
+            public bool Success, NewBest;
+            public string Kicker, Title, Reason, Grade, Best;
+            public int Score;
+            public readonly List<(string name, string value)> Stats = new();
+            public readonly List<(string name, string value, bool dim)> Splits = new();
+            public readonly List<(string name, string value, bool player)> Crews = new();
+        }
 
         private void OnEnable()
         {
@@ -94,6 +117,23 @@ namespace NeonRift.Gameplay
             resultsTitle = root.Q<Label>("results-title");
             resultsReason = root.Q<Label>("results-reason");
             resultsStats = root.Q("results-stats");
+            briefing = root.Q("briefing");
+            briefKicker = root.Q<Label>("brief-kicker");
+            briefTitle = root.Q<Label>("brief-title");
+            briefTagline = root.Q<Label>("brief-tagline");
+            briefText = root.Q<Label>("brief-text");
+            briefObjectives = root.Q("brief-objectives");
+            briefCrew = root.Q("brief-crew");
+            briefBest = root.Q<Label>("brief-best");
+            resultsKicker = root.Q<Label>("results-kicker");
+            resultsGrade = root.Q("results-grade");
+            resultsGradeLetter = root.Q<Label>("results-grade-letter");
+            resultsGradeScore = root.Q<Label>("results-grade-score");
+            resultsBest = root.Q<Label>("results-best");
+            resultsSplits = root.Q("results-splits");
+            resultsCrews = root.Q("results-crews");
+            resultsSplitsCaption = root.Q<Label>("results-splits-caption");
+            resultsCrewsCaption = root.Q<Label>("results-crews-caption");
             retryButton = root.Q<Button>("retry-button");
             continueButton = root.Q<Button>("continue-button");
             race = root.Q("race");
@@ -138,6 +178,9 @@ namespace NeonRift.Gameplay
             Show(waypoint, false);
             prompt.RemoveFromClassList("nr-prompt--visible");
             results.AddToClassList("nr-hidden");
+            results.RemoveFromClassList("nr-results--in");
+            root.Q("hud-root")?.RemoveFromClassList("nr-hud--debrief");
+            HideBriefing(true);
             banner.RemoveFromClassList("nr-banner--visible");
             SetLetterbox(false);
             frame.style.opacity = 0f;
@@ -416,28 +459,120 @@ namespace NeonRift.Gameplay
             bannerHideAt = Time.unscaledTime + seconds;
         }
 
-        public void ShowResults(bool success, string reason, IEnumerable<(string name, string value)> stats)
+        // ---------------- Briefing ----------------
+
+        /// <summary>Slides the operation card in, revealing its rows one by one.</summary>
+        public void ShowBriefing(Briefing b)
+        {
+            if (briefing == null || b == null) return;
+            briefKicker.text = b.Kicker ?? string.Empty;
+            briefTitle.text = b.Title ?? string.Empty;
+            briefTagline.text = b.Tagline ?? string.Empty;
+            briefText.text = b.Text ?? string.Empty;
+            Show(briefText, !string.IsNullOrEmpty(b.Text));
+            briefBest.text = b.Best ?? string.Empty;
+            Show(briefBest, !string.IsNullOrEmpty(b.Best));
+            briefObjectives.Clear();
+            briefCrew.Clear();
+            var rows = new List<VisualElement>();
+            for (int i = 0; i < b.Objectives.Count; i++) rows.Add(BriefRow(briefObjectives, (i + 1).ToString("00"), b.Objectives[i], null, false));
+            foreach (var (name, role, player) in b.Crew) rows.Add(BriefRow(briefCrew, player ? "▶" : "·", name, role, player));
+            briefing.RemoveFromClassList("nr-brief--out");
+            root.Q("hud-root")?.AddToClassList("nr-hud--briefing");
+            briefing.schedule.Execute(() => briefing.AddToClassList("nr-brief--in")).StartingIn(30);
+            for (int i = 0; i < rows.Count; i++)
+            {
+                var row = rows[i];
+                row.schedule.Execute(() => row.AddToClassList("nr-brief__row--in")).StartingIn(350 + i * 110);
+            }
+        }
+
+        public void HideBriefing(bool immediate = false)
+        {
+            if (briefing == null) return;
+            root.Q("hud-root")?.RemoveFromClassList("nr-hud--briefing");
+            if (!briefing.ClassListContains("nr-brief--in")) return;
+            briefing.RemoveFromClassList("nr-brief--in");
+            if (!immediate) briefing.AddToClassList("nr-brief--out");
+        }
+
+        private static VisualElement BriefRow(VisualElement list, string index, string name, string role, bool player)
+        {
+            var row = new VisualElement { pickingMode = PickingMode.Ignore };
+            row.AddToClassList("nr-brief__row");
+            if (player) row.AddToClassList("nr-brief__row--player");
+            row.Add(Text(index, "nr-brief__index"));
+            row.Add(Text(name, "nr-brief__name"));
+            if (!string.IsNullOrEmpty(role)) row.Add(Text(role, "nr-brief__role"));
+            list.Add(row);
+            return row;
+        }
+
+        private static Label Text(string text, string cls)
+        {
+            var l = new Label(text) { pickingMode = PickingMode.Ignore };
+            l.AddToClassList(cls);
+            return l;
+        }
+
+        // ---------------- Debrief ----------------
+
+        /// <summary>The end-of-run debrief: rows count in, then the grade lands.</summary>
+        public void ShowResults(Debrief d)
         {
             SetPrompt(false, null, 0f, null, false);
             Show(waypoint, false);
+            HideBriefing(true);
+            SetTerminal(null);
+            root.Q("hud-root")?.AddToClassList("nr-hud--debrief");
             results.RemoveFromClassList("nr-hidden");
-            results.EnableInClassList("nr-results--failed", !success);
-            resultsTitle.text = success ? "MISSION COMPLETE" : "MISSION FAILED";
-            resultsReason.text = reason;
+            results.EnableInClassList("nr-results--failed", !d.Success);
+            resultsKicker.text = d.Kicker ?? string.Empty;
+            resultsTitle.text = d.Title;
+            resultsReason.text = d.Reason ?? string.Empty;
+
+            var rows = new List<VisualElement>();
             resultsStats.Clear();
-            foreach (var (name, value) in stats)
+            foreach (var (name, value) in d.Stats) rows.Add(StatRow(resultsStats, name, value, null));
+            resultsSplits.Clear();
+            foreach (var (name, value, dim) in d.Splits) rows.Add(StatRow(resultsSplits, name, value, dim ? "nr-results__stat--dim" : null));
+            Show(resultsSplitsCaption, d.Splits.Count > 0);
+            resultsCrews.Clear();
+            foreach (var (name, value, player) in d.Crews) rows.Add(StatRow(resultsCrews, name, value, player ? "nr-results__stat--player" : null));
+            Show(resultsCrewsCaption, d.Crews.Count > 0);
+            resultsBest.text = d.Best ?? string.Empty;
+            resultsBest.EnableInClassList("nr-results__best--new", d.NewBest);
+            Show(resultsBest, !string.IsNullOrEmpty(d.Best));
+
+            resultsGrade.ClearClassList();
+            resultsGrade.AddToClassList("nr-grade");
+            bool graded = !string.IsNullOrEmpty(d.Grade);
+            if (graded) resultsGrade.AddToClassList("nr-grade--" + d.Grade.ToLowerInvariant());
+            else resultsGrade.AddToClassList("nr-grade--none");
+            resultsGradeLetter.text = d.Grade ?? string.Empty;
+            resultsGradeScore.text = graded ? $"{d.Score} PTS" : string.Empty;
+
+            results.schedule.Execute(() => results.AddToClassList("nr-results--in")).StartingIn(30);
+            int delay = 450;
+            foreach (var row in rows)
             {
-                var row = new VisualElement();
-                row.AddToClassList("nr-results__stat");
-                var n = new Label(name);
-                n.AddToClassList("nr-results__stat-name");
-                var v = new Label(value);
-                v.AddToClassList("nr-results__stat-value");
-                row.Add(n);
-                row.Add(v);
-                resultsStats.Add(row);
+                var r = row;
+                r.schedule.Execute(() => r.AddToClassList("nr-results__stat--in")).StartingIn(delay);
+                delay += 80;
             }
+            if (graded) resultsGrade.schedule.Execute(() => resultsGrade.AddToClassList("nr-grade--in")).StartingIn(delay + 200);
             retryButton.Focus();
+        }
+
+        private static VisualElement StatRow(VisualElement list, string name, string value, string modifier)
+        {
+            var row = new VisualElement();
+            row.AddToClassList("nr-results__stat");
+            if (modifier != null) row.AddToClassList(modifier);
+            row.Add(Text(name, "nr-results__stat-name"));
+            row.Add(Text(value, "nr-results__stat-value"));
+            list.Add(row);
+            return row;
         }
 
         private void Update()

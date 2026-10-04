@@ -225,6 +225,8 @@ namespace NeonRift.EditorTools.District
             // The rival crews are part of the same operation: each has a role on the approach (overwatch inside the
             // compound, scouting the expressway checkpoint), they reposition when the extraction starts, and they break
             // for the Rift Gate the moment the theft is detected.
+            // Debrief par (a clean, quick boulevard run) and each crew's role on the briefing card (slot order: VEX, KADE).
+            mission.EditorConfigureDebrief(115f, new[] { "NORTH GATE OVERWATCH", "EXPRESSWAY SCOUT" });
             mission.EditorConfigureRivals(new List<RivalOrder>
             {
                 // KADE comes down the expressway from North Boulevard so it lands on the southbound carriageway, facing

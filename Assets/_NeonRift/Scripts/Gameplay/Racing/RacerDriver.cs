@@ -23,6 +23,10 @@ namespace NeonRift.Gameplay
         private static readonly float[] Candidates = { 0f, 0.25f, 0.5f, 0.75f, 1f };
         /// <summary>Half-width of the lane a car occupies when choosing lines around traffic, m.</summary>
         private const float CarClearance = 2.4f;
+        /// <summary>Time gap kept to a car ahead on top of the 5 m bumper margin, s (a leader can brake without warning).</summary>
+        private const float Headway = 0.45f;
+        /// <summary>Waits for a car blocking the way back before a mutually stuck pair is broken up by a reset.</summary>
+        private const int MaxHoldsForCar = 6;
         /// <summary>How long a road edge stays expensive after the car got stuck on it, s.</summary>
         private const float BlockedEdgeMemory = 25f;
         private const float BlockedEdgePenalty = 250f;
@@ -50,7 +54,7 @@ namespace NeonRift.Gameplay
         private float offset, targetOffset;
         private float probeTimer, obstacleDistance = float.MaxValue, obstacleSpeed;
         private float stuckTimer, reverseTimer, uprightTimer, blockedTimer, lastSteer;
-        private int reverses;
+        private int reverses, holdsForCar;
         private string obstacleName = "none";
         private float yieldUntil, yieldSpeed;
         private float nextOffLineReplan;
@@ -270,15 +274,27 @@ namespace NeonRift.Gameplay
             blockedTimer = blocked ? blockedTimer + dt : 0f;
             bool trying = vehicle.LastInput.Throttle > 0.3f || blockedTimer > 3f;
             stuckTimer = trying && Mathf.Abs(forwardSpeed) < 1f ? stuckTimer + dt : Mathf.Max(0f, stuckTimer - dt * 2f);
+            if (Mathf.Abs(forwardSpeed) > 2f) holdsForCar = 0;
             if (stuckTimer < profile.StuckSeconds) return false;
-            if (carBehind)
+            if (carBehind && holdsForCar < MaxHoldsForCar)
             {
                 // Something is (or is about to be) behind us: hold still rather than back into it, and try again shortly.
+                holdsForCar++;
                 stuckTimer = profile.StuckSeconds * 0.5f;
                 input = new DrivingInput { Handbrake = true };
                 return true;
             }
             stuckTimer = 0f;
+            if (carBehind)
+            {
+                // Still boxed in after several waits: two cars nose-to-side each see the other "behind", so neither would
+                // ever back out. Break the jam (out of the player's view the car is put back on its line).
+                holdsForCar = 0;
+                Debug.Log($"[Rivals] {vehicle.name} boxed in at {position:F0} by a car behind: resetting");
+                Reset();
+                return false;
+            }
+            holdsForCar = 0;
             if (++reverses > profile.ReversesBeforeReset)
             {
                 Reset();
@@ -330,6 +346,13 @@ namespace NeonRift.Gameplay
         }
 
         /// <summary>
+        /// Highest speed that still stops behind a leader doing <paramref name="theirs"/> m/s if it brakes as hard as we
+        /// can: v² = theirs² + 2·b·gap, with the gap shortened by a time headway at our current speed.
+        /// </summary>
+        private float FollowSpeed(float theirs, float gap, float ownSpeed) =>
+            Mathf.Sqrt(theirs * theirs + 2f * profile.Braking * Mathf.Max(0f, gap - Headway * ownSpeed));
+
+        /// <summary>
         /// Puts every other car within range into this driver's line frame (distance along the route, lateral offset)
         /// and yields when a crossing car is on a collision course.
         /// </summary>
@@ -359,9 +382,8 @@ namespace NeonRift.Gameplay
                 {
                     if (own.z > 0f)
                     {
-                        float gap = Mathf.Max(0f, own.z - 5f);
                         float theirs = Mathf.Max(0f, Vector3.Dot(v, forward));
-                        guardSpeed = Mathf.Min(guardSpeed, theirs + Mathf.Sqrt(2f * profile.Braking * gap));
+                        guardSpeed = Mathf.Min(guardSpeed, FollowSpeed(theirs, own.z - 5f, speed));
                     }
                     else if (own.z > -7.5f) carBehind = true;
                 }
@@ -376,7 +398,7 @@ namespace NeonRift.Gameplay
                 {
                     float theirs = Mathf.Max(0f, Vector3.Dot(v, forward));
                     // Alongside: drop back behind it; further ahead: follow at a braking-distance gap.
-                    guardSpeed = Mathf.Min(guardSpeed, own.z < 7f ? Mathf.Max(0f, theirs - 2f) : theirs + Mathf.Sqrt(2f * profile.Braking * (own.z - 7f)));
+                    guardSpeed = Mathf.Min(guardSpeed, own.z < 7f ? Mathf.Max(0f, theirs - 2f) : FollowSpeed(theirs, own.z - 7f, speed));
                     holdLane = true;
                 }
                 if (other == PlayerCar && own.z > -2f && own.z < 7f && Mathf.Abs(own.x) < 4.5f)

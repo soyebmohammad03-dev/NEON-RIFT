@@ -33,6 +33,8 @@ namespace NeonRift.EditorTools.Validation
             var entry = Object.FindAnyObjectByType<MissionSceneEntry>();
             validator = Object.FindAnyObjectByType<NightRunValidator>();
             if (entry == null || entry.Director == null || entry.Director.Progress == null || validator == null) return "mission not running yet";
+            // A tool retrying a slow call must not start a second run on top of the first (double subscriptions).
+            if (validator.Running) return $"{scenario} started (already running)";
             Application.runInBackground = true;
             Time.timeScale = timeScale;
             Time.maximumDeltaTime = 0.1f;
@@ -54,7 +56,7 @@ namespace NeonRift.EditorTools.Validation
                 else captureEvents[(view != null ? view + ":" : string.Empty) + key] = delay;
             }
             entry.Director.World.EventRaised += e => Trigger(e);
-            foreach (var i in Object.FindObjectsByType<Interactable>(FindObjectsSortMode.None))
+            foreach (var i in Object.FindObjectsByType<Interactable>())
                 i.FeedbackRaised += (source, f) =>
                 {
                     if (f is Interactable.Feedback.Started or Interactable.Feedback.StepStarted && source.Run?.Current != null)

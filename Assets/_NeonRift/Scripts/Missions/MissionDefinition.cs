@@ -39,6 +39,12 @@ namespace NeonRift.Missions
         [SerializeField, Min(0)] private int maxRivals = 2;
         [Tooltip("Event-driven taskings for the rival crews (roles in the operation, reactions to the heist).")]
         [SerializeField] private List<RivalOrder> rivalOrders = new();
+        [Tooltip("The briefing's crew line per rival slot (their role in the job); the last repeats.")]
+        [SerializeField] private string[] crewRoles = Array.Empty<string>();
+
+        [Header("Debrief")]
+        [Tooltip("Par time for full pace marks in the debrief grade, s (0 = no pace grading).")]
+        [SerializeField, Min(0f)] private float parTime;
 
         [Header("Security")]
         [Tooltip("Seconds removed from a timed objective per 1.0 heat (heat is 0..1). Applied when the timer starts, " +
@@ -62,6 +68,8 @@ namespace NeonRift.Missions
         public float MinimumTimeLimit => minimumTimeLimit;
         public int MaxRivals => maxRivals;
         public IReadOnlyList<RivalOrder> RivalOrders => rivalOrders;
+        public float ParTime => parTime;
+        public string CrewRoleFor(int index) => crewRoles == null || crewRoles.Length == 0 ? null : crewRoles[Mathf.Min(index, crewRoles.Length - 1)];
 
         /// <summary>Data problems that would break the mission at runtime.</summary>
         public List<string> Validate()
@@ -84,6 +92,12 @@ namespace NeonRift.Missions
 
 #if UNITY_EDITOR
         public void EditorConfigureRivals(List<RivalOrder> orders) => rivalOrders = orders ?? new List<RivalOrder>();
+
+        public void EditorConfigureDebrief(float par, string[] roles)
+        {
+            parTime = par;
+            crewRoles = roles ?? Array.Empty<string>();
+        }
 
         public void EditorConfigure(string missionId, string missionName, string missionTagline, string missionBriefing, string scene,
                                     List<ObjectiveDefinition> missionObjectives, string[] onStart, string[] onComplete, string[] onFail,

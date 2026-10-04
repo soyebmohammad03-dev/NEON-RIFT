@@ -187,5 +187,9 @@ MonoBehaviour:
     hold: 1
     finish: 1
     arrivalMessages: []
+  crewRoles:
+  - NORTH GATE OVERWATCH
+  - EXPRESSWAY SCOUT
+  parTime: 115
   heatTimePenalty: 25
   minimumTimeLimit: 30

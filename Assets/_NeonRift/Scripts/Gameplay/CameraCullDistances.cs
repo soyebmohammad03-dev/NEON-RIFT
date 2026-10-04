@@ -19,9 +19,6 @@ namespace NeonRift.Gameplay
         }
 
         [SerializeField] private Entry[] entries = Array.Empty<Entry>();
-        [Tooltip("Cull against a sphere around the camera instead of the far plane, so turning the camera does not pop props.")]
-        [SerializeField] private bool spherical = true;
-
         public float DistanceFor(int layer) => GetComponent<Camera>().layerCullDistances[layer];
 
         private void OnEnable() => Apply();
@@ -35,8 +32,8 @@ namespace NeonRift.Gameplay
                 int layer = LayerMask.NameToLayer(e.layer);
                 if (layer >= 0) distances[layer] = e.distance;
             }
+            // No layerCullSpherical: it only works with the built-in renderer (URP ignores it and logs a warning).
             cam.layerCullDistances = distances;
-            cam.layerCullSpherical = spherical;
         }
 
 #if UNITY_EDITOR

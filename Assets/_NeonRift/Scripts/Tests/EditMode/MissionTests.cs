@@ -270,5 +270,63 @@ namespace NeonRift.Tests
                 if (setup.Length > 0) EditorSceneManager.RestoreSceneManagerSetup(setup);
             }
         }
+
+        [Test]
+        public void Grade_RewardsPaceQuietPositionAndCleanDriving()
+        {
+            var perfect = MissionGrade.Evaluate(100f, 115f, 0f, 1, 3, 0);
+            Assert.AreEqual(100, perfect.Score);
+            Assert.AreEqual("S", perfect.Letter);
+            // At 1.6 × par the pace marks are gone; last place and maximum heat leave only clean driving.
+            var worst = MissionGrade.Evaluate(184f, 115f, 1f, 3, 3, 0);
+            Assert.AreEqual(Mathf.RoundToInt(MissionGrade.CleanWeight), worst.Score);
+            Assert.AreEqual("D", worst.Letter);
+            // Contacts only ever cost points, down to zero clean marks at the limit.
+            Assert.Less(MissionGrade.Evaluate(100f, 115f, 0f, 1, 3, 3).Score, perfect.Score);
+            Assert.AreEqual(0f, MissionGrade.Evaluate(100f, 115f, 0f, 1, 3, 50).Clean, 1e-4f);
+            // No race: full position marks.
+            Assert.AreEqual(MissionGrade.PositionWeight, MissionGrade.Evaluate(100f, 115f, 0f, 0, 1, 0).Position, 1e-4f);
+        }
+
+        [Test]
+        public void Grade_LettersFollowTheScoreBands()
+        {
+            Assert.AreEqual("S", MissionGrade.LetterFor(90));
+            Assert.AreEqual("A", MissionGrade.LetterFor(89));
+            Assert.AreEqual("A", MissionGrade.LetterFor(75));
+            Assert.AreEqual("B", MissionGrade.LetterFor(60));
+            Assert.AreEqual("C", MissionGrade.LetterFor(45));
+            Assert.AreEqual("D", MissionGrade.LetterFor(44));
+        }
+
+        [Test]
+        public void Records_KeepTheBestTimeAndScore()
+        {
+            const string id = "__test_records";
+            MissionRecords.Clear(id);
+            try
+            {
+                Assert.IsTrue(MissionRecords.Submit(id, 130f, 60, out float previous));
+                Assert.AreEqual(0f, previous);
+                Assert.IsFalse(MissionRecords.Submit(id, 140f, 80, out previous), "slower is not a new best");
+                Assert.AreEqual(130f, previous, 1e-4f);
+                Assert.AreEqual(80, MissionRecords.BestScore(id), "a better grade is kept on a slower run");
+                Assert.IsTrue(MissionRecords.Submit(id, 120f, 70, out previous));
+                Assert.AreEqual(120f, MissionRecords.BestTime(id), 1e-4f);
+                Assert.AreEqual(80, MissionRecords.BestScore(id));
+            }
+            finally
+            {
+                MissionRecords.Clear(id);
+            }
+        }
+
+        [Test]
+        public void Records_FormatTimeRoundsToCentiseconds()
+        {
+            Assert.AreEqual("2:06.06", MissionRecords.FormatTime(126.06f));
+            Assert.AreEqual("1:00.00", MissionRecords.FormatTime(59.996f));
+            Assert.AreEqual("0:00.00", MissionRecords.FormatTime(-3f));
+        }
     }
 }

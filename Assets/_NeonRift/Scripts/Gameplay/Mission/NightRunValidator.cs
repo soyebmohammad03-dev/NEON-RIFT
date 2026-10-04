@@ -86,7 +86,7 @@ namespace NeonRift.Gameplay
             director.Progress.PhaseChanged += p => Note($"phase → {p}{(p == MissionPhase.Failed ? $" ({director.Progress.FailReason})" : string.Empty)}");
             director.World.EventRaised += e => Note($"event '{e}'");
             director.World.Announced += (t, tone) => Note($"hud [{tone}] {t}");
-            foreach (var i in FindObjectsByType<Interactable>(FindObjectsSortMode.None))
+            foreach (var i in FindObjectsByType<Interactable>())
                 i.FeedbackRaised += (source, f) =>
                 {
                     if (f is Interactable.Feedback.StepStarted or Interactable.Feedback.Started or Interactable.Feedback.Miss or Interactable.Feedback.Interference

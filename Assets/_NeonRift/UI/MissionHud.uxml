@@ -91,16 +91,50 @@
         <ui:VisualElement name="letterbox-top" class="nr-letterbox nr-letterbox--top" picking-mode="Ignore" />
         <ui:VisualElement name="letterbox-bottom" class="nr-letterbox nr-letterbox--bottom" picking-mode="Ignore" />
 
+        <ui:VisualElement name="briefing" class="nr-brief" picking-mode="Ignore">
+            <ui:Label name="brief-kicker" class="nr-brief__kicker" picking-mode="Ignore" />
+            <ui:Label name="brief-title" class="nr-brief__title" picking-mode="Ignore" />
+            <ui:Label name="brief-tagline" class="nr-brief__tagline" picking-mode="Ignore" />
+            <ui:Label name="brief-text" class="nr-brief__text" picking-mode="Ignore" />
+            <ui:Label text="OBJECTIVES" class="nr-brief__section" picking-mode="Ignore" />
+            <ui:VisualElement name="brief-objectives" class="nr-brief__list" picking-mode="Ignore" />
+            <ui:Label text="ON THE GRID" class="nr-brief__section" picking-mode="Ignore" />
+            <ui:VisualElement name="brief-crew" class="nr-brief__list" picking-mode="Ignore" />
+            <ui:Label name="brief-best" class="nr-brief__best" picking-mode="Ignore" />
+            <ui:Label text="DRIVE TO BEGIN" class="nr-brief__go" picking-mode="Ignore" />
+        </ui:VisualElement>
+
         <ui:VisualElement name="results" class="nr-results nr-hidden">
-            <ui:VisualElement class="nr-results__panel">
-                <ui:Label name="results-title" class="nr-results__title" />
-                <ui:Label name="results-reason" class="nr-results__reason" />
-                <ui:VisualElement name="results-stats" class="nr-results__stats" />
+            <ui:VisualElement name="results-panel" class="nr-results__panel">
+                <ui:VisualElement class="nr-results__head">
+                    <ui:VisualElement class="nr-results__head-text">
+                        <ui:Label name="results-kicker" class="nr-results__kicker" />
+                        <ui:Label name="results-title" class="nr-results__title" />
+                        <ui:Label name="results-reason" class="nr-results__reason" />
+                    </ui:VisualElement>
+                    <ui:VisualElement name="results-grade" class="nr-grade">
+                        <ui:Label name="results-grade-letter" class="nr-grade__letter" />
+                        <ui:Label name="results-grade-score" class="nr-grade__score" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement class="nr-results__body">
+                    <ui:VisualElement class="nr-results__col">
+                        <ui:Label text="RUN" class="nr-results__section" />
+                        <ui:VisualElement name="results-stats" class="nr-results__stats" />
+                        <ui:Label name="results-best" class="nr-results__best" />
+                    </ui:VisualElement>
+                    <ui:VisualElement class="nr-results__col nr-results__col--right">
+                        <ui:Label name="results-splits-caption" text="SPLITS" class="nr-results__section" />
+                        <ui:VisualElement name="results-splits" class="nr-results__stats" />
+                        <ui:Label name="results-crews-caption" text="CREWS" class="nr-results__section" />
+                        <ui:VisualElement name="results-crews" class="nr-results__stats" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
                 <ui:VisualElement class="nr-results__buttons">
                     <ui:Button name="retry-button" text="RETRY" class="nr-button nr-button--primary" />
-                    <ui:Button name="continue-button" text="CONTINUE" class="nr-button" />
+                    <ui:Button name="continue-button" text="GARAGE" class="nr-button" />
                 </ui:VisualElement>
-                <ui:Label text="E  RETRY   ·   ESC  CONTINUE" class="nr-hint" />
+                <ui:Label name="results-hint" text="E  RETRY   ·   ESC  GARAGE" class="nr-hint" />
             </ui:VisualElement>
         </ui:VisualElement>
     </ui:VisualElement>

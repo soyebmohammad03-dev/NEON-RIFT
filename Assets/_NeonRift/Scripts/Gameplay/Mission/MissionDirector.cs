@@ -21,8 +21,12 @@ namespace NeonRift.Gameplay
         [SerializeField] private MissionAudio missionAudio;
         [Tooltip("Lockdown spreads through the district from here (usually the theft location).")]
         [SerializeField] private Transform alertOrigin;
-        [Tooltip("Intro card duration, s.")]
-        [SerializeField, Min(0f)] private float introSeconds = 4f;
+        [Tooltip("How long the operation briefing card stays up at the start, s.")]
+        [SerializeField, Min(0f)] private float briefingSeconds = 9f;
+        [Tooltip("The briefing leaves early once the player drives faster than this (after 2.5 s), km/h.")]
+        [SerializeField, Min(0f)] private float briefingExitKph = 60f;
+        [Tooltip("A collision at this relative speed or more counts as a hard contact in the debrief, m/s.")]
+        [SerializeField, Min(0f)] private float contactSpeed = 4f;
         [Tooltip("Delay between the mission ending and the results panel, s.")]
         [SerializeField, Min(0f)] private float resultsDelay = 2f;
         [SerializeField, Min(0.1f)] private float mixerFadeSeconds = 1.2f;
@@ -104,8 +108,13 @@ namespace NeonRift.Gameplay
                 hud.RetryClicked += Retry;
                 hud.ContinueClicked += Continue;
                 hud.SetVehicleName(context?.Session.SelectedVehicle != null ? context.Session.SelectedVehicle.DisplayName : player != null ? player.name : string.Empty);
-                hud.Banner(mission.DisplayName.ToUpperInvariant(), mission.Tagline, MessageTone.Info, introSeconds);
             }
+            // The briefing is built on the first frame, once the rival crews are on the grid.
+            briefingPending = true;
+            briefingStarted = -1f;
+            splits.Clear();
+            contacts = 0;
+            if (Player != null) Player.Collided += OnPlayerCollided;
             Debug.Log($"[Mission] '{mission.Id}' started with {components.Count} world components, {targets.Count} targets.");
             Progress.Start();
         }
@@ -114,6 +123,9 @@ namespace NeonRift.Gameplay
         {
             if (beatEndsAt >= 0f) EndBeat();
             if (Progress == null) return;
+            if (Player != null) Player.Collided -= OnPlayerCollided;
+            briefingPending = false;
+            if (hud != null) hud.HideBriefing();
             Progress.ObjectiveStarted -= OnObjectiveStarted;
             Progress.ObjectiveCompleted -= OnObjectiveCompleted;
             Progress.SecurityChanged -= OnSecurityChanged;
@@ -182,6 +194,7 @@ namespace NeonRift.Gameplay
             if (Progress == null) return;
             float dt = Time.deltaTime;
             UpdateBeat();
+            UpdateBriefing();
             Progress.Tick(dt);
             RunAnnouncements();
             if (Progress.Phase == MissionPhase.Running) UpdateInteraction(dt);
@@ -296,7 +309,9 @@ namespace NeonRift.Gameplay
         private void OnObjectiveCompleted(ObjectiveDefinition objective)
         {
             Debug.Log($"[Mission] objective '{objective.Id}' complete at {Progress.Elapsed:0.0}s");
-            if (hud != null && Progress.ObjectiveIndex < Progress.Definition.Objectives.Count - 1) hud.StampObjective("OBJECTIVE COMPLETE", 1.4f);
+            splits.Add(Progress.Elapsed);
+            if (hud != null && Progress.ObjectiveIndex < Progress.Definition.Objectives.Count - 1)
+                hud.StampObjective($"OBJECTIVE COMPLETE   {MissionRecords.FormatTime(Progress.Elapsed)}", 1.6f);
         }
 
         private void OnSecurityChanged(SecurityLevel level)
@@ -517,18 +532,130 @@ namespace NeonRift.Gameplay
             if (resultsAt < 0f || Time.time < resultsAt) return;
             resultsAt = -1f;
             if (hud == null) return;
+            hud.ShowResults(BuildDebrief());
+            if (context != null) context.Controls.Driving.Interact.performed += OnRetryInput;
+        }
+
+        // ---------------- Presentation ----------------
+
+        private bool briefingPending;
+        private float briefingStarted = -1f;
+        private readonly List<float> splits = new();
+        private int contacts;
+
+        /// <summary>Hard contacts with walls, props or cars so far this run.</summary>
+        public int Contacts => contacts;
+
+        private void OnPlayerCollided(VehicleCollision c)
+        {
+            if (Progress != null && Progress.Phase == MissionPhase.Running && c.RelativeSpeed >= contactSpeed) contacts++;
+        }
+
+        private void UpdateBriefing()
+        {
+            if (hud == null) return;
+            if (briefingPending)
+            {
+                briefingPending = false;
+                briefingStarted = Time.unscaledTime;
+                hud.ShowBriefing(BuildBriefing());
+                return;
+            }
+            if (briefingStarted < 0f) return;
+            float shown = Time.unscaledTime - briefingStarted;
+            bool driving = Player != null && Player.Telemetry.SpeedKph > briefingExitKph && shown > 2.5f;
+            if (shown >= briefingSeconds || driving || Progress.Phase != MissionPhase.Running)
+            {
+                briefingStarted = -1f;
+                hud.HideBriefing();
+            }
+        }
+
+        private MissionHud.Briefing BuildBriefing()
+        {
+            var def = Progress.Definition;
+            var b = new MissionHud.Briefing
+            {
+                Kicker = "OPERATION  ·  SECTOR 7",
+                Title = def.DisplayName.ToUpperInvariant(),
+                Tagline = def.Tagline,
+                Text = def.Briefing
+            };
+            foreach (var o in def.Objectives) b.Objectives.Add(o.Title);
+            string car = context?.Session.SelectedVehicle != null ? context.Session.SelectedVehicle.DisplayName.ToUpperInvariant() : null;
+            b.Crew.Add(("YOU" + (car != null ? "  ·  " + car : string.Empty), "DRIVER", true));
+            if (rivals != null)
+                for (int i = 0; i < rivals.Rivals.Count; i++)
+                {
+                    // Racer names already carry the car ("VEX · SLS AMG GT3").
+                    b.Crew.Add((rivals.Rivals[i].Name, def.CrewRoleFor(i) ?? "RIVAL CREW", false));
+                }
+            float best = MissionRecords.BestTime(def.Id);
+            int bestScore = MissionRecords.BestScore(def.Id);
+            if (best > 0f) b.Best = $"PERSONAL BEST  {MissionRecords.FormatTime(best)}" + (bestScore >= 0 ? $"  ·  GRADE {MissionGrade.LetterFor(bestScore)}" : string.Empty);
+            return b;
+        }
+
+        private MissionHud.Debrief BuildDebrief()
+        {
+            var def = Progress.Definition;
             bool success = Progress.Phase == MissionPhase.Completed;
             float t = Progress.Elapsed;
-            var stats = new List<(string, string)>
+            bool raced = rivals != null && rivals.HasRivals;
+            var d = new MissionHud.Debrief
             {
-                ("TIME", $"{(int)(t / 60f)}:{t % 60f:00.00}"),
-                ("HEAT", $"{Mathf.RoundToInt(Progress.Heat * 100f)}%"),
-                ("SECURITY", Progress.Security.ToString().ToUpperInvariant()),
-                ("OBJECTIVES", $"{(success ? Progress.Definition.Objectives.Count : Progress.ObjectiveIndex)}/{Progress.Definition.Objectives.Count}")
+                Success = success,
+                Kicker = "DEBRIEF  ·  " + def.DisplayName.ToUpperInvariant(),
+                Title = success ? "MISSION COMPLETE" : "MISSION FAILED",
+                Reason = success ? "EXTRACTION CONFIRMED  ·  DATA CORE SECURED" : Progress.FailReason
             };
-            if (success && rivals != null && rivals.HasRivals) stats.Insert(1, ("POSITION", $"{FinishPosition}/{rivals.Count}"));
-            hud.ShowResults(success, success ? "EXTRACTION CONFIRMED" : Progress.FailReason, stats);
-            if (context != null) context.Controls.Driving.Interact.performed += OnRetryInput;
+            d.Stats.Add(("TIME", MissionRecords.FormatTime(t)));
+            if (success && raced) d.Stats.Add(("POSITION", $"{FinishPosition}/{rivals.Count}"));
+            d.Stats.Add(("HEAT", $"{Mathf.RoundToInt(Progress.Heat * 100f)}%"));
+            d.Stats.Add(("SECURITY", Progress.Security.ToString().ToUpperInvariant()));
+            d.Stats.Add(("HARD CONTACTS", contacts.ToString()));
+            d.Stats.Add(("OBJECTIVES", $"{(success ? def.Objectives.Count : Progress.ObjectiveIndex)}/{def.Objectives.Count}"));
+
+            for (int i = 0; i < def.Objectives.Count; i++)
+            {
+                bool done = i < splits.Count;
+                d.Splits.Add(($"{i + 1:00}  {def.Objectives[i].Title}", done ? MissionRecords.FormatTime(splits[i]) : "--", !done));
+            }
+
+            if (raced)
+            {
+                // Finishing order: crews that extracted first, then the player (if out), then everyone still running.
+                var finished = new List<RivalDirector.Racer>();
+                var running = new List<RivalDirector.Racer>();
+                foreach (var r in rivals.Rivals) (r.Finished ? finished : running).Add(r);
+                finished.Sort((x, y) => x.FinishTime.CompareTo(y.FinishTime));
+                running.Sort((x, y) => x.Remaining.CompareTo(y.Remaining));
+                int place = 1;
+                foreach (var r in finished) d.Crews.Add(($"P{place++}  {r.Name}", "EXTRACTED", false));
+                if (success) d.Crews.Add(($"P{place++}  YOU", "EXTRACTED", true));
+                foreach (var r in running) d.Crews.Add(($"P{place++}  {r.Name}", "STILL RUNNING", false));
+                if (!success) d.Crews.Add(("--  YOU", "TRACED", true));
+            }
+
+            float previous;
+            if (success)
+            {
+                var grade = MissionGrade.Evaluate(t, def.ParTime > 0f ? def.ParTime : t, Progress.Heat, raced ? FinishPosition : 0,
+                                                  raced ? rivals.Count : 1, contacts);
+                d.Grade = grade.Letter;
+                d.Score = grade.Score;
+                d.NewBest = MissionRecords.Submit(def.Id, t, grade.Score, out previous);
+                d.Best = previous <= 0f ? "FIRST CLEAR  ·  PERSONAL BEST SET"
+                    : d.NewBest ? $"NEW PERSONAL BEST  ·  {MissionRecords.FormatTime(previous - t)} FASTER"
+                    : $"PERSONAL BEST  {MissionRecords.FormatTime(previous)}  ·  +{MissionRecords.FormatTime(t - previous)}";
+                Debug.Log($"[Mission] debrief: grade {grade.Letter} ({grade.Score}: pace {grade.Pace:0}, quiet {grade.Quiet:0}, position {grade.Position:0}, clean {grade.Clean:0}), contacts {contacts}, new best {d.NewBest}");
+            }
+            else
+            {
+                previous = MissionRecords.BestTime(def.Id);
+                if (previous > 0f) d.Best = $"PERSONAL BEST  {MissionRecords.FormatTime(previous)}";
+            }
+            return d;
         }
 
         private void OnRetryInput(UnityEngine.InputSystem.InputAction.CallbackContext _) => Retry();

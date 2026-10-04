@@ -150,6 +150,8 @@ Two more real causes showed up in the first regression series (`MissionSeries`, 
 - **Intentions:** every driver publishes `TurnDistance`, the distance to its next turn of more than 30°. A driver never passes a peer that is about to turn, or while it is about to turn itself. "About to turn" is the greater of 40 m and 3.5 s at the car's speed. Instead it holds its lane and follows: alongside it drops 2 m/s below the other car, ahead it keeps a braking-distance gap.
 - **Player alongside:** a player alongside (−2..7 m, within 4.5 m laterally) who is converging makes the rival drop 2 m/s below the player's speed and hold its lane. The player's intentions are unknown, so the AI always gives way.
 - The earlier rules still apply (path occupancy, side risk, yield to predicted collisions, no blind reversing).
+- **Following distance (October 4):** the fail-safe follow speed was `theirs + √(2·b·gap)` with a 5 m centre-to-centre margin. That is more permissive than real braking, so a car closing at 3 m/s from 9 m did not brake at all. It is now `√(theirs² + 2·b·(gap − 0.45 s × own speed))`: a leader that brakes as hard as we can is never hit, with a time headway on top.
+- **Jam breaker:** a stuck driver never reverses into a car behind it, but two cars nose-to-side each count the other as "behind", so they waited for each other forever. After six such waits (about 6 s) the driver resets (put back on its line out of the player's view, righted in view).
 
 **Regression runs** (Play Mode, `MissionSeries`, real mission, SLS AMG):
 
@@ -160,6 +162,8 @@ Two more real causes showed up in the first regression series (`MissionSeries`, 
 | crew5 (single run) | 1 | 1: KADE rear-ended VEX braking for the Access Road turn, because the intent window was too short | 0 | 0 | 0 |
 | 3 (speed-aware intent window) | 4 (3× Boulevard, 1× AlleyIn) | **0** | **0** | **0** | 0, plus 1 sealed checkpoint* |
 | crew7 (single run, AlleyIn) | 1 | **0** | **0** | **0** | 1 sealed checkpoint* |
+| pres1/pres2 (after city life) | 2 | 1 per run: on the breakout KADE closed on VEX leaving its north-gate hold (3.1 m/s, same heading), then the pair jammed nose-to-side (pres2) | 0 | 0 | 0 |
+| ser9 (headway + jam breaker) | 4 (2× Boulevard, AlleyInExpresswayOut, AlleyInFailRetry) | **0** | **0** | **0** | 0, plus 2 sealed checkpoints* |
 
 \* `AlleyInExpresswayOut`: the conservative validation driver (0.72 g corners) reaches the expressway checkpoint about 3 s after it seals, as documented above. That collision is the player against the closed barrier, not a rival.
 
@@ -182,6 +186,32 @@ Standings come from route distance to the current objective over the road graph.
 - **Skyway gate**: closed at the start; the crew opens it when the escape starts (`escape.start`), giving an elevated route over the harbor that only exists during a lockdown.
 - **Security cameras** (12, at the alley, compound, checkpoints, tunnel and skyway) arm once security is raised. Staying in view for 1.1 s logs +8 % heat.
 - **Traffic signals** across the city flash red in a lockdown. Billboards and shelter screens switch to warnings with the lockdown wave.
+
+## Mission presentation
+
+| Moment | What the player sees | Where |
+|---|---|---|
+| Start | **Operation card** (left): OPERATION · SECTOR 7, the mission name, tagline and briefing, the four numbered objectives, the field with crew roles (YOU · car = DRIVER, VEX = NORTH GATE OVERWATCH, KADE = EXPRESSWAY SCOUT), the personal best and grade, and DRIVE TO BEGIN. Rows reveal one by one. The objective panel and minimap step aside while it is up | `MissionHud.ShowBriefing`, built by `MissionDirector.BuildBriefing` from `MissionDefinition` (`Briefing`, `CrewRoleFor`) and the spawned crews |
+| Leaves | After 9 s, or once the player passes 60 km/h (after 2.5 s) | `briefingSeconds`, `briefingExitKph` |
+| Each objective | The stamp reads OBJECTIVE COMPLETE plus the split time (e.g. `0:48.20`), then the next objective slides in | `StampObjective` |
+| Theft, lockdown | Unchanged: cinematic beat, DATA ACQUIRED / SECURITY BREACH banners, lockdown frame | |
+| End | EXTRACTED / TRACED banner, then the **debrief**. Header: DEBRIEF · NIGHT RUN, MISSION COMPLETE / FAILED, reason, and a **grade badge** (S/A/B/C/D with points). RUN: time, position, heat, security, hard contacts, objectives. SPLITS: cumulative time per objective (`--` for ones not reached). CREWS: finishing order (extracted crews, the player, crews still running). A personal-best line (FIRST CLEAR, NEW PERSONAL BEST · x FASTER, or the best and the gap to it). Rows count in, then the grade lands. The driving HUD fades out behind it. RETRY (E) / GARAGE (Esc) | `MissionHud.ShowResults(Debrief)`, `MissionDirector.BuildDebrief` |
+
+**Grade** (`MissionGrade`, pure, unit-tested) is out of 100:
+
+| Part | Points | Rule |
+|---|---|---|
+| Pace | 40 | Full at or under the mission's par (`ParTime`, Night Run 115 s), none at 1.6 × par, linear between |
+| Quiet | 25 | × (1 − final heat) |
+| Position | 20 | 1st = 20, last = 0 (full marks with no race) |
+| Clean | 15 | Minus 2.5 per hard contact (a collision at 4 m/s or more), 0 at 6 |
+
+S ≥ 90, A ≥ 75, B ≥ 60, C ≥ 45, otherwise D. A failed run gets no grade.
+
+**Records** (`MissionRecords`): best time and best score per mission id in PlayerPrefs (`NeonRift.Best.<id>.time` / `.grade`). Only completed runs count. A slower run can still raise the best grade.
+
+![Operation briefing](Screenshots/Presentation/briefing.png)
+![Debrief](Screenshots/Presentation/debrief.png)
 
 ## Architecture
 

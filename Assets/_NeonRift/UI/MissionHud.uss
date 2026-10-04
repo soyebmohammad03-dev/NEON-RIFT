@@ -151,7 +151,7 @@
 .nr-toasts {
     position: absolute;
     right: 56px;
-    top: 196px;
+    top: 290px;
     align-items: flex-end;
 }
 
@@ -410,61 +410,198 @@
     margin-top: 6px;
 }
 
-/* Results */
+/* ---------------- Debrief (results) ---------------- */
 .nr-results {
     position: absolute;
     left: 0; top: 0; right: 0; bottom: 0;
     justify-content: center;
     align-items: center;
-    background-color: rgba(6, 5, 14, 0.55);
+    background-color: rgba(4, 4, 10, 0.72);
+    opacity: 0;
+    transition-property: opacity;
+    transition-duration: 0.5s;
 }
+.nr-results--in { opacity: 1; }
 
 .nr-results__panel {
-    width: 640px;
-    padding: 40px 48px;
-    background-color: var(--nr-panel);
+    width: 960px;
+    padding: 34px 44px 26px 44px;
+    background-color: rgba(8, 9, 20, 0.92);
     border-top-width: 3px;
-    border-color: var(--nr-cyan);
-    align-items: stretch;
+    border-left-width: 1px;
+    border-right-width: 1px;
+    border-bottom-width: 1px;
+    border-color: rgba(84, 232, 255, 0.18);
+    border-top-color: var(--nr-cyan);
+    translate: 0 18px;
+    transition-property: translate;
+    transition-duration: 0.6s;
+    transition-timing-function: ease-out-cubic;
 }
+.nr-results--in .nr-results__panel { translate: 0 0; }
+.nr-results--failed .nr-results__panel { border-top-color: rgb(255, 50, 100); border-color: rgba(255, 50, 100, 0.2); }
 
-.nr-results--failed .nr-results__panel { border-color: rgb(255, 50, 100); }
-
+.nr-results__head { flex-direction: row; justify-content: space-between; align-items: center; margin-bottom: 22px; }
+.nr-results__head-text { flex-shrink: 1; }
+.nr-results__kicker { font-size: 14px; letter-spacing: 6px; color: var(--nr-text-dim); }
 .nr-results__title {
-    font-size: 46px;
+    font-size: 52px;
     -unity-font-style: bold;
     letter-spacing: 8px;
     color: var(--nr-cyan);
-    -unity-text-align: middle-center;
+    text-shadow: 0 0 14px rgba(84, 232, 255, 0.55);
 }
+.nr-results--failed .nr-results__title { color: rgb(255, 80, 120); text-shadow: 0 0 14px rgba(255, 40, 90, 0.6); }
+.nr-results__reason { font-size: 17px; letter-spacing: 4px; color: var(--nr-text); }
 
-.nr-results--failed .nr-results__title { color: rgb(255, 80, 120); }
-
-.nr-results__reason {
-    font-size: 18px;
-    letter-spacing: 4px;
-    color: var(--nr-text-dim);
-    -unity-text-align: middle-center;
-    margin-bottom: 24px;
+/* Grade badge */
+.nr-grade {
+    width: 132px; height: 132px;
+    border-width: 3px;
+    border-radius: 66px;
+    border-color: var(--nr-cyan);
+    background-color: rgba(84, 232, 255, 0.06);
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    scale: 1.6 1.6;
+    transition-property: opacity, scale;
+    transition-duration: 0.35s;
+    transition-timing-function: ease-out-back;
 }
+.nr-grade--in { opacity: 1; scale: 1 1; }
+.nr-grade__letter { font-size: 70px; -unity-font-style: bold; color: var(--nr-cyan); -unity-text-align: middle-center; margin-top: -6px; }
+.nr-grade__score { font-size: 13px; letter-spacing: 3px; color: var(--nr-text-dim); -unity-text-align: middle-center; margin-top: -10px; }
+.nr-grade--s { border-color: rgb(255, 214, 90); background-color: rgba(255, 214, 90, 0.08); }
+.nr-grade--s .nr-grade__letter { color: rgb(255, 224, 120); text-shadow: 0 0 16px rgba(255, 200, 60, 0.8); }
+.nr-grade--a .nr-grade__letter { text-shadow: 0 0 14px rgba(84, 232, 255, 0.7); }
+.nr-grade--c, .nr-grade--d { border-color: var(--nr-text-dim); background-color: rgba(140, 146, 180, 0.05); }
+.nr-grade--c .nr-grade__letter, .nr-grade--d .nr-grade__letter { color: var(--nr-text); }
+.nr-grade--none { display: none; }
 
-.nr-results__stats { margin-bottom: 24px; }
+.nr-results__body { flex-direction: row; margin-bottom: 22px; }
+.nr-results__col { flex-grow: 1; flex-basis: 0; }
+.nr-results__col--right { margin-left: 40px; }
+.nr-results__section {
+    font-size: 13px;
+    letter-spacing: 6px;
+    color: var(--nr-cyan);
+    margin-top: 6px;
+    margin-bottom: 4px;
+    padding-bottom: 4px;
+    border-bottom-width: 1px;
+    border-color: rgba(84, 232, 255, 0.3);
+}
+.nr-results--failed .nr-results__section { color: rgb(255, 110, 140); border-color: rgba(255, 50, 100, 0.3); }
+.nr-results__stats { margin-bottom: 12px; }
 
 .nr-results__stat {
     flex-direction: row;
     justify-content: space-between;
-    font-size: 18px;
-    letter-spacing: 4px;
-    padding: 6px 0;
+    font-size: 17px;
+    letter-spacing: 3px;
+    padding: 5px 0;
     border-bottom-width: 1px;
-    border-color: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.06);
+    opacity: 0;
+    translate: -14px 0;
+    transition-property: opacity, translate;
+    transition-duration: 0.3s;
 }
-
-.nr-results__stat-name { color: var(--nr-text-dim); }
+.nr-results__stat--in { opacity: 1; translate: 0 0; }
+/* The name takes the free width (Unity measures text without its letter-spacing, so a shrink-to-fit name would
+   be clipped); only a genuinely long name ellipsises. */
+.nr-results__stat-name {
+    color: var(--nr-text-dim);
+    flex-grow: 1;
+    flex-shrink: 1;
+    flex-basis: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin-right: 14px;
+}
+.nr-results__stat-value { flex-shrink: 0; }
 .nr-results__stat-value { color: var(--nr-text); -unity-font-style: bold; }
+.nr-results__stat--player .nr-results__stat-name { color: var(--nr-cyan); }
+.nr-results__stat--player .nr-results__stat-value { color: var(--nr-cyan); }
+.nr-results__stat--dim .nr-results__stat-value { color: var(--nr-text-dim); -unity-font-style: normal; }
+
+.nr-results__best { font-size: 15px; letter-spacing: 4px; color: var(--nr-text-dim); margin-top: 2px; }
+.nr-results__best--new { color: rgb(255, 224, 120); -unity-font-style: bold; text-shadow: 0 0 10px rgba(255, 200, 60, 0.7); }
 
 .nr-results__buttons { flex-direction: row; justify-content: center; }
 .nr-results__buttons .nr-button { min-width: 220px; }
+
+/* While the debrief is up the driving HUD steps back. */
+.nr-hud--debrief .nr-nav,
+.nr-hud--debrief .nr-speedo,
+.nr-hud--debrief .nr-security,
+.nr-hud--debrief .nr-race,
+.nr-hud--debrief .nr-toasts,
+.nr-hud--debrief .nr-objective,
+.nr-hud--debrief .nr-banner { opacity: 0; }
+
+/* ---------------- Operation briefing (mission start) ---------------- */
+.nr-brief {
+    position: absolute;
+    left: 56px;
+    top: 96px;
+    width: 640px;
+    padding: 20px 26px 16px 26px;
+    background-color: rgba(5, 7, 14, 0.8);
+    border-left-width: 3px;
+    border-color: var(--nr-cyan);
+    opacity: 0;
+    translate: -40px 0;
+    transition-property: opacity, translate;
+    transition-duration: 0.45s;
+    transition-timing-function: ease-out-cubic;
+}
+.nr-brief--in { opacity: 1; translate: 0 0; }
+.nr-brief--out { opacity: 0; translate: -30px 0; transition-duration: 0.35s; }
+.nr-brief__kicker { font-size: 13px; letter-spacing: 6px; color: var(--nr-text-dim); }
+.nr-brief__title {
+    font-size: 48px;
+    -unity-font-style: bold;
+    letter-spacing: 10px;
+    color: var(--nr-cyan);
+    text-shadow: 0 0 14px rgba(84, 232, 255, 0.6);
+    margin-top: -2px;
+}
+.nr-brief__tagline { font-size: 13px; letter-spacing: 3px; color: var(--nr-text); margin-bottom: 10px; }
+.nr-brief__text { font-size: 14px; color: var(--nr-text); white-space: normal; margin-bottom: 10px; }
+.nr-brief__section {
+    font-size: 12px;
+    letter-spacing: 6px;
+    color: var(--nr-cyan);
+    margin-top: 4px;
+    padding-bottom: 3px;
+    border-bottom-width: 1px;
+    border-color: rgba(84, 232, 255, 0.3);
+}
+.nr-brief__list { margin-bottom: 10px; }
+.nr-brief__row {
+    flex-direction: row;
+    font-size: 15px;
+    letter-spacing: 2px;
+    padding: 4px 0;
+    opacity: 0;
+    translate: -12px 0;
+    transition-property: opacity, translate;
+    transition-duration: 0.3s;
+}
+.nr-brief__row--in { opacity: 1; translate: 0 0; }
+.nr-brief__index { width: 34px; color: var(--nr-cyan); -unity-font-style: bold; }
+.nr-brief__name { flex-grow: 1; flex-basis: 0; color: var(--nr-text); }
+.nr-brief__role { color: var(--nr-text-dim); font-size: 13px; letter-spacing: 3px; -unity-text-align: middle-right; }
+.nr-brief__row--player .nr-brief__name { color: var(--nr-cyan); -unity-font-style: bold; }
+.nr-brief__best { font-size: 13px; letter-spacing: 4px; color: var(--nr-amber); margin-bottom: 8px; }
+.nr-brief__go { font-size: 14px; letter-spacing: 8px; color: var(--nr-text); -unity-font-style: bold; }
+/* The card has the left of the screen to itself while it is up. */
+.nr-hud--briefing .nr-objective,
+.nr-hud--briefing .nr-nav { opacity: 0; }
+.nr-nav { transition-property: opacity; transition-duration: 0.4s; }
 
 /* ---------------- Race standings (top right) ---------------- */
 /* Letterbox bars for cinematic beats (the theft). */
