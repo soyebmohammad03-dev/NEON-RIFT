@@ -118,8 +118,8 @@
 /* ---------- Performance (right) ---------- */
 .nr-cs__specs {
     position: absolute;
-    right: 64px; top: 170px;
-    width: 400px;
+    right: 56px; top: 170px;
+    width: 360px;
     padding: 22px 24px 18px 24px;
     background-color: rgba(6, 8, 16, 0.62);
     border-left-width: 2px;

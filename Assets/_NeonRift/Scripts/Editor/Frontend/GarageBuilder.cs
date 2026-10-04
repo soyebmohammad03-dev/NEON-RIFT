@@ -548,7 +548,15 @@ namespace NeonRift.EditorTools.Frontend
                 }
                 return v;
             }
-            var hero = V("CM_Hero", new Vector3(5.6f, 1.55f, 7.9f), 30f, 12, 0.35f, focus);
+            // Closer and lower than before so the car dominates; framed a little left of centre, clear of the specs panel.
+            var hero = V("CM_Hero", new Vector3(4.9f, 1.3f, 6.9f), 27f, 12, 0.35f, focus);
+            var heroAim = hero.GetComponent<CinemachineRotationComposer>();
+            if (heroAim != null)
+            {
+                var composition = heroAim.Composition;
+                composition.ScreenPosition = new Vector2(-0.07f, 0.04f);
+                heroAim.Composition = composition;
+            }
             var swap = V("CM_Swap", new Vector3(-7.4f, 0.75f, 4.6f), 26f, 0, 0.25f, focus);
             var departTarget = new GameObject("DepartLook").transform;
             departTarget.position = new Vector3(0f, 1.1f, HallBack - 10f);

@@ -92,11 +92,18 @@ namespace NeonRift.Frontend
             if (animate && current != null)
             {
                 SetCamera(swapCamera, 12);
-                stageTarget = 0.25f;
+                stageTarget = 0.08f;
                 var oldLights = current.GetComponent<VehicleLights>();
                 if (oldLights != null) { oldLights.SetHeadlightLevel(0f); oldLights.SetTailOverride(0f); }
                 if (engine != null) engine.Stop(0.25f);
-                yield return Wait(0.28f);
+                // The outgoing car whips away on the turntable as the stage goes dark.
+                angularVelocity = 0f;
+                for (float t = 0f; t < 0.34f; t += Time.unscaledDeltaTime)
+                {
+                    float k = t / 0.34f;
+                    turntable.Rotate(0f, Mathf.Lerp(120f, 720f, k * k) * Time.unscaledDeltaTime, 0f, Space.World);
+                    yield return null;
+                }
             }
             if (current != null) Destroy(current);
             current = null;
@@ -117,6 +124,20 @@ namespace NeonRift.Frontend
             stageTarget = 1f;
             SetCamera(heroCamera, 12);
             if (current == null) { swap = null; yield break; }
+            if (animate)
+            {
+                // The new car spins in and settles into its pose as the lights come back.
+                float settle = turntable.eulerAngles.y;
+                float from = settle - 150f;
+                for (float t = 0f; t < 0.55f; t += Time.unscaledDeltaTime)
+                {
+                    float k = 1f - Mathf.Pow(1f - Mathf.Clamp01(t / 0.55f), 3f);
+                    turntable.rotation = Quaternion.Euler(0f, Mathf.Lerp(from, settle, k), 0f);
+                    yield return null;
+                }
+                turntable.rotation = Quaternion.Euler(0f, settle, 0f);
+                lastUserInputTime = Time.unscaledTime - idleResumeDelay + 0.8f;
+            }
             var l = current.GetComponent<VehicleLights>();
             if (animate) yield return Wait(0.18f);
             // Headlights come up in two steps (DRL, then beam), tail lights on, a brake pulse with the blip.

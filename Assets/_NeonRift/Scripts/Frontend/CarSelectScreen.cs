@@ -91,6 +91,7 @@ namespace NeonRift.Frontend
 
         private void Update()
         {
+            foreach (var row in new[] { acceleration, topSpeed, handling, braking }) row?.Tick();
             if (context == null || dragging || starting) return;
             showroom.Spin(menu.Rotate.ReadValue<float>());
         }
@@ -256,11 +257,11 @@ namespace NeonRift.Frontend
                 return;
             }
             var s = vehicle.DisplayStats;
-            acceleration.Set(Mathf.InverseLerp(zeroToHundredRangeSeconds.y, zeroToHundredRangeSeconds.x, s.zeroToHundredSeconds), $"{s.zeroToHundredSeconds:0.0} S");
-            topSpeed.Set(Mathf.InverseLerp(topSpeedRangeKph.x, topSpeedRangeKph.y, s.topSpeedKph), $"{s.topSpeedKph:0} KM/H");
-            handling.Set(s.handlingRating / 10f, $"{s.handlingRating:0.0} / 10");
-            braking.Set(s.brakingDistanceMetres > 0f ? Mathf.InverseLerp(brakingRangeMetres.y, brakingRangeMetres.x, s.brakingDistanceMetres) : 0f,
-                        s.brakingDistanceMetres > 0f ? $"{s.brakingDistanceMetres:0.0} M" : "—");
+            acceleration.Set(Mathf.InverseLerp(zeroToHundredRangeSeconds.y, zeroToHundredRangeSeconds.x, s.zeroToHundredSeconds), s.zeroToHundredSeconds, "{0:0.0} S");
+            topSpeed.Set(Mathf.InverseLerp(topSpeedRangeKph.x, topSpeedRangeKph.y, s.topSpeedKph), s.topSpeedKph, "{0:0} KM/H");
+            handling.Set(s.handlingRating / 10f, s.handlingRating, "{0:0.0} / 10");
+            if (s.brakingDistanceMetres > 0f) braking.Set(Mathf.InverseLerp(brakingRangeMetres.y, brakingRangeMetres.x, s.brakingDistanceMetres), s.brakingDistanceMetres, "{0:0.0} M");
+            else braking.Set(0f, "—");
             driveChip.text = vehicle.DrivetrainLabel;
             powerChip.text = $"{s.powerHp:0} HP";
             weightChip.text = $"{s.massKg:0} KG";
@@ -352,10 +353,41 @@ namespace NeonRift.Frontend
                 parent.Add(row);
             }
 
+            private float shown, target;
+            private string format;
+            private float animStart = -1f;
+
             public void Set(float normalized, string text)
             {
                 fill.style.width = Length.Percent(Mathf.Lerp(4f, 100f, Mathf.Clamp01(normalized)));
                 value.text = text;
+                format = null;
+                animStart = -1f;
+            }
+
+            /// <summary>Bar eases to <paramref name="normalized"/> (USS transition); the number counts to <paramref name="number"/>.</summary>
+            public void Set(float normalized, float number, string numberFormat)
+            {
+                fill.style.width = Length.Percent(Mathf.Lerp(4f, 100f, Mathf.Clamp01(normalized)));
+                if (format == null) shown = number;
+                format = numberFormat;
+                target = number;
+                animStart = Time.unscaledTime;
+                from = shown;
+                Tick();
+            }
+
+            private float from;
+
+            /// <summary>Advances the count-up (call every frame).</summary>
+            public void Tick()
+            {
+                if (format == null || animStart < 0f) return;
+                float k = Mathf.Clamp01((Time.unscaledTime - animStart) / 0.5f);
+                k = 1f - (1f - k) * (1f - k) * (1f - k);
+                shown = Mathf.Lerp(from, target, k);
+                value.text = string.Format(System.Globalization.CultureInfo.InvariantCulture, format, shown);
+                if (k >= 1f) animStart = -1f;
             }
         }
     }

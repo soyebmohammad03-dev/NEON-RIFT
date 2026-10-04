@@ -147,3 +147,17 @@ Not checked by ear.
 | SLS AMG | SLS GT3 | Terzo | Departure |
 |---|---|---|---|
 | ![](Screenshots/CarSelect/cs9.jpg) | ![](Screenshots/CarSelect/cs7_gt3.jpg) | ![](Screenshots/CarSelect/cs10_terzo.jpg) | ![](Screenshots/CarSelect/departure.jpg) |
+
+## Car Select premium pass (October 2026)
+
+- **Composition:** the hero camera is closer and lower (27° lens). The Cinemachine composer places the car a little left of centre, so it fills the frame between the name block and a slimmer specs panel instead of sitting behind it.
+- **Switching:**
+  - The outgoing car loses its lights while the stage drops almost to black and the turntable whips it away, accelerating to 720°/s.
+  - The incoming car spins in from 150° off and eases into its pose as the stage lights return.
+  - Its DRLs come on, then the headlight beams, with a brake-light pulse and an engine blip from its own recordings.
+- **UI:** stat bars ease to their new length and the numbers count from the previous car's values to the new ones over 0.5 s, for example 4.2 s → 3.7 s and 299 → 278 km/h. The info block slides out and back in around the change.
+- **Unchanged:** category, drivetrain, power, weight, measured 0–100, top speed, handling and 100–0 braking, the description, the opening close-up after the intro, and the departure through the roller door with the follow camera.
+
+| Hero framing | Switching SLS AMG → SLS AMG GT3 (frames at 0.1–2.2 s) |
+|---|---|
+| ![](Screenshots/CarSelect2/hero.jpg) | ![](Screenshots/CarSelect2/switch_sequence.jpg) |
