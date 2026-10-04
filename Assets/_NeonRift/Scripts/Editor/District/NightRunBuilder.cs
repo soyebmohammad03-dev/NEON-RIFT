@@ -717,16 +717,19 @@ namespace NeonRift.EditorTools.District
             {
                 // Restrained bloom: only genuinely bright sources (lamp heads, neon cores, signals, headlights) bloom.
                 var bloom = p.Add<Bloom>(true);
-                bloom.threshold.Override(1f);
-                bloom.intensity.Override(0.38f);
-                bloom.scatter.Override(0.62f);
+                bloom.threshold.Override(1.05f);
+                bloom.intensity.Override(0.34f);
+                bloom.scatter.Override(0.6f);
                 bloom.highQualityFiltering.Override(true);
                 p.Add<Tonemapping>(true).mode.Override(TonemappingMode.ACES);
                 // Fixed exposure (URP has no eye adaptation): tuned so a lamp pool reads mid-grey and shadows stay deep.
                 var colour = p.Add<ColorAdjustments>(true);
-                colour.postExposure.Override(0.45f);
-                colour.contrast.Override(12f);
-                colour.saturation.Override(-6f);
+                colour.postExposure.Override(0.42f);
+                colour.contrast.Override(14f);
+                colour.saturation.Override(-8f);
+                // A touch cool overall so sodium and window light read warm against it (neon is the accent).
+                var balance = p.Add<WhiteBalance>(true);
+                balance.temperature.Override(-4f);
                 // Neutral-cool shadows, warm highlights: sodium and shop light read warm against the night.
                 var split = p.Add<SplitToning>(true);
                 split.shadows.Override(new Color(0.44f, 0.47f, 0.52f));
@@ -756,18 +759,20 @@ namespace NeonRift.EditorTools.District
                 p.Add<ColorAdjustments>(true).colorFilter.Override(new Color(1f, 0.92f, 0.8f));
                 p.Add<Vignette>(true).intensity.Override(0.36f);
             });
+            // Lockdown: tension, not a magenta wash. The red comes from the security lights themselves (strips, beacons,
+            // screens); the grade only cools the shadows a little, adds contrast, a dark red edge and a hint of fringing.
             var lockdownProfile = Profile("NightRun_Lockdown", p =>
             {
                 var colour = p.Add<ColorAdjustments>(true);
-                colour.colorFilter.Override(new Color(1f, 0.74f, 0.82f));
-                colour.saturation.Override(22f);
+                colour.colorFilter.Override(new Color(1f, 0.93f, 0.92f));
+                colour.saturation.Override(2f);
+                colour.contrast.Override(22f);
                 var vignette = p.Add<Vignette>(true);
-                vignette.intensity.Override(0.44f);
-                vignette.color.Override(new Color(0.35f, 0f, 0.06f));
-                p.Add<ChromaticAberration>(true).intensity.Override(0.22f);
-                p.Add<Bloom>(true).intensity.Override(1.15f);
-                // The haze picks up the red of the lockdown beacons and screens.
-                p.Add<NeonRift.Rendering.GroundHaze>(true).color.Override(new Color(0.17f, 0.045f, 0.055f));
+                vignette.intensity.Override(0.38f);
+                vignette.color.Override(new Color(0.22f, 0f, 0.02f));
+                p.Add<ChromaticAberration>(true).intensity.Override(0.07f);
+                p.Add<Bloom>(true).intensity.Override(0.55f);
+                p.Add<NeonRift.Rendering.GroundHaze>(true).color.Override(new Color(0.11f, 0.05f, 0.05f));
             });
 
             Volume Global(string name, VolumeProfile profile, float priority, float weight)

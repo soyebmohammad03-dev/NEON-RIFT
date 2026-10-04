@@ -39,10 +39,11 @@ namespace NeonRift.Gameplay
         [Tooltip("Emissive parts that show the state (locked / available / in use / done).")]
         [SerializeField] private Renderer[] indicators = Array.Empty<Renderer>();
         // Kept moderate: indicators can be large (the uplink ring), and neon is an accent, not a floodlight.
-        [SerializeField, ColorUsage(false, true)] private Color availableColor = new(0.05f, 0.42f, 0.6f);
-        [SerializeField, ColorUsage(false, true)] private Color activeColor = new(0.18f, 0.62f, 0.85f);
-        [SerializeField, ColorUsage(false, true)] private Color completedColor = new(0.06f, 0.5f, 0.2f);
-        [SerializeField, ColorUsage(false, true)] private Color lockedColor = new(0.3f, 0.02f, 0.04f);
+        [SerializeField, ColorUsage(false, true)] private Color availableColor = new(0.04f, 0.32f, 0.46f);
+        [SerializeField, ColorUsage(false, true)] private Color activeColor = new(0.1f, 0.38f, 0.52f);
+        [SerializeField, ColorUsage(false, true)] private Color completedColor = new(0.03f, 0.22f, 0.12f);
+        // Not yet usable reads as dormant, not as danger (red is for security).
+        [SerializeField, ColorUsage(false, true)] private Color lockedColor = new(0.025f, 0.06f, 0.08f);
         [Tooltip("Shown while this is the current objective.")]
         [SerializeField] private GameObject beacon;
 

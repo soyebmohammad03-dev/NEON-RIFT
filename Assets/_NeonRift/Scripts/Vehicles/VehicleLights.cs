@@ -14,8 +14,8 @@ namespace NeonRift.Vehicles
         [SerializeField, Min(1f)] private float headlightRange = 70f;
         [SerializeField, Range(10f, 120f)] private float headlightAngle = 58f;
         [SerializeField] private Color headlightColour = new(0.92f, 0.95f, 1f);
-        [SerializeField, Min(0f)] private float tailIntensity = 1.2f;
-        [SerializeField, Min(0f)] private float brakeIntensity = 5f;
+        [SerializeField, Min(0f)] private float tailIntensity = 2.6f;
+        [SerializeField, Min(0f)] private float brakeIntensity = 11f;
 
         private Light[] heads = new Light[0];
         private Light tail;
@@ -47,8 +47,13 @@ namespace NeonRift.Vehicles
                 heads[i] = l;
             }
             headBase = new[] { heads[0].intensity, heads[1].intensity };
-            tail = Make("TailLight", new Vector3(0f, size.y * 0.5f, -size.z * 0.5f - 0.3f), Quaternion.identity);
-            tail.type = LightType.Point;
+            // A spot at bumper height aimed back and down: it lights the road behind (red glow, brake flare, white
+            // reverse wash) but the rear glass sits behind its cone. A point light here put a hot specular highlight on
+            // the car's own sloping rear window in the chase view.
+            tail = Make("TailLight", new Vector3(0f, size.y * 0.3f, -size.z * 0.5f - 0.05f), Quaternion.Euler(28f, 180f, 0f));
+            tail.type = LightType.Spot;
+            tail.spotAngle = 130f;
+            tail.innerSpotAngle = 70f;
             tail.color = new Color(1f, 0.05f, 0.05f);
             tail.range = detailed ? 7f : 5f;
             tail.intensity = tailIntensity;

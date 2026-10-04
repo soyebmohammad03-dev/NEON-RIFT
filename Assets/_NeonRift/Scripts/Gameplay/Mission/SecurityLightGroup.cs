@@ -26,7 +26,7 @@ namespace NeonRift.Gameplay
         [SerializeField] private Light[] lights = Array.Empty<Light>();
         [SerializeField] private LevelLook calm = new() { emission = new Color(0.03f, 0.22f, 0.3f), lightColor = new Color(0.4f, 0.85f, 1f), lightIntensity = 1f };
         [SerializeField] private LevelLook alert = new() { emission = new Color(2.2f, 1.1f, 0.2f), lightColor = new Color(1f, 0.65f, 0.25f), lightIntensity = 2f };
-        [SerializeField] private LevelLook lockdown = new() { emission = new Color(4f, 0.2f, 0.45f), lightColor = new Color(1f, 0.15f, 0.3f), lightIntensity = 3f, pulse = 0.35f };
+        [SerializeField] private LevelLook lockdown = new() { emission = new Color(3.6f, 0.12f, 0.14f), lightColor = new Color(1f, 0.12f, 0.12f), lightIntensity = 3f, pulse = 0.35f };
         [Tooltip("Speed the lockdown spreads through the district, m/s.")]
         [SerializeField, Min(1f)] private float waveSpeed = 140f;
         [SerializeField, Min(0.01f)] private float fadeSeconds = 0.35f;

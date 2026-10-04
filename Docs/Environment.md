@@ -168,3 +168,26 @@ The rendering path is Forward+ with the GPU Resident Drawer, so the extra render
 - ~~Dark tower bodies~~, ~~fogged Sketchfab clusters~~, ~~no height fog~~: fixed in phase 2 (below).
 - Low-rise street-wall roofs are sparse from above. There are no parked or ambient cars: the project has only the three catalog cars.
 - Street furniture and road detail (lane markings, signage, parking, construction) are next on the list.
+
+## URP visual pass (October 2026)
+
+Done with the Unity `urp-postprocessing` skill's checklist. Pre-flight passed: URP active, HDR, HDR grading, post-processing on the base camera, every Volume on a layer in its mask, SMAA on top of 4× MSAA, and the SSAO renderer feature (intensity 1.4, radius 0.4).
+
+| Volume | Change |
+|---|---|
+| `NightRun_Base` | Bloom threshold 1.0 → 1.05 and intensity 0.38 → 0.34, so only genuine light sources bloom. Exposure +0.42, contrast 14, saturation −8. **White balance −4**, so sodium lamps and window light read warm against a neutral-cool night. ACES, split toning, lift/gamma, vignette, grain and ground haze unchanged |
+| `NightRun_Lockdown` | Was a magenta wash: colour filter (1, 0.74, 0.82), saturation +22, bloom 1.15, chromatic aberration 0.22. Now colour filter (1, 0.93, 0.92), saturation +2, **contrast 22**, a dark red vignette, bloom 0.55, chromatic aberration 0.07, and a darker haze. The red comes from the security lights themselves, not the grade |
+| Security lights | The lockdown emission and light colour are a **pure security red** (3.6, 0.12, 0.14) instead of pink-magenta |
+| Interactable indicators | Large surfaces (the uplink ring) toned down. Locked now reads as dormant slate rather than red |
+
+**Rear-glass blob: cause and fix.**
+- **Cause:** `VehicleLights` placed the tail light as a point light 0.3 m behind the bumper at half the car's height. From the chase camera, the sloping, glossy rear window reflected it as a hot specular highlight, much stronger under braking (5×) and white in reverse.
+- **Fix:** the tail light is now a 130° spot at bumper height, aimed back and down. It lights the road behind (tail glow, brake flare, white reverse wash), but the rear glass sits outside its cone. Reflections are untouched: the glass still mirrors the probes and the street.
+
+| Cruising | Braking at the terminal | Extraction |
+|---|---|---|
+| ![](Screenshots/Look/cruise_rear_glass.jpg) | ![](Screenshots/Look/braking_rear_glass.jpg) | ![](Screenshots/Look/extraction.jpg) |
+
+| Breach (new lockdown grade) | Lockdown in the alley |
+|---|---|
+| ![](Screenshots/Look/breach.jpg) | ![](Screenshots/Look/lockdown_alley.jpg) |
