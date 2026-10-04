@@ -57,7 +57,42 @@ User volumes are exposed parameters on the parent groups (`AudioMixerService.Set
 | Lockdown | city lockdown / siren | Engine −2, Ambience −4 |
 | Ducked | mission alerts, dialogue | Engine −8, Tires −8, Ambience −8, Score −10 |
 
-`GameRoot` switches Menu ↔ Gameplay on game-state changes; mission code will drive Results / Lockdown / Ducked.
+`GameRoot` switches Menu ↔ Gameplay on game-state changes. The mission director switches to Lockdown when the district locks down and to Results at the end.
+
+## Adaptive score
+
+The game's music is original and fully procedural (`ScoreComposer`, editor only; no samples, no licensed material). It is one 8-bar theme in A minor at ≈96 bpm: Am(add9) – Fmaj7 – Dm9 – Esus4 → E, two bars each. The theme is rendered as four stems of exactly the same length (882,048 samples, a whole number of 128-sample ADPCM blocks, so the loop never gains a gap). The tempo is derived from that length (95.995 bpm), so the runtime beat grid matches the audio.
+
+| Stem | Content | Calm | Heist work (× tension) | Alert | Lockdown |
+|---|---|---|---|---|---|
+| Bed | detuned-saw pad + sub, breath | 0.80 | 0.80 | 0.55 | 0.20 |
+| Pulse | soft kick, sidechained eighth-note bass, hats | 0.45 | → 0.22 | 0.85 | 0.55 |
+| Arp | sixteenth plucks, dotted-eighth echo | 0 | → 0.80 | 0.35 → 0.85 | 0.25 × tension |
+| Drive | four-on-the-floor, claps, rolling 16th bass, A–Bb alarm stab, tom fills | 0 | 0 | 0 | 1.00 |
+
+- **Runtime** (`MissionAudio`, pure mixing rules in `ScoreMix`): all stems start on one scheduled DSP tick (`PlayScheduled`), so they stay sample-locked. Layers rise at 0.8/s and fall at 0.4/s. The drive stem slams in at 4/s. Security changes land on the next half bar, so the lockdown hits on the grid together with the lockdown stinger.
+- **End:** the stems fade over 1.2 s. On the next beat the outro plays: *success* resolves the theme to A major with a bell arpeggio, *failure* is a low A/Bb/E cluster sinking a semitone.
+- **Intro:** the cinematic uses the same theme (`Intro_Bed`, `Intro_Groove`; this replaces the old placeholder drone and pulse). The groove joins at the bed's position in the loop, so both stay on the same bar and chord.
+- **Device changes** (headphones plugged in, output switched): Unity resets audio and stops every source. `MissionAudio` and `VehicleAudio` listen to `AudioSettings.OnAudioConfigurationChanged`, restart their loops and re-sync the score stems.
+
+### Voices, priorities and headroom
+
+Three cars carry about 22 looping sources each, so a mission plays about 52 sources. The old 32-voice limit virtualised the music and city ambience, which ran at the default priority 128 while engine layers ran at 0. Measured: the score was about 35 dB below its level, effectively silent. Fixes:
+
+- Real voices 32 → 64 (`ProjectSettings/AudioManager`).
+- Priorities: score and outro 0; mission cues and stingers 4; ambience 8; tension 16; interaction loop 24; gate klaxon/motor 96; sirens 112. A car the camera is not following has +140 on every source (`VehicleAudio.OtherCarPriorityOffset`).
+- Gain staging: 10 district sirens at 0.35 (was 0.8), gate klaxon source 0.6, score 0.7.
+- `MasterLimiter` on the listener: −1 dBFS ceiling, instant attack, 150 ms release. It is a safety net, not the mix.
+
+**Measured** (Play Mode, BoulevardInAlleyOut, the full 150 s mix recorded at the listener with `AudioOutputRecorder`):
+
+| | Before | After |
+|---|---|---|
+| Score alone, calm | 0.0013 RMS (virtualised) | 0.054 RMS (predicted 0.055) |
+| Lockdown escape | 0.25–0.29 RMS, full-scale clipping from 76 s to 108 s | 0.14–0.18 RMS, peak 0.89 (the ceiling) |
+| Limiter activity | — | idle except −2.2 dB (heist cue), −4.8 dB (breach + lockdown stingers), −2.9 dB (escape) |
+
+Review excerpts of the actual game mix (engine, ambience, cues, score): `Docs/Audio/mission_heist_calm_to_extraction.wav`, `mission_lockdown_escape.wav`, `mission_extraction_outro.wav`.
 
 ## Assets and licences
 
@@ -101,5 +136,6 @@ Higher click scores appear only at deliberately percussive one-shots (shift clun
 - Pitch-shifting covers ±40–60 % between rpm points; formant shift is mild but present between layers.
 - The EV is silent at standstill (no AVAS pedestrian sound yet).
 - Braking squeal is weighted toward sideways sliding because the physics' ABS hands over to locked wheels below ~20 km/h.
-- No occlusion/reverb zones, no Doppler on the player car (by design), no music yet; mission code must drive Results/Lockdown/Ducked snapshots.
+- No occlusion/reverb zones, no Doppler on the player car (by design). The Ducked snapshot is unused so far.
+- The score's balance has been measured (levels, peaks, seams, limiter activity) but not judged by ear by a person.
 - Validation must run with the editor focused (an unfocused editor ticks too slowly for real-time audio checks).

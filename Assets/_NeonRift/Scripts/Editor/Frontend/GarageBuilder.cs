@@ -518,6 +518,7 @@ namespace NeonRift.EditorTools.Frontend
             data.antialiasing = AntialiasingMode.SubpixelMorphologicalAntiAliasing;
             data.antialiasingQuality = AntialiasingQuality.High;
             camGo.AddComponent<AudioListener>();
+            camGo.AddComponent<NeonRift.Audio.MasterLimiter>();
             var brain = camGo.AddComponent<CinemachineBrain>();
             brain.DefaultBlend = new CinemachineBlendDefinition(CinemachineBlendDefinition.Styles.EaseInOut, 1.1f);
             brain.UpdateMethod = CinemachineBrain.UpdateMethods.LateUpdate;

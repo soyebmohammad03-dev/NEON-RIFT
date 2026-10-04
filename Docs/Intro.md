@@ -87,7 +87,6 @@ The Car Select hall (`GarageBuilder.BuildShell`) now also stands in the city, on
 **Known limits:**
 - The street-level shots have no traffic or people yet (city life is a later phase).
 - The garage exterior is a plain box.
-- The music is still the placeholder drone and pulse.
 - The audio balance has not been judged by ear.
 
 ## Audio
@@ -95,11 +94,11 @@ The Car Select hall (`GarageBuilder.BuildShell`) now also stands in the city, on
 Original and procedural (`IntroAudioGenerator`, `Audio/Generated/Intro`):
 
 - **Sound effects:** riser, impact, whoosh, scanner beeps, ignition.
-- **Placeholder music:** a 16 s drone loop and an 8 s 120 bpm pulse loop. Their file names say *Placeholder*; replace them with a composed score.
+- **Music:** the game's own theme from `ScoreComposer` (see Audio.md): `Intro_Bed` (pad, from 0.5 s to the title) and `Intro_Groove` (pulse and arpeggio, from 62.6 s). The groove's `clipIn` puts it on the bed's bar and chord.
 - **Ambience:** the existing city ambience.
 - **Engines:** the cars' own engine audio starts at the ignition cue.
 
-Routed through the mixer: ambience → Ambience, drone/pulse/riser/hits/scan → Music, ignition → Sfx.
+Routed through the mixer: ambience → Ambience, bed/groove/riser/hits/scan → Music, ignition → Sfx. The soundtrack sources have priority 0: the garage line-up's engine loops fill the voice limit.
 
 ## Validation (Play Mode, October 2026)
 

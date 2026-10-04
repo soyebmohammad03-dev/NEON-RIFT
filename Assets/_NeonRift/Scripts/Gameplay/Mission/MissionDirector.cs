@@ -317,6 +317,7 @@ namespace NeonRift.Gameplay
         private void OnSecurityChanged(SecurityLevel level)
         {
             World.NotifySecurityChanged(level);
+            if (missionAudio != null) missionAudio.SetScoreSecurity(level);
             Debug.Log($"[Mission] security → {level} (heat {Progress.Heat:0.00})");
             if (level == SecurityLevel.Lockdown)
             {
@@ -349,7 +350,9 @@ namespace NeonRift.Gameplay
             if (missionAudio != null)
             {
                 missionAudio.SetInteract(0f, 0f);
-                missionAudio.Play(phase == MissionPhase.Completed ? MissionAudio.Cue.Success : MissionAudio.Cue.Failure);
+                // The score resolves into its outro on the beat; without a score, the plain cue.
+                bool success = phase == MissionPhase.Completed;
+                if (!missionAudio.EndScore(success)) missionAudio.Play(success ? MissionAudio.Cue.Success : MissionAudio.Cue.Failure);
             }
             if (activeTarget != null) activeTarget.SetObjectiveActive(false);
             activeTarget = null;

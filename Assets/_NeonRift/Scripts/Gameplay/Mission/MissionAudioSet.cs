@@ -38,6 +38,21 @@ namespace NeonRift.Gameplay
         [Tooltip("Stingers played when a world event fires (data acquired, breach detected …).")]
         [SerializeField] private EventStinger[] eventStingers = System.Array.Empty<EventStinger>();
 
+        [Header("Score")]
+        [Tooltip("Adaptive score stems (Bed, Pulse, Arp, Drive): the same length and tempo, layered sample-locked.")]
+        [SerializeField] private AudioClip[] scoreStems = System.Array.Empty<AudioClip>();
+        [SerializeField] private AudioClip outroSuccess;
+        [SerializeField] private AudioClip outroFailure;
+        [SerializeField, Min(1f)] private float scoreBpm = 96f;
+        [SerializeField, Range(0f, 1f)] private float scoreVolume = 0.7f;
+
+        public AudioClip ScoreStem(NeonRift.Missions.ScoreLayer layer) =>
+            scoreStems != null && (int)layer < scoreStems.Length ? scoreStems[(int)layer] : null;
+        public AudioClip OutroSuccess => outroSuccess;
+        public AudioClip OutroFailure => outroFailure;
+        public float ScoreBpm => scoreBpm;
+        public float ScoreVolume => scoreVolume;
+
         [System.Serializable]
         public struct EventStinger
         {
@@ -82,6 +97,15 @@ namespace NeonRift.Gameplay
         };
 
 #if UNITY_EDITOR
+        public void EditorConfigureScore(AudioClip[] stems, AudioClip success, AudioClip failure, float bpm)
+        {
+            scoreStems = stems;
+            outroSuccess = success;
+            outroFailure = failure;
+            scoreBpm = bpm;
+            scoreVolume = 0.7f;
+        }
+
         public void EditorConfigureStages(AudioClip start, AudioClip done, AudioClip missCue, AudioClip interferenceCue, AudioClip resyncCue,
                                           AudioClip lockoutCue, AudioClip cancelCue, AudioClip tension, EventStinger[] stingers)
         {

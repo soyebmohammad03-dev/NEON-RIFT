@@ -68,6 +68,16 @@ namespace NeonRift.EditorTools.Audio
                     new MissionAudioSet.EventStinger { eventId = "core.acquired", clip = heist.Acquired, volume = 0.9f },
                     new MissionAudioSet.EventStinger { eventId = "core.breached", clip = heist.Breach, volume = 1f },
                 });
+            // The adaptive score (original, procedural): four sample-locked stems and two outros.
+            var stems = new[]
+            {
+                Write("Score_Bed", ScoreComposer.Bed(), true, log, decompress: true),
+                Write("Score_Pulse", ScoreComposer.Pulse(), true, log, decompress: true),
+                Write("Score_Arp", ScoreComposer.Arp(), true, log, decompress: true),
+                Write("Score_Drive", ScoreComposer.Drive(), true, log, decompress: true)
+            };
+            set.EditorConfigureScore(stems, Save("Score_OutroSuccess", ScoreComposer.OutroSuccess(), false, log),
+                Save("Score_OutroFailure", ScoreComposer.OutroFailure(), false, log), ScoreComposer.Bpm);
             EditorUtility.SetDirty(set);
             AssetDatabase.SaveAssets();
             clips.Set = set;
@@ -329,7 +339,12 @@ namespace NeonRift.EditorTools.Audio
 
         // ---------------- Assets ----------------
 
-        private static AudioClip Save(string name, float[] samples, bool loop, StringBuilder log)
+        private static AudioClip Save(string name, float[] samples, bool loop, StringBuilder log) =>
+            Write(name, samples, loop, log, decompress: samples.Length <= Dsp.SampleRate * 8);
+
+        /// <param name="decompress">Decompress on load (PCM in memory). Score stems need it: they start on a scheduled
+        /// DSP tick together and are read back by the tests. Other long beds stay compressed in memory.</param>
+        private static AudioClip Write(string name, float[] samples, bool loop, StringBuilder log, bool decompress)
         {
             string path = $"{ClipFolder}/{name}.wav";
             VehiclePrefabBuilder.EnsureFolder(ClipFolder);
@@ -339,9 +354,8 @@ namespace NeonRift.EditorTools.Audio
             importer.forceToMono = true;
             importer.loadInBackground = false;
             var settings = importer.defaultSampleSettings;
-            // ADPCM everywhere: sample-accurate loop points and cheap decoding. Long beds stay compressed in memory.
-            bool longBed = samples.Length > Dsp.SampleRate * 8;
-            settings.loadType = longBed ? AudioClipLoadType.CompressedInMemory : AudioClipLoadType.DecompressOnLoad;
+            // ADPCM everywhere: sample-accurate loop points and cheap decoding.
+            settings.loadType = decompress ? AudioClipLoadType.DecompressOnLoad : AudioClipLoadType.CompressedInMemory;
             settings.compressionFormat = AudioCompressionFormat.ADPCM;
             settings.preloadAudioData = true;
             settings.sampleRateSetting = AudioSampleRateSetting.PreserveSampleRate;

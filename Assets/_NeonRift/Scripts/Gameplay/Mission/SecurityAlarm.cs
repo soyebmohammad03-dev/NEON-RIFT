@@ -12,7 +12,8 @@ namespace NeonRift.Gameplay
     {
         [SerializeField] private SecurityLevel activeFrom = SecurityLevel.Lockdown;
         [SerializeField] private AudioSource[] sirens = Array.Empty<AudioSource>();
-        [SerializeField, Range(0f, 1f)] private float sirenVolume = 0.8f;
+        [Tooltip("Ten sirens overlap across the district: each sits well below the engine and the score.")]
+        [SerializeField, Range(0f, 1f)] private float sirenVolume = 0.35f;
         [SerializeField, Min(0.05f)] private float fadeSeconds = 1.5f;
         [Tooltip("Spinning beacon heads (spin about local Y).")]
         [SerializeField] private Transform[] beacons = Array.Empty<Transform>();

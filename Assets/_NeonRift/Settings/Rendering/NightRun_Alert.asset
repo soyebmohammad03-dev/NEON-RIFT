@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!114 &-9134068410185977322
+--- !u!114 &-526743221956371394
 MonoBehaviour:
   m_ObjectHideFlags: 3
   m_CorrespondingSourceObject: {fileID: 0}
@@ -41,9 +41,9 @@ MonoBehaviour:
   m_Name: NightRun_Alert
   m_EditorClassIdentifier: Unity.RenderPipelines.Core.Runtime::UnityEngine.Rendering.VolumeProfile
   components:
-  - {fileID: 8312443002357927831}
-  - {fileID: -9134068410185977322}
---- !u!114 &8312443002357927831
+  - {fileID: 4463916059631551879}
+  - {fileID: -526743221956371394}
+--- !u!114 &4463916059631551879
 MonoBehaviour:
   m_ObjectHideFlags: 3
   m_CorrespondingSourceObject: {fileID: 0}

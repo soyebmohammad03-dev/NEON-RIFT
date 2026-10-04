@@ -40,3 +40,12 @@ MonoBehaviour:
   - eventId: core.breached
     clip: {fileID: 8300000, guid: 5dc08ced53a9f4e699749188ebd37ebb, type: 3}
     volume: 1
+  scoreStems:
+  - {fileID: 8300000, guid: 3d6191f1cc89146cea0582c2e65c8e91, type: 3}
+  - {fileID: 8300000, guid: 15aa7ef1fd772410d888ccf84aa8ba8d, type: 3}
+  - {fileID: 8300000, guid: 4db6a491ef8464aeaa375e032cb35ded, type: 3}
+  - {fileID: 8300000, guid: 429720f1a4bf9467c84858a170850714, type: 3}
+  outroSuccess: {fileID: 8300000, guid: 7667b61da7b984c8285d855a7c2a5f94, type: 3}
+  outroFailure: {fileID: 8300000, guid: cc66fc8f5f7b94fe29975d96568b4562, type: 3}
+  scoreBpm: 95.994774
+  scoreVolume: 0.7

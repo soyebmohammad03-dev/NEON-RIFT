@@ -533,6 +533,9 @@ namespace NeonRift.EditorTools.District
             source.maxDistance = 260f;
             source.rolloffMode = AudioRolloffMode.Logarithmic;
             source.dopplerLevel = 0f;
+            source.volume = 0.6f;
+            // Gate klaxons and motors matter when you are at the gate; below the cars, music and cues otherwise.
+            source.priority = 96;
             source.outputAudioMixerGroup = c.Mixer != null ? c.Mixer.Sfx : null;
 
             var barrier = root.gameObject.AddComponent<SecurityBarrier>();
@@ -640,6 +643,7 @@ namespace NeonRift.EditorTools.District
                 s.maxDistance = 700f;
                 s.rolloffMode = AudioRolloffMode.Logarithmic;
                 s.dopplerLevel = 0f;
+                s.priority = 112;   // ten of them: the nearest few are enough, never at the music's expense
                 s.outputAudioMixerGroup = c.Mixer != null ? c.Mixer.Sfx : null;
                 sirens.Add(s);
             }
@@ -898,6 +902,7 @@ namespace NeonRift.EditorTools.District
             camera.farClipPlane = SkylineBackdrop.RequiredFarClip;
             camera.fieldOfView = 60f;
             camGo.AddComponent<AudioListener>();
+            camGo.AddComponent<NeonRift.Audio.MasterLimiter>();
             camGo.AddComponent<CameraCullDistances>().EditorConfigure(new[]
             {
                 new CameraCullDistances.Entry { layer = "Detail", distance = 180f },

@@ -140,6 +140,8 @@ namespace NeonRift.EditorTools.Intro
                 s.playOnAwake = false;
                 s.spatialBlend = 0f;
                 s.loop = loop;
+                // The garage line-up's engine loops fill the voice limit: the soundtrack must never be virtualised.
+                s.priority = 0;
                 return s;
             }
             var ambienceSource = Source("Audio_Ambience", true);
@@ -391,8 +393,14 @@ namespace NeonRift.EditorTools.Intro
                 director.SetGenericBinding(track, source);
             }
             Audio("Ambience", ambienceSource, (ambience, 0f, Duration, true));
-            Audio("Drone (placeholder music)", droneSource, (clips.Drone, 0.5f, TitleTime + 1f, true));
-            Audio("Pulse (placeholder music)", pulseSource, (clips.Pulse, 62.6f, Duration, true));
+            const float bedStart = 0.5f, grooveStart = 62.6f;
+            Audio("Score bed", droneSource, (clips.Drone, bedStart, TitleTime + 1f, true));
+            Audio("Score groove", pulseSource, (clips.Pulse, grooveStart, Duration, true));
+            // Both are loops of the same 8-bar theme: the groove joins as far into its loop as the bed has played, so
+            // the two stay on the same bar and chord.
+            if (clips.Pulse != null)
+                foreach (var tc in timeline.GetOutputTracks().First(t => t.name == "Score groove").GetClips())
+                    tc.clipIn = (grooveStart - bedStart) % clips.Pulse.length;
             Audio("Riser", riserSource, (clips.Riser, TitleTime - 6f, TitleTime, false));
             var hits = new List<(AudioClip, float, float, bool)>
             {

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using NeonRift.Vehicles;
 using UnityEngine;
 using UnityEngine.Audio;
@@ -55,7 +56,8 @@ namespace NeonRift.Audio
 
         public bool IsConfigured => profile != null && vehicle != null;
         public VehicleAudioProfile Profile => profile;
-        /// <summary>Number of AudioSource.Play() calls made. Equals the loop count after configuration and never grows.</summary>
+        /// <summary>Number of AudioSource.Play() calls made. Equals the loop count after configuration and only grows when
+        /// the output device changes (the audio system stops every source then, and the loops are restarted).</summary>
         public int PlayCalls { get; private set; }
         /// <summary>One-shots played (shifts, pops, thumps, impacts).</summary>
         public int OneShotCount { get; private set; }
@@ -126,6 +128,21 @@ namespace NeonRift.Audio
 
             vehicle.Drivetrain.Gearbox.GearChanged += OnGearChanged;
             vehicle.Collided += OnCollided;
+            AudioSettings.OnAudioConfigurationChanged -= OnAudioConfigurationChanged;
+            AudioSettings.OnAudioConfigurationChanged += OnAudioConfigurationChanged;
+        }
+
+        /// <summary>A device change (headphones, a new output) resets the audio system and stops every source: restart the loops.</summary>
+        private void OnAudioConfigurationChanged(bool deviceWasChanged)
+        {
+            if (this == null) return;
+            foreach (var source in AllLoops())
+            {
+                if (source == null || source.clip == null || source.isPlaying) continue;
+                source.timeSamples = UnityEngine.Random.Range(0, source.clip.samples);
+                source.Play();
+                PlayCalls++;
+            }
         }
 
         /// <summary>The camera follows this car: mostly 2D, no Doppler.</summary>
@@ -135,12 +152,22 @@ namespace NeonRift.Audio
             ApplySpatial();
         }
 
+        /// <summary>
+        /// Added to the priority of every source of a car the camera is not following. A car carries ~20 loops, and
+        /// with three cars on the grid the voice limit would otherwise virtualise the music and ambience (default
+        /// priority) before any rival engine layer.
+        /// </summary>
+        public const int OtherCarPriorityOffset = 140;
+        private readonly Dictionary<AudioSource, int> basePriority = new();
+
         private void ApplySpatial()
         {
             foreach (var s in GetComponentsInChildren<AudioSource>(true))
             {
                 s.spatialBlend = isPlayer ? playerSpatialBlend : spatialBlend;
                 s.dopplerLevel = isPlayer ? 0f : 0.5f;
+                if (basePriority.TryGetValue(s, out int priority))
+                    s.priority = Mathf.Clamp(priority + (isPlayer ? 0 : OtherCarPriorityOffset), 0, 256);
             }
         }
 
@@ -309,6 +336,7 @@ namespace NeonRift.Audio
             s.playOnAwake = false;
             s.outputAudioMixerGroup = group;
             s.priority = priority;
+            basePriority[s] = priority;
             s.rolloffMode = AudioRolloffMode.Logarithmic;
             s.minDistance = minDistance;
             s.maxDistance = maxDistance;
@@ -339,6 +367,7 @@ namespace NeonRift.Audio
 
         private void Unsubscribe()
         {
+            AudioSettings.OnAudioConfigurationChanged -= OnAudioConfigurationChanged;
             if (vehicle == null) return;
             vehicle.Drivetrain.Gearbox.GearChanged -= OnGearChanged;
             vehicle.Collided -= OnCollided;

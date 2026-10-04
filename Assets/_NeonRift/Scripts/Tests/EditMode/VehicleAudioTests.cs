@@ -3,6 +3,8 @@ using System.Linq;
 using NeonRift.Audio;
 using NeonRift.EditorTools.Audio;
 using NeonRift.EditorTools.Vehicles;
+using NeonRift.Gameplay;
+using NeonRift.Missions;
 using NeonRift.Vehicles;
 using NUnit.Framework;
 using UnityEditor;
@@ -196,6 +198,91 @@ namespace NeonRift.Tests
             b.SetInput(throttle: 0.3f, steer: 1f, handbrake: true);
             b.Run(1.5f, null, () => { audio.Tick(VehicleTestBench.Dt); peakSkid = Mathf.Max(peakSkid, audio.SkidLevel); });
             Assert.That(peakSkid, Is.GreaterThan(0.3f), "handbrake slide squeals");
+        }
+
+        [Test]
+        public void Score_StemsAreSampleLockedSeamlessLoops()
+        {
+            var set = AssetDatabase.LoadAssetAtPath<MissionAudioSet>(MissionAudioGenerator.SetPath);
+            Assert.That(set, Is.Not.Null);
+            int length = -1;
+            for (int i = 0; i < ScoreMix.LayerCount; i++)
+            {
+                var clip = set.ScoreStem((ScoreLayer)i);
+                Assert.That(clip, Is.Not.Null, ((ScoreLayer)i).ToString());
+                if (length < 0) length = clip.samples;
+                Assert.AreEqual(length, clip.samples, $"{clip.name} must match the other stems sample for sample");
+                var x = Data(clip);
+                Assert.That(x.Any(float.IsNaN), Is.False, clip.name);
+                Assert.That(AudioSignalAnalysis.LoopSeamScore(x), Is.LessThan(4f), $"{clip.name} loop seam");
+                Assert.That(AudioSignalAnalysis.Rms(x, 0, x.Length), Is.GreaterThan(0.04f), $"{clip.name} is silent");
+            }
+            // Eight bars at the set's tempo.
+            Assert.AreEqual(8 * 4 * 60.0 / set.ScoreBpm, length / (double)set.ScoreStem(ScoreLayer.Bed).frequency, 0.01);
+            foreach (var outro in new[] { set.OutroSuccess, set.OutroFailure })
+            {
+                Assert.That(outro, Is.Not.Null);
+                var x = Data(outro);
+                Assert.That(Mathf.Abs(x[0]), Is.LessThan(0.01f), $"{outro.name} starts with a click");
+                Assert.That(Mathf.Abs(x[x.Length - 1]), Is.LessThan(0.01f), $"{outro.name} ends with a click");
+            }
+        }
+
+        [Test]
+        public void ScoreMix_FollowsTheMissionState()
+        {
+            var t = new float[ScoreMix.LayerCount];
+            ScoreMix.Targets(SecurityLevel.Calm, 0f, false, t);
+            Assert.Greater(t[(int)ScoreLayer.Bed], t[(int)ScoreLayer.Pulse], "calm: the pad leads");
+            Assert.AreEqual(0f, t[(int)ScoreLayer.Arp]);
+            Assert.AreEqual(0f, t[(int)ScoreLayer.Drive]);
+            ScoreMix.Targets(SecurityLevel.Calm, 1f, false, t);
+            Assert.Greater(t[(int)ScoreLayer.Arp], 0.5f, "heist work brings the arpeggio in");
+            ScoreMix.Targets(SecurityLevel.Alert, 0f, false, t);
+            Assert.Greater(t[(int)ScoreLayer.Pulse], t[(int)ScoreLayer.Bed], "alert: the groove leads");
+            ScoreMix.Targets(SecurityLevel.Lockdown, 0f, false, t);
+            Assert.AreEqual(1f, t[(int)ScoreLayer.Drive]);
+            Assert.Less(t[(int)ScoreLayer.Bed], 0.3f);
+            ScoreMix.Targets(SecurityLevel.Lockdown, 1f, true, t);
+            Assert.That(t.All(g => g == 0f), "ended: everything fades for the outro");
+            // The drive stem slams in; layers fall more slowly than they rise.
+            Assert.AreEqual(0.4f, ScoreMix.Step(ScoreLayer.Drive, 0f, 1f, 0.1f), 1e-4f);
+            Assert.AreEqual(0.08f, ScoreMix.Step(ScoreLayer.Bed, 0f, 1f, 0.1f), 1e-4f);
+            Assert.AreEqual(0.96f, ScoreMix.Step(ScoreLayer.Bed, 1f, 0f, 0.1f), 1e-4f);
+        }
+
+        [Test]
+        public void ScoreMix_ChangesLandOnTheGrid()
+        {
+            const double start = 10.0, half = 1.25;
+            Assert.AreEqual(11.25, ScoreMix.NextGridTime(start, 10.3, half), 1e-9);
+            Assert.AreEqual(12.5, ScoreMix.NextGridTime(start, 11.26, half), 1e-9);
+            Assert.AreEqual(12.5, ScoreMix.NextGridTime(start, 12.5, half), 1e-9, "on the grid: now");
+            Assert.AreEqual(10.0, ScoreMix.NextGridTime(start, 9.0, half), 1e-9, "before the music starts: its start");
+        }
+
+        [Test]
+        public void MasterLimiter_HoldsTheCeilingAndRecovers()
+        {
+            const float ceiling = 0.89f;
+            float release = MasterLimiter.ReleaseCoefficient(150f, 48000);
+            float gain = 1f;
+            // A quiet signal passes untouched.
+            var quiet = new float[512];
+            for (int i = 0; i < quiet.Length; i++) quiet[i] = 0.3f * Mathf.Sin(i * 0.05f);
+            var copy = (float[])quiet.Clone();
+            Assert.AreEqual(1f, MasterLimiter.Process(quiet, 2, ref gain, ceiling, release));
+            CollectionAssert.AreEqual(copy, quiet);
+            // A burst at 2.5× full scale never exceeds the ceiling.
+            var loud = new float[4800];
+            for (int i = 0; i < loud.Length; i++) loud[i] = 2.5f * Mathf.Sin(i * 0.07f);
+            float lowest = MasterLimiter.Process(loud, 2, ref gain, ceiling, release);
+            Assert.That(loud.Max(Mathf.Abs), Is.LessThanOrEqualTo(ceiling + 1e-5f));
+            Assert.Less(lowest, 0.5f);
+            // Afterwards the gain recovers toward unity (most of the way within half a second).
+            var tail = new float[48000];
+            MasterLimiter.Process(tail, 2, ref gain, ceiling, release);
+            Assert.Greater(gain, 0.95f);
         }
     }
 }

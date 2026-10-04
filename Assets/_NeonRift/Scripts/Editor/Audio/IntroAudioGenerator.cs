@@ -10,10 +10,10 @@ namespace NeonRift.EditorTools.Audio
 {
     /// <summary>
     /// Original, procedural audio for the opening cinematic. Everything is synthesised here (no samples, no licensed
-    /// music). The "music" (drone, pulse) is a PLACEHOLDER layer meant to be replaced by a composed score:
+    /// music). The music is the game's own theme from <see cref="ScoreComposer"/> (A minor, 96 bpm):
     /// <list type="bullet">
-    /// <item>Drone: low evolving pad with mains hum, 16 s seamless loop;</item>
-    /// <item>Pulse: 120 bpm low pulse with a bass figure, 8 s seamless loop (placeholder music bed);</item>
+    /// <item>Drone: the theme's pad bed, 20 s seamless loop;</item>
+    /// <item>Pulse: the theme's groove (pulse and arpeggio), 20 s seamless loop;</item>
     /// <item>Riser: 6 s noise and pitch rise into the title;</item>
     /// <item>Impact: sub drop with a metallic ring (cuts, title);</item>
     /// <item>Whoosh: short filtered noise swell for quick cuts;</item>
@@ -36,11 +36,11 @@ namespace NeonRift.EditorTools.Audio
 
         public static string Generate(out Clips clips)
         {
-            var log = new StringBuilder("[IntroAudio] generated (original, procedural; drone and pulse are placeholder music):\n");
+            var log = new StringBuilder("[IntroAudio] generated (original, procedural; music from the game's score):\n");
             clips = new Clips
             {
-                Drone = Save("Intro_Drone_Placeholder", Drone(), true, log),
-                Pulse = Save("Intro_Pulse_Placeholder", Pulse(), true, log),
+                Drone = Save("Intro_Bed", ScoreComposer.Bed(), true, log),
+                Pulse = Save("Intro_Groove", ScoreComposer.IntroGroove(), true, log),
                 Riser = Save("Intro_Riser", Riser(), false, log),
                 Impact = Save("Intro_Impact", Impact(), false, log),
                 Whoosh = Save("Intro_Whoosh", Whoosh(), false, log),
@@ -48,65 +48,6 @@ namespace NeonRift.EditorTools.Audio
                 Ignition = Save("Intro_Ignition", Ignition(), false, log)
             };
             return log.ToString();
-        }
-
-        private static float[] Drone()
-        {
-            const float seconds = 16f;
-            int n = (int)(seconds * Rate);
-            var x = new float[n];
-            var rng = new System.Random(11);
-            // Frequencies on a 1/16 Hz grid and LFO periods dividing 16 s: the loop is seamless.
-            float[] partials = { 55f, 82.5f, 110f, 164.9375f };
-            float[] levels = { 0.5f, 0.28f, 0.2f, 0.07f };
-            var low = Dsp.Biquad.LowPass(380);
-            var air = Dsp.Periodic(Dsp.Noise(n, rng), v => low.Process(v));   // steady-state pass: loops cleanly
-            for (int i = 0; i < n; i++)
-            {
-                double t = i / (double)Rate;
-                double swell = 0.65 + 0.35 * Math.Sin(2 * Math.PI * t / 16.0);
-                double s = 0;
-                for (int k = 0; k < partials.Length; k++)
-                    s += levels[k] * Math.Sin(2 * Math.PI * partials[k] * t + 0.4 * Math.Sin(2 * Math.PI * t / 8.0 + k));
-                double hum = 0.04 * Math.Sin(2 * Math.PI * 50 * t) + 0.025 * Math.Sin(2 * Math.PI * 100 * t) + 0.012 * Math.Sin(2 * Math.PI * 150 * t);
-                double breath = air[i] * 0.35 * (0.6 + 0.4 * Math.Sin(2 * Math.PI * t / 4.0));
-                x[i] = (float)(s * swell * 0.55 + hum + breath);
-            }
-            Dsp.RemoveDc(x);
-            Dsp.NormalizeRms(x, 0.12f);
-            return x;
-        }
-
-        private static float[] Pulse()
-        {
-            const float bpm = 120f, seconds = 8f;
-            int n = (int)(seconds * Rate);
-            var x = new float[n];
-            var rng = new System.Random(5);
-            float beat = 60f / bpm;
-            float[] bass = { 55f, 55f, 49f, 58.27f };   // A, A, G, Bb: one note per bar
-            var hat = Dsp.Biquad.HighPass(7000);
-            var hiss = Dsp.Periodic(Dsp.Noise(n, rng), v => hat.Process(v));
-            for (int i = 0; i < n; i++)
-            {
-                double t = i / (double)Rate;
-                double inBeat = t % beat;
-                int bar = (int)(t / (beat * 4)) % bass.Length;
-                // Kick-like thump: falling sine on every beat.
-                double kick = Math.Exp(-inBeat * 18) * Math.Sin(2 * Math.PI * (45 + 90 * Math.Exp(-inBeat * 30)) * inBeat) * 0.9;
-                // Bass: plucked saw-ish on the off-beat eighths.
-                double eighth = t % (beat * 0.5);
-                double bassEnv = Math.Exp(-eighth * 6) * (((int)(t / (beat * 0.5)) % 2 == 1) ? 1 : 0.35);
-                double f = bass[bar];
-                double saw = 0;
-                for (int h = 1; h <= 5; h++) saw += Math.Sin(2 * Math.PI * f * h * t) / h;
-                // Hats on the off-beats.
-                double hatEnv = Math.Exp(-((t + beat * 0.5) % beat) * 60);
-                x[i] = (float)(kick + saw * bassEnv * 0.22 + hiss[i] * hatEnv * 0.25);
-            }
-            Dsp.RemoveDc(x);
-            Dsp.NormalizeRms(x, 0.13f);
-            return x;
         }
 
         private static float[] Riser()
