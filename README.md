@@ -62,6 +62,10 @@ script in Play Mode.
 - **Music.** Gameplay runs over a low background track and the cinematic over a trailer track (both supplied in `Assets/ThirdParty/SoundAudio`); M toggles music anywhere. A procedural adaptive score (`ScoreComposer`) remains as the fallback.
 - **Performance.** A full-route profiler, a GPU A/B bench and a player-build perf run (`-perfroute`). See [Docs/Performance.md](Docs/Performance.md).
 
+## Complete Technical Documentation
+
+A full, searchable technical book for the whole project (architecture, city generation, vehicle physics, rival AI, the heist, lockdown, the cinematic intro, UI, audio, performance, testing, licensing, and a teacher Q&A guide), with exact file paths for every system: **[Docs/NEON_RIFT_BOOK/00_INDEX.md](Docs/NEON_RIFT_BOOK/00_INDEX.md)**.
+
 ## Layout
 
 ```
