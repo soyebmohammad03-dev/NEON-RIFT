@@ -86,3 +86,21 @@ Audit of `Docs/NEON_RIFT_BOOK/` against the repository at commit `602c7130` (Uni
 - **`CityInfill` and `CityProps` internals** are summarised at the algorithm level (method names verified); numeric counts come from the recorded build logs in `Docs/City.md`.
 - **Performance figures** are reproduced from recorded measurements; none were re-measured for this book, and no player-build profile exists after the latest content additions.
 - **Mixer snapshot dB offsets** are taken from `Docs/Audio.md`; the `.mixer` asset itself was not decoded.
+
+## PDF edition (`NEON_RIFT_COMPLETE_TECHNICAL_BOOK.pdf`)
+
+The PDF is compiled from the Markdown chapters in this folder. Its content is the same as theirs; only the presentation changes. Notes on the compilation:
+
+- **Verification status.** The 831-path and 427-member checks above were made against `602c7130`. The commits since then change only `README.md` and `Docs/` (`git diff --stat 602c7130 HEAD` shows no code or asset change), so those results still apply. The PDF was not re-verified line by line. Two checks were made during compilation:
+  - **Paths:** Find It Fast and the Q&A cards spell out the `S/` and `D/` shorthand, and expand 35 bare file names (for example `CityLayout.cs`) to full paths when exactly one tracked file has that name. All **98** full paths shown in those two sections exist in the repository.
+  - **Destinations:** every chapter, part and figure in the TOC has a link destination in the PDF.
+- **Added diagrams.** Three diagrams have no Markdown source: 17.2 Rival heist flow, 21.1 Security Gate hack flow and 22.2 Data Core heist flow. Each one only restates the steps, events, durations and ids written in the text of its chapter. The intro timeline (31.2) is drawn from the shot and cue tables in chapter 31.
+- **Layout-only changes.**
+  - Some diagrams are laid out left-to-right instead of top-to-bottom (or the reverse) so they fit the page.
+  - The 10-column physics-profile table in chapter 14 is transposed.
+  - The shot table in chapter 31 is shown as one card per shot. The column "Objects" is labelled "Action / on screen".
+  - Section headings that carried their own number ("1. High-level shape") use the book's section number instead.
+  - The "A. Table of contents" of `00_INDEX.md` is replaced by the PDF's own Contents.
+- **Licensing at a glance** (chapter 44) regroups the chapter's existing licence facts into categories. It adds no new licence information.
+- **Screenshots** come from `Docs/Screenshots/`: real captures made with the project's capture tools during development. Some may predate small later changes. No image was created or edited for the book.
+- **Discrepancies found while compiling:** none in the technical content. The cue table and the shot table in chapter 31 agree on the 25 shots (shots 19–24 being the montage). The question counts (36), figure counts and chapter list (48 plus two appendices) match the Markdown.
