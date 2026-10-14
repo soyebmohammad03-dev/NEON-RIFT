@@ -21,6 +21,14 @@ namespace NeonRift.Game
         public int Quality { get; private set; }
         public bool Fullscreen { get; private set; }
         public bool VSync { get; private set; } = true;
+        /// <summary>Touch devices: steer by tilting the phone instead of the on-screen arrows.</summary>
+        public bool TiltSteering { get; private set; }
+        public float TiltSensitivity { get; private set; } = 1f;
+        /// <summary>Calibrated straight-ahead roll angle, degrees.</summary>
+        public float TiltNeutral { get; private set; }
+
+        /// <summary>The settings page asks the touch layer to take the current phone angle as straight ahead.</summary>
+        public event Action TiltCalibrateRequested;
 
         /// <summary>Raised after any change is applied (the HUD's music hint listens).</summary>
         public event Action Changed;
@@ -42,6 +50,9 @@ namespace NeonRift.Game
             Quality = Mathf.Clamp(PlayerPrefs.GetInt(Prefix + "Quality", Quality), 0, QualitySettings.names.Length - 1);
             Fullscreen = PlayerPrefs.GetInt(Prefix + "Fullscreen", Fullscreen ? 1 : 0) == 1;
             VSync = PlayerPrefs.GetInt(Prefix + "VSync", VSync ? 1 : 0) == 1;
+            TiltSteering = PlayerPrefs.GetInt(Prefix + "TiltSteering", 0) == 1;
+            TiltSensitivity = Mathf.Clamp(PlayerPrefs.GetFloat(Prefix + "TiltSensitivity", TiltSensitivity), 0.5f, 2f);
+            TiltNeutral = PlayerPrefs.GetFloat(Prefix + "TiltNeutral", 0f);
         }
 
         public void Save()
@@ -54,6 +65,9 @@ namespace NeonRift.Game
             PlayerPrefs.SetInt(Prefix + "Quality", Quality);
             PlayerPrefs.SetInt(Prefix + "Fullscreen", Fullscreen ? 1 : 0);
             PlayerPrefs.SetInt(Prefix + "VSync", VSync ? 1 : 0);
+            PlayerPrefs.SetInt(Prefix + "TiltSteering", TiltSteering ? 1 : 0);
+            PlayerPrefs.SetFloat(Prefix + "TiltSensitivity", TiltSensitivity);
+            PlayerPrefs.SetFloat(Prefix + "TiltNeutral", TiltNeutral);
             PlayerPrefs.Save();
         }
 
@@ -121,6 +135,27 @@ namespace NeonRift.Game
         {
             VSync = on;
             Commit(audioChanged: false);
+        }
+
+        public void SetTiltSteering(bool on)
+        {
+            TiltSteering = on;
+            if (on) TiltCalibrateRequested?.Invoke();
+            Commit(audioChanged: false);
+        }
+
+        public void SetTiltSensitivity(float value)
+        {
+            TiltSensitivity = Mathf.Clamp(value, 0.5f, 2f);
+            Commit(audioChanged: false);
+        }
+
+        public void CalibrateTilt() => TiltCalibrateRequested?.Invoke();
+
+        public void SetTiltNeutral(float degrees)
+        {
+            TiltNeutral = degrees;
+            Save();
         }
 
         private void Commit(bool audioChanged)

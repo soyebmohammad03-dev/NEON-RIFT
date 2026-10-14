@@ -839,3 +839,9 @@
 }
 .nr-music-hint--off { color: var(--nr-amber); }
 .nr-hud--debrief .nr-music-hint { opacity: 0; }
+
+/* ---------------- Touch devices: keep panels clear of the on-screen buttons (TouchControls) ---------------- */
+.nr-hud--touch .nr-nav { bottom: 290px; }
+.nr-hud--touch .nr-speedo { right: 540px; bottom: 36px; }
+.nr-hud--touch .nr-prompt { bottom: 300px; }
+.nr-hud--touch .nr-race { right: 360px; }

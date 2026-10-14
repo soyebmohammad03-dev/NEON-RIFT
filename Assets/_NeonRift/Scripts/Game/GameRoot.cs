@@ -47,6 +47,9 @@ namespace NeonRift.Game
             musicToggle.performed += _ => settings.ToggleMusic();
             musicToggle.Enable();
             flow.StateChanged += OnStateChanged;
+            // Phones / tablets: on-screen controls that feed a virtual gamepad (keyboard and gamepad keep working).
+            if (Application.isMobilePlatform)
+                gameObject.AddComponent<TouchControls>().Initialize(controls, flow, settings);
         }
 
         // Menus get the menu mix; missions the gameplay mix. Results/lockdown/ducking are driven by mission code.

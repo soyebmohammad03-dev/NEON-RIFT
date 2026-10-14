@@ -88,6 +88,8 @@ namespace NeonRift.Gameplay
         private void OnEnable()
         {
             root = GetComponent<UIDocument>().rootVisualElement;
+            // Touch devices: lift the minimap / speedometer / prompt clear of the on-screen buttons.
+            if (NeonRift.Game.TouchControls.Active) root.AddToClassList("nr-hud--touch");
             frame = root.Q("lockdown-frame");
             objective = root.Q("objective");
             objectiveStep = root.Q<Label>("objective-step");

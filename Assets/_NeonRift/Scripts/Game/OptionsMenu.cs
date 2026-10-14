@@ -275,6 +275,24 @@ namespace NeonRift.Game
                 Toggle("V-SYNC", () => s.VSync, s.SetVSync),
                 Button("BACK", Pop)
             };
+            if (TouchControls.Active)
+                rows.InsertRange(rows.Count - 1, new List<Row>
+                {
+                    new()
+                    {
+                        Label = "STEERING",
+                        Adjust = _ => s.SetTiltSteering(!s.TiltSteering && TouchControls.TiltAvailable),
+                        Value = () => !TouchControls.TiltAvailable ? "TOUCH (NO TILT SENSOR)" : s.TiltSteering ? "TILT" : "TOUCH"
+                    },
+                    new()
+                    {
+                        Label = "TILT SENSITIVITY",
+                        Adjust = d => s.SetTiltSensitivity(Mathf.Round((s.TiltSensitivity + d * 0.25f) * 4f) / 4f),
+                        Value = () => $"{s.TiltSensitivity:0.00}x",
+                        Fill = () => Mathf.InverseLerp(0.5f, 2f, s.TiltSensitivity)
+                    },
+                    Button("CALIBRATE TILT  (HOLD PHONE LEVEL)", s.CalibrateTilt)
+                });
             Push("SETTINGS", rows);
         }
 
