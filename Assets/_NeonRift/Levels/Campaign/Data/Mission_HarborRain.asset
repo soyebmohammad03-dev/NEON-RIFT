@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a7850fa7ce0d4735b79778144224bde, type: 3}
+  m_Name: Mission_HarborRain
+  m_EditorClassIdentifier: NeonRift.Missions::NeonRift.Missions.MissionDefinition
+  id: harbor_rain
+  displayName: Harbor Rain
+  tagline: "Operation KX-7 \xB7 Kowloon Bay container port"
+  briefing: Intercept container KX-7 in a secured port during a storm, evade port security and the police, cross the storm-surge coast road and reach extraction.
+  sceneName: HarborRain
+  developmentOnly: 0
+  objectives: []
+  eventsOnStart: []
+  eventsOnComplete: []
+  eventsOnFail: []
+  announcements: []
+  maxRivals: 0
+  rivalTasks: []
+  rivalStartDelay: 0.6
+  qualifyingPlaces: 0
+  crewRoles: []
+  parTime: 0
+  heatTimePenalty: 25
+  minimumTimeLimit: 20

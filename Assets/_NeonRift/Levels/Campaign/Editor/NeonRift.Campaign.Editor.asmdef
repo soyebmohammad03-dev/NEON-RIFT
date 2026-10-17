@@ -1,0 +1,29 @@
+{
+    "name": "NeonRift.Campaign.Editor",
+    "rootNamespace": "NeonRift.Campaign.EditorTools",
+    "references": [
+        "NeonRift.Game",
+        "NeonRift.Gameplay",
+        "NeonRift.Vehicles",
+        "NeonRift.Missions",
+        "NeonRift.Frontend",
+        "NeonRift.Intro",
+        "NeonRift.Audio",
+        "NeonRift.Editor",
+        "NeonRift.HarborRain",
+        "NeonRift.HarborRain.Editor",
+        "Unity.InputSystem",
+        "Unity.Cinemachine"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -1,0 +1,30 @@
+{
+    "name": "NeonRift.Campaign.Tests",
+    "rootNamespace": "NeonRift.Campaign.Tests",
+    "references": [
+        "UnityEngine.TestRunner",
+        "UnityEditor.TestRunner",
+        "NeonRift.Game",
+        "NeonRift.Vehicles",
+        "NeonRift.Missions",
+        "NeonRift.Gameplay",
+        "NeonRift.HarborRain",
+        "NeonRift.Campaign.Editor",
+        "NeonRift.Editor"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

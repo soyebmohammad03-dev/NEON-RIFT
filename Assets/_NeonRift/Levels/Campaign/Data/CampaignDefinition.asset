@@ -1,0 +1,102 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 986af9d9348194268baf8bca1cad187d, type: 3}
+  m_Name: CampaignDefinition
+  m_EditorClassIdentifier: NeonRift.Game::NeonRift.Game.CampaignDefinition
+  id: neon_rift_campaign
+  displayName: NEON RIFT
+  level1: {fileID: 11400000, guid: 6dbb8108a4bcb4e23a90ef55ed634f2b, type: 2}
+  level2: {fileID: 11400000, guid: f74ae611b541e4390adb2fc7bfc706ae, type: 2}
+  level1Selection: {fileID: 11400000, guid: d79826176834e4ab6b81f9c3e8ba9d9f, type: 2}
+  level2Selection: {fileID: 11400000, guid: 9bcf53c4cd55a4809a34ce04dd70071b, type: 2}
+  level2Vehicles:
+  - {fileID: 11400000, guid: f93622806a1a344979b134b4e3e60798, type: 2}
+  - {fileID: 11400000, guid: da4a6e5d1554c4ea8857b7244382af00, type: 2}
+  lines:
+  - id: teaser
+    speaker: "INTERCEPTED \xB7 KOWLOON BAY"
+    text: Kowloon Bay control. The storm is closing the port tonight, but the shipment still moves. Whoever wins the city run gets the call.
+    clip: {fileID: 8300000, guid: 4f47e272ae7b74849839e234bc693025, type: 3}
+  - id: portal
+    speaker: THE CONTACT
+    text: Good driving. You were noticed. There is a door open ahead of you. Drive through it.
+    clip: {fileID: 8300000, guid: 2d22fecf9bb9c43ca834e64f36912743, type: 3}
+  - id: arrival
+    speaker: CONTROL
+    text: Control to Driver. Signal locked. You came through clean. Welcome to Kowloon Bay.
+    clip: {fileID: 8300000, guid: a588dacaa644d49bdb6dcda67c3605fc, type: 3}
+  - id: unlock
+    speaker: THE CONTACT
+    text: You performed well in the city, so I have another operation for you. A storm, a secured port, and a container nobody is supposed to touch. Prepare your crew.
+    clip: {fileID: 8300000, guid: 6ed3e2816c2b34048bbd14c9388c0180, type: 3}
+  - id: trailer_port
+    speaker: THE CONTACT
+    text: Kowloon Bay. The busiest container port on the coast. Tonight, the storm is on our side.
+    clip: {fileID: 8300000, guid: 6861bbd823cc14d3298b531bce5190f2, type: 3}
+  - id: trailer_target
+    speaker: THE CONTACT
+    text: Somewhere in these stacks is container KX-7, hidden behind a false manifest.
+    clip: {fileID: 8300000, guid: ddf2336da4389407a92fb32f91991351, type: 3}
+  - id: trailer_crew
+    speaker: THE CONTACT
+    text: You drive. Control runs the job. Overwatch flies the drone.
+    clip: {fileID: 8300000, guid: 2a3b80042d54b4456a9bb4d998dcd443, type: 3}
+  - id: trailer_security
+    speaker: THE CONTACT
+    text: Cameras, badge gates and patrols. Stay out of sight until the box is ours.
+    clip: {fileID: 8300000, guid: e607e671ddc99495a80832080466d68d, type: 3}
+  - id: trailer_heist
+    speaker: THE CONTACT
+    text: Crack the manifest, bypass the gate, and the gantry crane lifts the container onto our truck.
+    clip: {fileID: 8300000, guid: 1b0e10db044bd42ef98703968c5a9ddb, type: 3}
+  - id: trailer_alarm
+    speaker: THE CONTACT
+    text: The moment it moves, the alarm goes live, the port locks down, and the police come for you.
+    clip: {fileID: 8300000, guid: b8e5115f4d2c34065b215f0c073fe884, type: 3}
+  - id: trailer_escape
+    speaker: THE CONTACT
+    text: Get to the east gate, override the power, and cross the coast road before the waves close it.
+    clip: {fileID: 8300000, guid: 25729c17b77bd43b6ac8ca6a11d4ee88, type: 3}
+  - id: trailer_briefing
+    speaker: THE CONTACT
+    text: Bring the cargo out. Reach extraction. Don't get caught.
+    clip: {fileID: 8300000, guid: 69e59a827b91e4a6d90954879be52f66, type: 3}
+  - id: complete
+    speaker: CONTROL
+    text: Cargo's through, Driver. That's both jobs done, the city and the harbour. Control out.
+    clip: {fileID: 8300000, guid: a93e63b8769dd4f50af2385281bc3d29, type: 3}
+  teaserFrames:
+  - {fileID: 2800000, guid: e716025c8c82d4f588bdfe6ec302d793, type: 3}
+  - {fileID: 2800000, guid: 12fa53cfff86048d8a539feea65886e3, type: 3}
+  - {fileID: 2800000, guid: 44e1e81d8349c43968ded3bba7242db0, type: 3}
+  - {fileID: 2800000, guid: e716c6ab957584cd68d2a90316cfde1c, type: 3}
+  - {fileID: 2800000, guid: a998c729f49ae46d3b1d9764719ebf6e, type: 3}
+  - {fileID: 2800000, guid: cdea488f7bf3b4648b1881060e66c76a, type: 3}
+  teaserCaptions:
+  - KOWLOON BAY
+  - "02:47  \xB7  CARGO MOVING TONIGHT"
+  - TERMINAL ROAD
+  - SECURITY CHECKPOINT
+  - SEARCHLIGHTS SWEEPING
+  - "STORM SURGE  \xB7  SEAWALL"
+  teaserStatic: {fileID: 8300000, guid: f9a551715c6104d06a87b07609c95d38, type: 3}
+  teaserDrone: {fileID: 8300000, guid: f5fee097de81949099aef777a29219c2, type: 3}
+  portalRing: {fileID: 2100000, guid: 215df69c07d9f45d99ca0250bcb294c0, type: 2}
+  portalCore: {fileID: 2100000, guid: 44934b9ec42b04c0b87571759a237b35, type: 2}
+  portalSparks: {fileID: 2100000, guid: 55eb85ae0ac784661a532c5b06686205, type: 2}
+  portalOpen: {fileID: 8300000, guid: 1daf640059b714b5794f4f1fc0f98020, type: 3}
+  portalHum: {fileID: 8300000, guid: 8dfdc6a05428f4d52b9fcb27646d31ab, type: 3}
+  portalEnter: {fileID: 8300000, guid: 2fa3c2df34d7c4f94a4ad2e2c7875bda, type: 3}
+  portalArrive: {fileID: 8300000, guid: aeb5cf262df944415a53cf2a0e89cc44, type: 3}
+  nightRunPortalStage: {x: -3, y: 0, z: -347}
+  nightRunPortalYaw: 180
+  nightRunPortalDistance: 64

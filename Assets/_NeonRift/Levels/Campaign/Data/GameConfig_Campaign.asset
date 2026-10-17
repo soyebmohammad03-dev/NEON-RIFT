@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bb417c1a49c33435f89ca22ddcf5aa74, type: 3}
+  m_Name: GameConfig_Campaign
+  m_EditorClassIdentifier: NeonRift.Game::NeonRift.Game.GameConfig
+  frontendScene: Frontend
+  carSelectScene: CarSelect
+  introScene: NightRun
+  introSettings: {fileID: 11400000, guid: 365a1aaeed2394c8e910504449392faf, type: 2}
+  vehicleCatalog: {fileID: 11400000, guid: eb772a81547f5450fbdfe60c97931f67, type: 2}
+  missions:
+  - {fileID: 11400000, guid: 6dbb8108a4bcb4e23a90ef55ed634f2b, type: 2}
+  - {fileID: 11400000, guid: 9d569398464724e2a917b49e0477a0de, type: 2}
+  - {fileID: 11400000, guid: f74ae611b541e4390adb2fc7bfc706ae, type: 2}
+  defaultMission: {fileID: 11400000, guid: 6dbb8108a4bcb4e23a90ef55ed634f2b, type: 2}
+  campaign: {fileID: 11400000, guid: 970c555ffbaca408591233571900b345, type: 2}
+  audioMixer: {fileID: 11400000, guid: 7a1ea81aef9664ef19faf3a26a7180fa, type: 2}
+  fadeSeconds: 0.35
