@@ -16,6 +16,13 @@ namespace NeonRift.EditorTools.Validation
         public const string Output = "Builds/Android/NEON_RIFT_NIGHT_RUN.apk";
         public const string ReleaseOutput = "Builds/Android/NEON_RIFT_NIGHT_RUN_release.apk";
 
+        /// <summary>The standalone game's scenes (Bootstrap first).</summary>
+        public static readonly string[] NightRunScenes =
+        {
+            "Assets/_NeonRift/Scenes/Bootstrap.unity", "Assets/_NeonRift/Scenes/Frontend.unity", "Assets/_NeonRift/Scenes/CarSelect.unity",
+            "Assets/_NeonRift/Scenes/Dev/TestTrack.unity", "Assets/_NeonRift/Scenes/NightRun.unity"
+        };
+
         [MenuItem("Neon Rift/Build/Android APK (Development)")]
         public static string BuildDevelopment() => Build(true);
 
@@ -41,7 +48,9 @@ namespace NeonRift.EditorTools.Validation
             Configure();
             string output = development ? Output : ReleaseOutput;
             Directory.CreateDirectory(Path.GetDirectoryName(output));
-            var scenes = EditorBuildSettings.scenes.Where(s => s.enabled).Select(s => s.path).ToArray();
+            // The standalone Night Run APK keeps its own scene list (the editor list also holds the campaign's scenes,
+            // which belong in the campaign APK only).
+            var scenes = EditorBuildSettings.scenes.Where(s => s.enabled && NightRunScenes.Contains(s.path)).Select(s => s.path).ToArray();
             var report = BuildPipeline.BuildPlayer(new BuildPlayerOptions
             {
                 scenes = scenes,

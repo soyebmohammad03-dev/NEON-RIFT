@@ -578,7 +578,9 @@ namespace NeonRift.Gameplay
             if (resultsAt < 0f || Time.time < resultsAt) return;
             resultsAt = -1f;
             if (hud == null) return;
-            hud.ShowResults(BuildDebrief());
+            var debrief = BuildDebrief();
+            hud.ShowResults(debrief);
+            RecordCampaignResult(debrief);
             if (context != null) context.Controls.Driving.Interact.performed += OnRetryInput;
         }
 
@@ -662,6 +664,8 @@ namespace NeonRift.Gameplay
             // Qualifying: the first crews out advance to the next operation; a later finish still completes the job.
             int places = raced ? def.QualifyingPlaces : 0;
             bool qualified = success && (places <= 0 || FinishPosition <= places);
+            LastQualified = qualified;
+            LastGrade = "";
             var d = new MissionHud.Debrief
             {
                 Success = success,
@@ -707,6 +711,7 @@ namespace NeonRift.Gameplay
                 var grade = MissionGrade.Evaluate(t, def.ParTime > 0f ? def.ParTime : t, Progress.Heat, raced ? FinishPosition : 0,
                                                   raced ? rivals.Count : 1, contacts);
                 d.Grade = grade.Letter;
+                LastGrade = grade.Letter;
                 d.Score = grade.Score;
                 d.NewBest = MissionRecords.Submit(def.Id, t, grade.Score, out previous);
                 if (qualified) MissionRecords.MarkQualified(def.Id);
@@ -737,9 +742,39 @@ namespace NeonRift.Gameplay
 
         private void Continue()
         {
-            if (context == null || context.Flow.IsTransitioning) return;
+            if (context == null || context.Flow.IsTransitioning || NightRunPortalSequence.Active != null) return;
             context.Controls.Driving.Interact.performed -= OnRetryInput;
+            // Campaign: a qualified Night Run continues through the portal to Harbor Rain (never on failure, retry or quit).
+            if (CampaignPortalReady)
+            {
+                NightRunPortalSequence.Begin(context, Player, hud != null ? hud.Root : null, campaignResultLine);
+                return;
+            }
             context.Flow.GoToCarSelect();
+        }
+
+        // ---------------- Campaign ----------------
+
+        /// <summary>Result of the last finished run (for the campaign and validation).</summary>
+        public bool LastQualified { get; private set; }
+        public string LastGrade { get; private set; } = "";
+        private string campaignResultLine = "";
+
+        /// <summary>This run was the campaign's Level 1, it succeeded and the player qualified: Continue opens the portal.</summary>
+        public bool CampaignPortalReady => context?.Campaign != null && Progress != null && Progress.Phase == MissionPhase.Completed && LastQualified &&
+                                           Progress.Definition == context.Campaign.Definition.Level1;
+
+        /// <summary>Campaign bookkeeping when the debrief appears: the save records the real result.</summary>
+        private void RecordCampaignResult(MissionHud.Debrief d)
+        {
+            var campaign = context?.Campaign;
+            if (campaign == null || Progress.Definition != campaign.Definition.Level1 || !d.Success) return;
+            int crews = rivals != null && rivals.HasRivals ? rivals.Count : 1;
+            campaign.Progress.RecordNightRun(LastQualified, context.Session.SelectedVehicle != null ? context.Session.SelectedVehicle.Id : "", LastGrade,
+                                             Progress.Elapsed, FinishPosition, crews);
+            campaignResultLine = (LastQualified ? "QUALIFIED" : "NOT QUALIFIED") + $"  ·  P{FinishPosition} OF {crews}  ·  GRADE {LastGrade}  ·  {MissionRecords.FormatTime(Progress.Elapsed)}";
+            if (hud != null && CampaignPortalReady) hud.SetContinueLabel("ENTER THE RIFT  ▸");
+            Debug.Log($"[Campaign] night run recorded: {campaignResultLine}");
         }
 
         private void SetMix(MixerState state, float seconds)

@@ -17,6 +17,8 @@ namespace NeonRift.Game
         public AudioMixerService Audio { get; }
         /// <summary>Volumes, music on/off and graphics options (persisted).</summary>
         public GameSettings Settings { get; }
+        /// <summary>The connected campaign (campaign bootstrap only). Null in the standalone Night Run bootstrap.</summary>
+        public CampaignSession Campaign { get; set; }
 
         public GameContext(GameConfig config, RunSession session, IGameFlow flow, NeonRiftControls controls, AudioMixerService audio,
                            GameSettings settings = null)

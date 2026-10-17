@@ -39,7 +39,9 @@ namespace NeonRift.Game
             flow = new GameFlow(config, session, loadingOverlay);
             settings = new GameSettings(audio);
             settings.Load();
-            flow.Initialize(new GameContext(config, session, flow, controls, audio, settings));
+            var context = new GameContext(config, session, flow, controls, audio, settings);
+            if (config.Campaign != null) context.Campaign = CreateCampaign(context);
+            flow.Initialize(context);
             // M (or gamepad Y) toggles the music anywhere in the game.
             musicToggle = new UnityEngine.InputSystem.InputAction("ToggleMusic", UnityEngine.InputSystem.InputActionType.Button);
             musicToggle.AddBinding("<Keyboard>/m");
@@ -50,6 +52,23 @@ namespace NeonRift.Game
             // Phones / tablets: on-screen controls that feed a virtual gamepad (keyboard and gamepad keep working).
             if (Application.isMobilePlatform)
                 gameObject.AddComponent<TouchControls>().Initialize(controls, flow, settings);
+        }
+
+        /// <summary>Campaign bootstrap only: the saved progress and the presentation overlay (above the HUDs, below the loading fade).</summary>
+        private CampaignSession CreateCampaign(GameContext context)
+        {
+            var progress = new CampaignProgress();
+            progress.Load();
+            var campaign = new CampaignSession(config.Campaign, progress);
+            var loadingDoc = loadingOverlay.GetComponent<UnityEngine.UIElements.UIDocument>();
+            var go = new GameObject("CampaignOverlay");
+            go.transform.SetParent(transform, false);
+            var doc = go.AddComponent<UnityEngine.UIElements.UIDocument>();
+            doc.panelSettings = loadingDoc.panelSettings;
+            doc.sortingOrder = loadingDoc.sortingOrder - 1f;
+            go.AddComponent<CampaignOverlay>().Initialize(context, campaign);
+            Debug.Log($"[Campaign] started: night run {(progress.NightRunCompleted ? "done" : "open")}, harbor {(progress.HarborAvailable ? "unlocked" : "locked")}, cars {(progress.HarborVehiclesUnlocked ? "unlocked" : "locked")}, harbor {(progress.HarborCompleted ? "done" : "open")}");
+            return campaign;
         }
 
         // Menus get the menu mix; missions the gameplay mix. Results/lockdown/ducking are driven by mission code.

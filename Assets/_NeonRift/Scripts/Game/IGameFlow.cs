@@ -23,6 +23,8 @@ namespace NeonRift.Game
         GameState State { get; }
         bool IsTransitioning { get; }
         event Action<GameState> StateChanged;
+        /// <summary>Raised under the loading fade, before the current content scene is left (every transition, including retries).</summary>
+        event Action ContentUnloading;
 
         void GoToFrontend();
         /// <summary>Plays the opening cinematic (it ends on the title, then Car Select).</summary>

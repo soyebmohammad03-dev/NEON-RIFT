@@ -28,7 +28,12 @@ namespace NeonRift.Frontend
         [SerializeField] private Vector2 brakingRangeMetres = new(28f, 44f);
 
         private GameContext context;
+        private CampaignSession campaign;
         private VehicleCatalog catalog;
+        /// <summary>The catalog's cars that are actually present (a catalog slot whose asset is missing is skipped).</summary>
+        private readonly List<VehicleDefinition> cars = new();
+        private Label startLabel;
+        private string startText;
         private int index;
         private bool starting;
 
@@ -45,7 +50,11 @@ namespace NeonRift.Frontend
         public void Enter(GameContext gameContext)
         {
             context = gameContext;
-            catalog = context.Config.VehicleCatalog;
+            // Campaign: the five-car list for this stage (Harbor Rain cars locked where they are not available yet).
+            campaign = context.Campaign;
+            catalog = campaign != null ? campaign.SelectionCatalog : context.Config.VehicleCatalog;
+            cars.Clear();
+            if (catalog != null) foreach (var v in catalog.Vehicles) if (v != null) cars.Add(v);
             starting = false;
             BindUi();
 
@@ -57,7 +66,12 @@ namespace NeonRift.Frontend
             menu.Enable();
 
             var selected = context.Session.SelectedVehicle;
-            index = catalog != null && selected != null ? Mathf.Max(0, catalog.IndexOf(selected)) : 0;
+            index = catalog != null && selected != null ? Mathf.Max(0, cars.IndexOf(selected)) : 0;
+            if (campaign != null)
+            {
+                ApplyCampaignText();
+                if (catalog != null && cars.Count > 0 && IsLocked(cars[index], out _)) index = 0;
+            }
             BuildCards();
             Refresh(animate: false);
             StartCoroutine(Opening());
@@ -168,12 +182,13 @@ namespace NeonRift.Frontend
             cards.Clear();
             cardElements.Clear();
             if (catalog == null) return;
-            for (int i = 0; i < catalog.Count; i++)
+            for (int i = 0; i < cars.Count; i++)
             {
-                var v = catalog.Vehicles[i];
+                var v = cars[i];
                 var card = new VisualElement();
                 card.AddToClassList("nr-cs__card");
-                var idx = new Label($"{i + 1:00}");
+                bool locked = IsLocked(v, out _);
+                var idx = new Label(locked ? $"{i + 1:00}  ·  LOCKED" : $"{i + 1:00}");
                 idx.AddToClassList("nr-cs__card-index");
                 var n = new Label(v.DisplayName.ToUpperInvariant());
                 n.AddToClassList("nr-cs__card-name");
@@ -182,6 +197,11 @@ namespace NeonRift.Frontend
                 card.Add(idx);
                 card.Add(n);
                 card.Add(m);
+                if (locked)
+                {
+                    card.style.opacity = 0.62f;
+                    idx.style.color = new Color(1f, 0.69f, 0.25f);
+                }
                 int captured = i;
                 card.RegisterCallback<ClickEvent>(_ => Select(captured));
                 cards.Add(card);
@@ -198,7 +218,7 @@ namespace NeonRift.Frontend
 
         private void Refresh(bool animate)
         {
-            int count = catalog != null ? catalog.Count : 0;
+            int count = catalog != null ? cars.Count : 0;
             bool hasVehicles = count > 0;
             emptyLabel.EnableInClassList("nr-hidden", hasVehicles);
             bool hasMission = context.Session.SelectedMission != null || context.Config.DefaultMission != null;
@@ -217,15 +237,18 @@ namespace NeonRift.Frontend
             }
 
             index = (index % count + count) % count;
-            var vehicle = catalog.Vehicles[index];
+            var vehicle = cars[index];
             for (int i = 0; i < cardElements.Count; i++) cardElements[i].EnableInClassList("nr-cs__card--selected", i == index);
             var others = new List<VehicleDefinition>();
-            for (int i = 1; i < count; i++) others.Add(catalog.Vehicles[(index + i) % count]);
+            for (int i = 1; i < count; i++) others.Add(cars[(index + i) % count]);
             showroom.ShowParked(others);
             showroom.Show(vehicle, animate);
             if (textSwap != null) StopCoroutine(textSwap);
             textSwap = StartCoroutine(SwapText(vehicle, count, animate));
-            confirmButton.Focus();
+            bool locked = IsLocked(vehicle, out _);
+            confirmButton.SetEnabled(hasMission && !locked);
+            if (startLabel != null) startLabel.text = locked ? "LOCKED" : startText;
+            if (locked) nextButton.Focus(); else confirmButton.Focus();
         }
 
         /// <summary>Text slides out, the content changes while it is hidden, then it slides back in with the stat bars.</summary>
@@ -241,7 +264,7 @@ namespace NeonRift.Frontend
             makerLabel.text = (vehicle.Manufacturer ?? string.Empty).ToUpperInvariant();
             categoryLabel.text = string.IsNullOrEmpty(vehicle.Category) ? string.Empty : vehicle.Category.ToUpperInvariant();
             indexLabel.text = $"{index + 1:00} / {count:00}";
-            descLabel.text = vehicle.Description;
+            descLabel.text = IsLocked(vehicle, out string reason) ? $"LOCKED  —  {reason}\n\n{vehicle.Description}" : vehicle.Description;
             SetStats(vehicle);
             info.RemoveFromClassList("nr-cs__info--out");
             specs.RemoveFromClassList("nr-cs__specs--out");
@@ -272,9 +295,21 @@ namespace NeonRift.Frontend
 
         private void Confirm()
         {
-            if (starting || catalog == null || catalog.Count == 0 || context.Flow.IsTransitioning) return;
+            if (starting || catalog == null || cars.Count == 0 || context.Flow.IsTransitioning) return;
             var session = context.Session;
-            session.SelectVehicle(catalog.Vehicles[index], catalog);
+            if (campaign != null)
+            {
+                var pick = cars[index];
+                if (IsLocked(pick, out _)) return;
+                // Rivals stay the Night Run crews' cars (the standalone catalog), whichever car the player takes.
+                session.SelectVehicle(pick, context.Config.VehicleCatalog);
+                session.SelectMission(campaign.SelectionMission);
+                if (campaign.Step == CampaignStep.Level2Select) campaign.Progress.SetLevel2Vehicle(pick.Id);
+                Debug.Log($"[CarSelect] campaign {campaign.Step}: {pick.Id} → {campaign.SelectionMission.Id}");
+                StartCoroutine(Departure());
+                return;
+            }
+            session.SelectVehicle(cars[index], catalog);
             if (session.SelectedMission == null)
             {
                 var mission = context.Config.DefaultMission;
@@ -300,7 +335,7 @@ namespace NeonRift.Frontend
             fade.AddToClassList("nr-cs__fade--in");
             yield return depart;
             for (float t = 0f; t < 0.4f; t += Time.unscaledDeltaTime) yield return null;
-            Debug.Log($"[CarSelect] start: {catalog.Vehicles[index].Id}");
+            Debug.Log($"[CarSelect] start: {cars[index].Id}");
             context?.Flow.StartMission();
         }
 
@@ -309,13 +344,40 @@ namespace NeonRift.Frontend
             if (!starting && !context.Flow.IsTransitioning) context.Flow.GoToFrontend();
         }
 
+        private bool IsLocked(VehicleDefinition vehicle, out string reason)
+        {
+            reason = null;
+            return campaign != null && campaign.IsLocked(vehicle, out reason);
+        }
+
+        /// <summary>Campaign: the header and start button name the operation this selection launches.</summary>
+        private void ApplyCampaignText()
+        {
+            bool harbor = campaign.Step == CampaignStep.Level2Select;
+            var mission = root.Q<Label>(className: "nr-cs__step-mission");
+            if (mission != null) mission.text = harbor ? "HARBOR RAIN  ·  OPERATION KX-7" : "NIGHT RUN  ·  OPERATION 1";
+            var label = root.Q<Label>(className: "nr-cs__step-label");
+            if (label != null) label.text = harbor ? "CHOOSE YOUR CAR  ·  ALL FIVE AVAILABLE" : "CHOOSE YOUR CAR";
+            var sub = root.Q<Label>(className: "nr-cs__brand-sub");
+            if (sub != null) sub.text = harbor ? "CREW GARAGE  ·  FORWARD STAGING FOR KOWLOON BAY" : "CREW GARAGE  ·  SECTOR 7 STAGING";
+            startLabel = confirmButton.Q<Label>(className: "nr-cs__start-label");
+            if (startLabel != null) startLabel.text = startText = harbor ? "START HARBOR RAIN" : "START NIGHT RUN";
+        }
+
+        /// <summary>Dev / validation: shows the car at <paramref name="i"/> (campaign tests step through all five).</summary>
+        public void ShowIndex(int i) => Select(i);
+        public bool CurrentLocked => Current != null && IsLocked(Current, out _);
+        public int Count => catalog != null ? cars.Count : 0;
+        /// <summary>Dev / validation: confirms the shown car (same path as the Start button).</summary>
+        public void ConfirmCurrent() => Confirm();
+
         private void OnPrevious(InputAction.CallbackContext _) => Previous();
         private void OnNext(InputAction.CallbackContext _) => Next();
         private void OnConfirmAction(InputAction.CallbackContext _) => Confirm();
         private void OnBackAction(InputAction.CallbackContext _) => Back();
 
         /// <summary>Dev / validation: the vehicle currently shown.</summary>
-        public VehicleDefinition Current => catalog != null && catalog.Count > 0 ? catalog.Vehicles[(index % catalog.Count + catalog.Count) % catalog.Count] : null;
+        public VehicleDefinition Current => catalog != null && cars.Count > 0 ? cars[(index % cars.Count + cars.Count) % cars.Count] : null;
         public bool IsStarting => starting;
 
         private sealed class StatRow

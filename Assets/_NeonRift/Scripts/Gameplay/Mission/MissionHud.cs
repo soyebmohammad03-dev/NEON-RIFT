@@ -183,6 +183,14 @@ namespace NeonRift.Gameplay
             if (continueButton != null) continueButton.clicked -= OnContinue;
         }
 
+        /// <summary>Campaign: relabels the results' Continue button (the portal) and gives it focus.</summary>
+        public void SetContinueLabel(string text)
+        {
+            if (continueButton == null) return;
+            continueButton.text = text;
+            continueButton.Focus();
+        }
+
         private void OnRetry() => RetryClicked?.Invoke();
         private void OnContinue() => ContinueClicked?.Invoke();
 

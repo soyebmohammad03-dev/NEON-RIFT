@@ -26,6 +26,8 @@ namespace NeonRift.Game
         public float TiltSensitivity { get; private set; } = 1f;
         /// <summary>Calibrated straight-ahead roll angle, degrees.</summary>
         public float TiltNeutral { get; private set; }
+        /// <summary>Subtitles for every spoken line (default on).</summary>
+        public bool SubtitlesOn { get; private set; } = true;
 
         /// <summary>The settings page asks the touch layer to take the current phone angle as straight ahead.</summary>
         public event Action TiltCalibrateRequested;
@@ -53,6 +55,8 @@ namespace NeonRift.Game
             TiltSteering = PlayerPrefs.GetInt(Prefix + "TiltSteering", 0) == 1;
             TiltSensitivity = Mathf.Clamp(PlayerPrefs.GetFloat(Prefix + "TiltSensitivity", TiltSensitivity), 0.5f, 2f);
             TiltNeutral = PlayerPrefs.GetFloat(Prefix + "TiltNeutral", 0f);
+            SubtitlesOn = PlayerPrefs.GetInt(Prefix + "Subtitles", 1) == 1;
+            Subtitles.Enabled = SubtitlesOn;
         }
 
         public void Save()
@@ -68,6 +72,7 @@ namespace NeonRift.Game
             PlayerPrefs.SetInt(Prefix + "TiltSteering", TiltSteering ? 1 : 0);
             PlayerPrefs.SetFloat(Prefix + "TiltSensitivity", TiltSensitivity);
             PlayerPrefs.SetFloat(Prefix + "TiltNeutral", TiltNeutral);
+            PlayerPrefs.SetInt(Prefix + "Subtitles", SubtitlesOn ? 1 : 0);
             PlayerPrefs.Save();
         }
 
@@ -147,6 +152,13 @@ namespace NeonRift.Game
         public void SetTiltSensitivity(float value)
         {
             TiltSensitivity = Mathf.Clamp(value, 0.5f, 2f);
+            Commit(audioChanged: false);
+        }
+
+        public void SetSubtitles(bool on)
+        {
+            SubtitlesOn = on;
+            Subtitles.Enabled = on;
             Commit(audioChanged: false);
         }
 

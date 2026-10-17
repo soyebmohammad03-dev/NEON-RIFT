@@ -99,7 +99,12 @@ namespace NeonRift.Tests
                 // Inert during missions: shot cameras, overlay and stage lights are off until the intro enters.
                 Assert.IsFalse(root.transform.Find("Shots").gameObject.activeSelf);
                 Assert.IsFalse(root.transform.Find("IntroOverlay").gameObject.activeSelf);
-                Assert.IsTrue(root.GetComponentsInChildren<Light>(true).All(l => !l.enabled));
+                // Lights are inert either by being disabled or by sitting under an inactive group that the intro switches on
+                // when it enters (City life: the drones' searchlights, IntroSceneEntry.cityLife).
+                var cityLife = root.transform.Find("CityLife");
+                if (cityLife != null) Assert.IsFalse(cityLife.gameObject.activeSelf, "intro city life is off until the intro enters");
+                var live = root.GetComponentsInChildren<Light>(true).Where(l => l.enabled && l.gameObject.activeInHierarchy).Select(l => l.name).ToList();
+                Assert.IsEmpty(live, "intro lights live during missions");
 
                 // The story runs 60–90 s and goes through the crew garage, whose lights are off and door shut for missions.
                 Assert.That(timeline.duration, Is.InRange(60.0, 90.0));

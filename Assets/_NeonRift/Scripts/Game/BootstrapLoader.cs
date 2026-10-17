@@ -11,12 +11,14 @@ namespace NeonRift.Game
     {
         public const string BootstrapSceneName = "Bootstrap";
         public const string BootstrapScenePath = "Assets/_NeonRift/Scenes/Bootstrap.unity";
+        /// <summary>The connected campaign's own bootstrap (Levels/Campaign): when it is loaded, it is the composition root.</summary>
+        public const string CampaignBootstrapSceneName = "CampaignBootstrap";
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void EnsureBootstrapLoaded()
         {
             for (int i = 0; i < SceneManager.sceneCount; i++)
-                if (SceneManager.GetSceneAt(i).name == BootstrapSceneName)
+                if (SceneManager.GetSceneAt(i).name is BootstrapSceneName or CampaignBootstrapSceneName)
                     return;
 
             if (SceneUtility.GetBuildIndexByScenePath(BootstrapScenePath) < 0)

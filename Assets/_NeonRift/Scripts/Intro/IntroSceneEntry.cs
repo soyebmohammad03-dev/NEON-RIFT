@@ -23,7 +23,7 @@ namespace NeonRift.Intro
     /// </summary>
     public sealed class IntroSceneEntry : MonoBehaviour, IIntroEntryPoint, IIntroCueHandler
     {
-        private enum Phase { Idle, Video, Playing, Title, PushIn, Leaving }
+        private enum Phase { Idle, Video, Playing, Teaser, Title, PushIn, Leaving }
 
         [SerializeField] private PlayableDirector director;
         [SerializeField] private IntroOverlay overlay;
@@ -75,6 +75,11 @@ namespace NeonRift.Intro
         private bool headlightsOn, enginesOn, departed, skipPending;
         private double lastTime;
         private NeonRiftControls.MenuActions menu;
+        private IntroHarborTeaser teaser;
+        private bool teaserPlayed;
+        /// <summary>Campaign bootstrap: the Harbor Rain teaser has been shown in this run of the opening.</summary>
+        public bool TeaserPlayed => teaserPlayed;
+        public bool TeaserRunning => phase == Phase.Teaser;
 
         public bool IsPlaying => phase != Phase.Idle;
         public float Time01 => director != null && director.duration > 0 ? (float)(director.time / director.duration) : 0f;
@@ -102,6 +107,8 @@ namespace NeonRift.Intro
             menu.Confirm.performed += OnConfirm;
             menu.Enable();
 
+            teaserPlayed = false;
+            teaser = IntroHarborTeaser.Available(context.Campaign) ? new IntroHarborTeaser(context.Campaign, effectsSource) : null;
             if (settings != null && settings.PlaybackMode == IntroSettings.Mode.Video) PlayVideo();
             else Play(0.0);
             Debug.Log($"[Intro] started ({(phase == Phase.Video ? "video" : "realtime")}), hero {(hero != null ? hero.name : "none")}, {cars.Count} cars");
@@ -113,6 +120,7 @@ namespace NeonRift.Intro
             menu.Skip.performed -= OnSkip;
             menu.Confirm.performed -= OnConfirm;
             menu.Disable();
+            teaser?.End();
             if (director != null) director.Stop();
             if (video != null) Destroy(video);
             foreach (var c in cars) if (c != null) Destroy(c.gameObject);
@@ -210,7 +218,11 @@ namespace NeonRift.Intro
                     if (director.time < lastTime - 1.0) Debug.LogWarning($"[Intro] timeline jumped back {lastTime:0.0}s → {director.time:0.0}s at frame {Time.frameCount}");
                     lastTime = director.time;
                     if (settings != null && settings.Skippable) overlay.SetSkipHint(phase == Phase.Video);
-                    if (phase == Phase.Playing && director.time >= holdTime) EnterTitle();
+                    if (phase == Phase.Playing && teaser != null && !teaserPlayed && director.time >= titleTime - 0.05) StartTeaser();
+                    else if (phase == Phase.Playing && director.time >= holdTime) EnterTitle();
+                    break;
+                case Phase.Teaser:
+                    if (!teaser.Tick()) EndTeaser();
                     break;
                 case Phase.Title:
                     overlay.SetTitle(1f, 1f, 1f);
@@ -230,8 +242,34 @@ namespace NeonRift.Intro
             Debug.Log("[Intro] title reached; waiting for Confirm");
         }
 
+        /// <summary>Campaign: the timeline holds on the title shot (hidden under the transmission) while the teaser plays.</summary>
+        private void StartTeaser()
+        {
+            teaserPlayed = true;
+            phase = Phase.Teaser;
+            director.time = titleTime;
+            director.Evaluate();
+            director.Pause();
+            overlay.SetSkipHint(false);
+            teaser.Begin(gameObject);
+        }
+
+        private void EndTeaser()
+        {
+            teaser.End();
+            if (phase != Phase.Teaser) return;
+            Play(titleTime);
+        }
+
         private void OnSkip(InputAction.CallbackContext _)
         {
+            if (phase == Phase.Teaser)
+            {
+                if (settings != null && !settings.Skippable) return;
+                Debug.Log("[Intro] Harbor Rain teaser skipped");
+                EndTeaser();
+                return;
+            }
             if (phase is not (Phase.Playing or Phase.Video)) return;
             if (settings != null && !settings.Skippable) return;
             Debug.Log($"[Intro] skipped at {(phase == Phase.Video ? "video" : director.time.ToString("0.0") + "s")}");
@@ -275,6 +313,8 @@ namespace NeonRift.Intro
                     cars.RemoveAt(i);
                 }
             departed = true;
+            // Campaign: a skip lands on the (short, separately skippable) Harbor Rain teaser before the title.
+            if (teaser != null && !teaserPlayed && director.time < titleTime) { StartTeaser(); return; }
             if (director.time < titleTime) Play(titleTime);
             else if (phase == Phase.Video) Play(titleTime);
         }

@@ -21,6 +21,7 @@ namespace NeonRift.Game
         public GameState State { get; private set; } = GameState.None;
         public bool IsTransitioning { get; private set; }
         public event Action<GameState> StateChanged;
+        public event Action ContentUnloading;
 
         public GameFlow(GameConfig config, RunSession session, LoadingOverlay overlay)
         {
@@ -125,6 +126,8 @@ namespace NeonRift.Game
             try
             {
                 await overlay.ShowAsync(config.FadeSeconds);
+                Subtitles.Clear();
+                ContentUnloading?.Invoke();
 
                 contentEntry?.Exit();
                 contentEntry = null;

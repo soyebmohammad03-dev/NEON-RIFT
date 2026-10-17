@@ -127,7 +127,7 @@ namespace NeonRift.Game
             Show(page);
         }
 
-        private void Pop()
+        public void Pop()
         {
             if (pages.Count <= 1) { BackFromRoot?.Invoke(); return; }
             pages.Pop().Body.RemoveFromHierarchy();
@@ -265,6 +265,7 @@ namespace NeonRift.Game
                 Volume("EFFECTS VOLUME", AudioChannel.Effects),
                 Volume("INTERFACE VOLUME", AudioChannel.UI),
                 Toggle("MUSIC  (M)", () => s.MusicOn, s.SetMusicOn),
+                Toggle("SUBTITLES", () => s.SubtitlesOn, s.SetSubtitles),
                 new()
                 {
                     Label = "GRAPHICS QUALITY",

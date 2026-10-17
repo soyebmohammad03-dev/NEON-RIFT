@@ -23,6 +23,10 @@ namespace NeonRift.Game
         [Tooltip("Mission launched from Car Select until a mission-select screen exists.")]
         [SerializeField] private MissionDefinition defaultMission;
 
+        [Header("Campaign")]
+        [Tooltip("Set only on the campaign bootstrap's config: Night Run → portal → Harbor Rain. Null = standalone game.")]
+        [SerializeField] private CampaignDefinition campaign;
+
         [Header("Audio")]
         [SerializeField] private AudioMixerConfig audioMixer;
 
@@ -38,6 +42,7 @@ namespace NeonRift.Game
         public MissionDefinition DefaultMission => IsPlayable(defaultMission) ? defaultMission : null;
         public float FadeSeconds => fadeSeconds;
         public AudioMixerConfig AudioMixer => audioMixer;
+        public CampaignDefinition Campaign => campaign;
 
         public static bool IsPlayable(MissionDefinition mission)
         {
@@ -60,5 +65,14 @@ namespace NeonRift.Game
             foreach (var m in missions)
                 if (m != null) yield return m.SceneName;
         }
+
+#if UNITY_EDITOR
+        public void EditorConfigureCampaign(IntroSettings intro, CampaignDefinition definition, List<MissionDefinition> missionList)
+        {
+            introSettings = intro;
+            campaign = definition;
+            missions = missionList;
+        }
+#endif
     }
 }

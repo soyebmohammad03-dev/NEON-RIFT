@@ -44,30 +44,35 @@ namespace NeonRift.EditorTools
             if (buildScenes.Count == 0 || buildScenes[0] != BootstrapLoader.BootstrapScenePath)
                 problems.Add($"'{BootstrapLoader.BootstrapScenePath}' must be the first enabled build scene.");
 
-            var configs = AssetDatabase.FindAssets("t:GameConfig");
-            if (configs.Length != 1)
+            // One standalone config (the original game); campaign configs (Levels/Campaign) are checked the same way.
+            var allConfigs = AssetDatabase.FindAssets("t:GameConfig").Select(g => AssetDatabase.LoadAssetAtPath<GameConfig>(AssetDatabase.GUIDToAssetPath(g))).ToList();
+            var configs = allConfigs.Where(c => c != null && c.Campaign == null).ToList();
+            if (configs.Count != 1)
             {
-                problems.Add($"Expected exactly one GameConfig asset, found {configs.Length}.");
+                problems.Add($"Expected exactly one standalone GameConfig asset, found {configs.Count}.");
                 return problems;
             }
 
-            var config = AssetDatabase.LoadAssetAtPath<GameConfig>(AssetDatabase.GUIDToAssetPath(configs[0]));
             var buildSceneNames = new HashSet<string>(buildScenes.Select(System.IO.Path.GetFileNameWithoutExtension));
-            foreach (var scene in config.ReferencedScenes())
-                if (string.IsNullOrWhiteSpace(scene) || !buildSceneNames.Contains(scene))
-                    problems.Add($"Scene '{scene}' referenced by GameConfig is not an enabled build scene.");
-
-            if (config.VehicleCatalog == null) problems.Add("GameConfig has no VehicleCatalog.");
-            else problems.AddRange(config.VehicleCatalog.Validate().Select(p => "VehicleCatalog: " + p));
-
-            var missionIds = new HashSet<string>();
-            foreach (var mission in config.Missions)
+            foreach (var config in allConfigs.Where(c => c != null))
             {
-                if (mission == null) { problems.Add("GameConfig has an empty mission slot."); continue; }
-                if (string.IsNullOrWhiteSpace(mission.Id)) problems.Add($"Mission '{mission.name}' has no id.");
-                else if (!missionIds.Add(mission.Id)) problems.Add($"Duplicate mission id '{mission.Id}'.");
+                string label = config.Campaign != null ? $"GameConfig '{config.name}'" : "GameConfig";
+                foreach (var scene in config.ReferencedScenes())
+                    if (string.IsNullOrWhiteSpace(scene) || !buildSceneNames.Contains(scene))
+                        problems.Add($"Scene '{scene}' referenced by {label} is not an enabled build scene.");
+
+                if (config.VehicleCatalog == null) problems.Add($"{label} has no VehicleCatalog.");
+                else problems.AddRange(config.VehicleCatalog.Validate().Select(p => "VehicleCatalog: " + p));
+
+                var missionIds = new HashSet<string>();
+                foreach (var mission in config.Missions)
+                {
+                    if (mission == null) { problems.Add($"{label} has an empty mission slot."); continue; }
+                    if (string.IsNullOrWhiteSpace(mission.Id)) problems.Add($"Mission '{mission.name}' has no id.");
+                    else if (!missionIds.Add(mission.Id)) problems.Add($"Duplicate mission id '{mission.Id}'.");
+                }
+                if (config.DefaultMission == null) problems.Add($"{label} has no playable default mission.");
             }
-            if (config.DefaultMission == null) problems.Add("GameConfig has no playable default mission.");
 
             var buildingCatalogs = AssetDatabase.FindAssets("t:BuildingCatalog");
             if (buildingCatalogs.Length != 1) problems.Add($"Expected exactly one BuildingCatalog, found {buildingCatalogs.Length}.");

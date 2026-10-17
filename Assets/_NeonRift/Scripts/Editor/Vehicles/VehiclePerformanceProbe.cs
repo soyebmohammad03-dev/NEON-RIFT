@@ -287,10 +287,13 @@ namespace NeonRift.EditorTools.Vehicles
         [MenuItem("Neon Rift/Vehicles/Update Car Select Stats From Physics")]
         public static void UpdateDisplayStatsFromMenu() => Debug.Log(UpdateDisplayStats());
 
-        public static string UpdateDisplayStats()
+        public static string UpdateDisplayStats() => UpdateDisplayStats(CatalogVehicles());
+
+        /// <summary>The same measurement for any cars (the campaign's Harbor Rain cars are not in the standalone catalog).</summary>
+        public static string UpdateDisplayStats(IEnumerable<VehicleDefinition> vehicles)
         {
             var sb = new StringBuilder("[VehicleProbe] Car Select stats from physics\n");
-            foreach (var def in CatalogVehicles())
+            foreach (var def in vehicles)
             {
                 float zeroTo100, top, brake;
                 using (var b = VehicleTestBench.Create(def)) zeroTo100 = Launch(b).ZeroTo100;
