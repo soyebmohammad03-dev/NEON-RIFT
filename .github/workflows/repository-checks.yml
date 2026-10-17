@@ -1,0 +1,24 @@
+name: Repository checks
+
+# Lightweight checks that need no Unity licence and no LFS download: documentation links and images, file sizes,
+# LFS routing, licensing exclusions and attribution files. Unity tests run in the editor (see Docs/TESTING.md).
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run repository checks
+        run: python3 .github/scripts/repo_checks.py

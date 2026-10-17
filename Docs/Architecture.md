@@ -75,3 +75,35 @@ See [VehiclePhysics.md](VehiclePhysics.md) for the model, telemetry, tuning work
 - Physics runs at 100 Hz (`Time.fixedDeltaTime = 0.01`).
 - Layers: `Vehicle`(6), `Drivable`(7), `Environment`(8), `Trigger`(9), `Showroom`(10). `Trigger` collides only with `Vehicle`; `Showroom` collides with nothing. Wheel rays ignore `Vehicle`, `Trigger`, `Showroom` and `Ignore Raycast`.
 - `Scenes/Dev/TestTrack` provides measured surfaces (1 km straight with 100 m markers, r40 skidpad, 18 m slalom, 10 cm speed bumps, a 15° banked R80 U-turn, a 6° hill and a 12° jump, side and head-on crash walls) and the connected validation route the player spawns on.
+
+## Levels and the connected campaign
+
+Level content beyond Night Run lives under `Assets/_NeonRift/Levels/`, each with its own assemblies:
+
+| Assembly | Folder | Owns |
+|---|---|---|
+| `NeonRift.HarborRain` | `Levels/HarborRain/Scripts` | Harbor Rain runtime: `HarborRainEntry` (scene entry), `HarborRainMission` (operation KX-7 state machine), puzzles, `HarborBayCrane`, police, waves, storm, radio, HUD, and `HarborCampaign` (arrival, trailer, results and pause inside the campaign) |
+| `NeonRift.HarborRain.Editor` | `Levels/HarborRain/Editor` | `HarborRainBuilder` (generates the whole level), audio and vehicle builders, review and validation tools |
+| `NeonRift.Campaign.Editor` | `Levels/Campaign/Editor` | `CampaignBuilder`, `CampaignAndroidBuild`, `CampaignPlaytest` |
+| `NeonRift.Campaign.Tests` | `Levels/Campaign/Tests` | campaign EditMode tests |
+
+The campaign's runtime types sit in the shared assemblies so every scene can use them without new dependencies:
+
+| Assembly | Campaign types |
+|---|---|
+| Game | `CampaignDefinition` (missions, selections, Level 2 cars, voice lines, teaser and portal assets), `CampaignProgress` (versioned JSON save), `CampaignSession` (`context.Campaign`; step, lock rules, selection catalog and mission), `CampaignOverlay` (subtitles, cards, captions, flash, menu), `Subtitles` (the one subtitle channel and setting) |
+| Gameplay | `PortalRift`, `NightRunPortalSequence`, `CinematicCamera` |
+| Intro | `IntroHarborTeaser` |
+
+**Scene and flow model.** `CampaignBootstrap.unity` is a copy of `Bootstrap.unity` whose `GameRoot` uses
+`GameConfig_Campaign.asset`. When that config has a `CampaignDefinition`, `GameRoot` creates the `CampaignSession` and
+its overlay (below the loading fade, above every HUD) and puts it in the `GameContext`; otherwise `context.Campaign`
+is null and nothing changes. `BootstrapLoader` treats either bootstrap as the composition root. `GameFlow` clears
+subtitles and raises `ContentUnloading` under the loading fade on every transition. Harbor Rain is loaded as a mission
+scene (`Mission_HarborRain.asset`, scene `HarborRain`); `HarborRainEntry` reads the campaign step (Arrival or Level 2)
+to decide what to run.
+
+Hooks into existing code are guarded by `context.Campaign != null`: `MissionDirector` (debrief records the result;
+Continue opens the portal after a qualified Night Run), `MissionHud.SetContinueLabel`, `CarSelectScreen` (selection
+catalog, locked cards, mission), `TitleScreen` (campaign entries, reset, debug shortcuts), `IntroSceneEntry`
+(teaser), `HarborRainMission.Begin(..., campaign: true)`. See [CAMPAIGN.md](CAMPAIGN.md).

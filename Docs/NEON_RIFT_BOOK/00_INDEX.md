@@ -2,6 +2,10 @@
 
 **Master index.** A complete, searchable technical documentation set for the Neon Rift: Night Run Unity project, written from the repository as it stands at commit `602c7130` (Unity 6000.6.4f1, URP 17.6).
 
+> **Later additions.** The book describes Night Run as of `602c7130`. The connected campaign and Level 2 (Harbor Rain),
+> added afterwards, are documented in [CAMPAIGN.md](../CAMPAIGN.md), [Architecture.md](../Architecture.md#levels-and-the-connected-campaign),
+> [BUILDING.md](../BUILDING.md) and [TESTING.md](../TESTING.md).
+
 **How to use it:** find your question in **Find It Fast** below, jump to the chapter, and follow the file paths. Paths are repository-relative. In tables, `S/` means `Assets/_NeonRift/Scripts/` and `D/` means `Assets/_NeonRift/Data/`. For viva or interview preparation start with [47 Teacher Q&A](47_TEACHER_QA_GUIDE.md). For a one-page map, see [46 Developer Quick Reference](46_DEVELOPER_QUICK_REFERENCE.md).
 
 ---

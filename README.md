@@ -1,104 +1,202 @@
-# Neon Rift: Night Run
+<div align="center">
 
-A cyberpunk racing / heist game in Unity 6 (6000.6.x, URP, new Input System). You don't just race around a track: you infiltrate, manipulate and escape a city that reacts to you.
+# NEON RIFT
 
-Pick a car and drive into a 1.1 × 1.4 km night city of five districts. Reach Sector 7's Data Core by the long clean boulevard or the short alley, whose gate hack logs heat. Breach the core while two rival crews wait for you, then escape through a city in lockdown: gates seal, cameras arm, routes change, the crew opens the skyway. Beat the trace and the rivals to the Rift Gate.
+**A cyberpunk driving-and-heist campaign built in Unity 6.**
+Two connected operations: steal a data core from a city in lockdown, then follow a rift to a storm-lashed container port and lift a container from under the cranes.
 
-| | |
-|---|---|
-| ![Car select](Docs/Screenshots/01_car_select.jpg) | ![Kowloon, Lantern Arcade](Docs/Screenshots/03_kowloon_lantern_arcade.jpg) |
-| ![Lockdown at the compound](Docs/Screenshots/08_lockdown_compound.jpg) | ![Escape through the alley](Docs/Screenshots/09_lockdown_alley_escape.jpg) |
+[![Unity 6000.6.4f1](https://img.shields.io/badge/Unity-6000.6.4f1-black?logo=unity)](Docs/INSTALLATION.md)
+[![URP 17.6](https://img.shields.io/badge/render%20pipeline-URP%2017.6-0f6fde)](Docs/Architecture.md)
+[![C#](https://img.shields.io/badge/language-C%23-239120?logo=csharp&logoColor=white)](Assets/_NeonRift/Scripts)
+[![Platforms](https://img.shields.io/badge/platforms-macOS%20editor%20%7C%20Android%20(ARM64)-3ddc84)](Docs/BUILDING.md)
+[![Licence](https://img.shields.io/badge/licence-all%20rights%20reserved%20%2B%20third--party-lightgrey)](LICENSE.md)
+[![Repository checks](https://github.com/soyebmohammad03-dev/NEON-RIFT/actions/workflows/repository-checks.yml/badge.svg)](https://github.com/soyebmohammad03-dev/NEON-RIFT/actions/workflows/repository-checks.yml)
+[![Last commit](https://img.shields.io/github/last-commit/soyebmohammad03-dev/NEON-RIFT)](https://github.com/soyebmohammad03-dev/NEON-RIFT/commits/main)
 
-More in [Docs/Screenshots](Docs/Screenshots).
+![Neon Rift: the Harbor Rain teaser, the rift opening in the city, the car arriving at Kowloon Bay, the crane twistlocks, the gate override and the storm coast road](Docs/Screenshots/Campaign/00_banner.jpg)
+
+</div>
+
+You don't just race around a track. You choose a car, drive into a city that reacts to you, break into a guarded
+facility, and get out while gates seal, cameras arm, drones search and rival crews race you to the exit. Do it well
+enough and a rift opens on the road out of town, leading to the second operation: a container heist in a flooded
+port at night, under storm, cranes and police.
+
+| | Operation | What happens |
+|---|---|---|
+| **1** | **NIGHT RUN** | A 1.1 × 1.4 km night city of five districts. Reach Sector 7's Data Core (long clean boulevard or short alley with a gate hack that logs heat), breach it in multi-stage interactions while two rival crews run their own heists, then escape a city-wide lockdown to the Rift Gate. Finish in the **top two** crews to qualify. |
+| **2** | **HARBOR RAIN** | Kowloon Bay container port in a storm. Crack the cargo manifest, bypass the security gate, have the gantry crane lift container KX-7 onto your crew's truck, then outrun the port police to the east gate, override its power and cross the storm-surge coast road to extraction. |
+
+## Gallery
+
+All images are real Game-view captures from Play Mode in the Unity editor (most of them taken by the project's
+automated playtest and review tools, which drive the game through its normal input paths). None are mock-ups.
+
+| Campaign opening | Level 1: qualify | Through the rift |
+|---|---|---|
+| ![Intercepted Harbor Rain transmission in the Night Run opening, with its subtitle](Docs/Screenshots/Campaign/01_harbor_rain_teaser.jpg) | ![Night Run debrief: mission complete, P1, top 2 qualified](Docs/Screenshots/Campaign/03_night_run_qualified.jpg) | ![The rift opening across the road out of the city](Docs/Screenshots/Campaign/04_portal_opens.jpg) |
+| **Night Run: the city** | **Arrival in Harbor Rain** | **New operation unlocked** |
+| ![Kowloon Market, Lantern Arcade](Docs/Screenshots/03_kowloon_lantern_arcade.jpg) | ![The car bursting out of the rift at the port perimeter](Docs/Screenshots/Campaign/06_harbor_arrival.jpg) | ![Unlock card with the real Night Run result](Docs/Screenshots/Campaign/07_new_operation_unlocked.jpg) |
+| **Five-car selection** | **Mission briefing** | **Gantry crane heist** |
+| ![Level 2 car selection: five cars, all available](Docs/Screenshots/Campaign/08_level2_car_select.jpg) | ![Harbor Rain briefing: the nine real objectives and the controls](Docs/Screenshots/Campaign/09_mission_briefing.jpg) | ![Twistlocks turning on container KX-7](Docs/Screenshots/Campaign/10_crane_twistlocks.jpg) |
+| **Lockdown** | **Police pursuit** | **Storm coast road** |
+| ![Alarm and searchlights over the restricted area](Docs/Screenshots/Campaign/11_alarm_lockdown.jpg) | ![Gate override with a port police unit closing in](Docs/Screenshots/Campaign/12_police_pursuit.jpg) | ![Wave spray over the seawall on the coast road](Docs/Screenshots/Campaign/13_storm_coast_road.jpg) |
+
+More: [Night Run screenshots](Docs/Screenshots) · [campaign screenshots](Docs/Screenshots/Campaign) ·
+[night look before/after](Docs/Environment.md).
+
+## Features
+
+**Campaign**
+- **Two-level campaign** with its own bootstrap and a saved progression (Night Run qualification, portal, unlocks,
+  Harbor Rain completion, the car used in each level). Progress survives restarts; the title offers Harbor Rain
+  directly once it is unlocked. See [Docs/CAMPAIGN.md](Docs/CAMPAIGN.md).
+- **The original standalone Night Run is untouched**: its own bootstrap, title, three-car selection and mission run
+  exactly as before.
+- **Harbor Rain teaser** cut into the Night Run opening: an intercepted transmission from the port, separately
+  skippable.
+- **Portal transition**: after a qualified Night Run, a rift opens on the road out of the city and your car drives
+  into it under its own physics; it bursts out of a rift at the port.
+- **Unlock card** that quotes your real Night Run result (position, grade and time).
+- **Five-car selection for Level 2.** The two Harbor Rain cars are locked in the Level 1 selection and become
+  available for Harbor Rain once you qualify ([see the note on those two models](#licensing-and-third-party-assets)).
+- **Harbor Rain trailer**: narrated shots of the real level, ending on the mission's actual objectives and controls;
+  skipping it gives exactly the same start.
+- **Campaign results** and replay choices (replay Harbor Rain, change car, play Night Run, title).
+
+**Driving and heists**
+- Raycast suspension, combined-slip tyres, drivetrain and aero in physical units, verified on a deterministic bench
+  ([Docs/VehiclePhysics.md](Docs/VehiclePhysics.md)); telemetry-driven synthesised engine audio
+  ([Docs/Audio.md](Docs/Audio.md)).
+- Night Run: data-driven objectives, heat, Alert → Lockdown, gate and controller hacks, a Data Core breach and
+  extraction, cameras, drones, sirens, a lockdown wave across lights and screens
+  ([Docs/NightRun.md](Docs/NightRun.md)).
+- Rival crews that use the player's own input interface, plan over the road graph, follow a racing line and run
+  their own heists; the first two crews out qualify.
+- Harbor Rain: a manifest clue puzzle, a badge-reader reel bypass, a gantry crane that squares up, seats, locks and
+  lifts the container onto a truck, working forklifts and terminal tractors, security cameras and searchlights,
+  drones, a port police pursuit with roadblocks and re-routing, floods, a storm-surge coast road and an optional
+  drone-relay objective.
+- Graded debriefs, split times and personal bests; pause menu with settings and controls.
+
+**Presentation**
+- Spoken radio and narration with **subtitles for every spoken line** (setting: on by default). See
+  [the voice note](#licensing-and-third-party-assets).
+- Real-time opening cinematic, Car Select in a generated crew garage, minimap, night lighting and rain.
+- Keyboard, gamepad and touch controls (touch and tilt steering on Android) — [Docs/CONTROLS.md](Docs/CONTROLS.md).
 
 ## Getting started
 
-1. Install [Git LFS](https://git-lfs.com) **before** cloning or committing binary assets (models, textures, audio, generated meshes), then run `git lfs install` once.
-2. Open the project in Unity 6000.6.4f1 or a later 6000.6.x.
-3. Press Play from any scene. `BootstrapLoader` injects the Bootstrap scene automatically:
-   - from `Bootstrap`: Title → Car Select → Night Run
-   - from `Scenes/NightRun`: the Night Run mission directly (first catalog car, the others as rivals)
-   - from a mission scene (e.g. `Scenes/Dev/TestTrack`): that mission starts directly with the first catalog vehicle
-4. `Neon Rift ▸ Validate Project` checks config, catalogs and build scenes.
-5. Tests: `Window ▸ General ▸ Test Runner ▸ EditMode`, or `Neon Rift ▸ Tests ▸ Run EditMode Tests` (writes `Logs/TestResults-EditMode.txt`).
-6. The city is generated: `Neon Rift ▸ Night Run ▸ Build Night Run (district + mission)` (about 40 s, including the reflection-probe bake).
+**Requirements:** Unity **6000.6.4f1** (or a later 6000.6.x) with the Android module if you want to build the APK,
+[Git LFS](https://git-lfs.com), and plenty of free disk (the checkout with LFS files is about 1 GB; Unity's import cache for this
+project grows to roughly 30 GB). Packages are pulled
+from the Unity registry by `Packages/manifest.json` (URP 17.6, Input System 1.19, Cinemachine, Timeline, glTFast,
+Splines, ProBuilder, AI Navigation, Test Framework).
 
-## Flow
+```bash
+git lfs install
+git clone https://github.com/soyebmohammad03-dev/NEON-RIFT.git
+```
 
-Launch → opening cinematic (first launch; replay it from the Title's WATCH INTRO or the pause menu) → NEON RIFT title → Enter / A → Car Select → Night Run. Space / Start skips the cinematic to the title. The title's OPTIONS and the in-mission pause menu share the Settings (master / music / effects / interface volume, music on/off, graphics quality, fullscreen, V-sync; saved between sessions) and Controls pages. See [Docs/Intro.md](Docs/Intro.md).
+Then open the folder in Unity Hub and press Play in one of:
 
-## Driving
+| To play | Open this scene and press Play |
+|---|---|
+| **The connected campaign** (Night Run → Harbor Rain) | `Assets/_NeonRift/Levels/Campaign/Scenes/CampaignBootstrap.unity` |
+| **The original standalone Night Run** | `Assets/_NeonRift/Scenes/Bootstrap.unity` (or any Night Run scene) |
+| Harbor Rain on its own (development) | `Assets/_NeonRift/Levels/HarborRain/Scenes/HarborRain.unity` |
+
+Full setup, Android install and troubleshooting: [Docs/INSTALLATION.md](Docs/INSTALLATION.md).
+
+### Controls (keyboard / gamepad)
 
 | Action | Keyboard | Gamepad |
 |---|---|---|
-| Throttle | W / ↑ | Right trigger |
-| Brake (hold at a stop to reverse) | S / ↓ | Left trigger |
-| Steer | A D / ← → | Left stick |
-| Handbrake | Space | B / Circle |
-| Interact (hold: hack, extract) · Retry on results | E | A / Cross |
-| Recover (right the car) | R | Select |
-| Pause menu (resume, restart, controls, settings, replay intro, quit) | Esc | Start |
-| Music on / off (anywhere) | M | Y / Triangle |
-| Telemetry overlay (dev builds) | F3 | — |
+| Throttle / brake (hold brake to reverse) | W / S or ↑ / ↓ | Right / left trigger |
+| Steer | A / D or ← / → | Left stick |
+| Handbrake | Space | B |
+| Interact (hack, extract, puzzles) | E | A |
+| Recover the car | R | Select |
+| Pause | Esc | Start |
+| Skip a cinematic | Space | Start |
+| Harbor Rain device (message log) | Tab | Y |
 
-In the editor, keyboard input only reaches the game while the Game view has focus (click it once). When a
-mission starts, the console logs `[Input] Driving controls enabled. Devices: ...`. If it warns that no keyboard
-or gamepad is connected, the editor's Input System backend has lost its devices: restart the editor. That was
-the cause of the "WASD does nothing" report in October 2026. `Logs/InputPlaytest.txt` is written by
-`InputPlaytest.RunStandardScript` (Editor/Validation), which drives the real Keyboard device through a timed
-script in Play Mode.
+All controls, touch and tilt steering: [Docs/CONTROLS.md](Docs/CONTROLS.md).
 
-## What's in it
+## Android build
 
-- **Car Select → mission.** The chosen car's model, physics profile, audio profile and stats carry into the mission. The other catalog cars become the rival crews.
-- **Vehicle physics.** A raycast suspension, combined-slip tyre, drivetrain and aero model with physical units, verified on a deterministic bench. See [Docs/VehiclePhysics.md](Docs/VehiclePhysics.md).
-- **Engine audio.** Layered, telemetry-driven and synthesised in-house. See [Docs/Audio.md](Docs/Audio.md).
-- **The city.** Five districts (Sector 7, Spire Heights, Kowloon Market, Harbor Yards, Lowtown) with a road hierarchy, the elevated Harbor Skyway, the Lantern Arcade, Spire Plaza, a container yard, a construction site, traffic signals, street furniture, landmarks and a night lighting grade. Everything is generated from data. See [Docs/City.md](Docs/City.md).
-- **Rival AI.** Drivers that use the player's own input interface. They plan over the road graph (re-planning when gates close), follow a racing line with a braking planner, sweep ahead for cars and obstacles to overtake, back out when stuck, and apply a bounded, data-driven rubber band.
-- **The heist.** Data-driven objectives, heat, an Alert/Lockdown state machine, gates and checkpoints, cameras, sirens, a lockdown wave across lights and screens, and traffic signals flashing red. See [Docs/NightRun.md](Docs/NightRun.md).
-- **HUD.** Objective, distance, heat and security, trace timer, seal countdowns, interaction prompt, race standings, street and district readout, and a heading-up minimap with the live GPS route (closed gates shown red).
-- **Mission presentation.** Operation briefing card, split times on each objective, and a graded debrief (S–D from pace, heat, finishing position and clean driving) with personal bests.
-- **City traffic.** Cars from the generic passenger car pack with real Rigidbody physics (raycast suspension, tyre grip), engine and impact sounds: some roam the road graph (keeping their distance, giving way at junctions to the player and the rival crews, pulling over in a lockdown), others sit in the parking lots and garage decks. Traffic never collides with traffic; a player or rival hit shunts, spins and stops them. Plus pedestrian groups and security drones. See [Docs/City.md](Docs/City.md).
-- **Music.** Gameplay runs over a low background track and the cinematic over a trailer track (both supplied in `Assets/ThirdParty/SoundAudio`); M toggles music anywhere. A procedural adaptive score (`ScoreComposer`) remains as the fallback.
-- **Performance.** A full-route profiler, a GPU A/B bench and a player-build perf run (`-perfroute`). See [Docs/Performance.md](Docs/Performance.md).
+The campaign APK is built by `Neon Rift ▸ Campaign ▸ Build Campaign APK (Release)` — ARM64, IL2CPP, application id
+`com.soyebmohammad.neonrift.campaign`, so it installs beside the standalone Night Run build. See
+[Docs/BUILDING.md](Docs/BUILDING.md).
 
-## Complete Technical Documentation
+**No APK is published.** The locally built campaign APK (about 526 MB) contains the two Harbor Rain cars and
+macOS-generated voice recordings, which cannot be redistributed publicly (below), and it has **not** been tested on a
+physical Android device. See [Docs/BUILDING.md § Distribution](Docs/BUILDING.md#distribution).
 
-A full, searchable technical book for the whole project (architecture, city generation, vehicle physics, rival AI, the heist, lockdown, the cinematic intro, UI, audio, performance, testing, licensing, and a teacher Q&A guide), with exact file paths for every system: **[Docs/NEON_RIFT_BOOK/00_INDEX.md](Docs/NEON_RIFT_BOOK/00_INDEX.md)**.
+## Testing
 
-## Layout
+| Check | How | Last result (Play Mode / editor, macOS) |
+|---|---|---|
+| EditMode tests (142, incl. 17 campaign tests) | `Neon Rift ▸ Tests ▸ Run EditMode Tests (write report)` | 142 passed, 0 failed |
+| Full campaign playtest (opening → Night Run → portal → Harbor Rain → results) | `Neon Rift ▸ Campaign ▸ Playtest: Full Campaign` | 39/39 checks, 0 console errors |
+| Original Night Run bootstrap | `… ▸ Playtest: Original Night Run Bootstrap` | 6/6 |
+| Trailer skip + subtitles · saved progress · without the Harbor Rain cars | the other `… ▸ Playtest:` items | 14/14 · 4/4 · 4/4 |
+| Harbor Rain validator | `Neon Rift ▸ Harbor Rain ▸ Validate (Play Mode)` | all passed, 3 consecutive runs (one at 8 fps) |
+| Repository checks (links, images, file sizes, licensing exclusions) | GitHub Actions on every push | see badge |
+
+These are automated editor runs, not human play sessions or device tests; Night Run and Harbor Rain were completed
+by the project's autopilots. Details and reproduction steps: [Docs/TESTING.md](Docs/TESTING.md).
+
+## Documentation
+
+| | |
+|---|---|
+| [Docs/CAMPAIGN.md](Docs/CAMPAIGN.md) | The two-level campaign, unlocks, saves, subtitles |
+| [Docs/INSTALLATION.md](Docs/INSTALLATION.md) | Setup, opening the project, installing the APK |
+| [Docs/CONTROLS.md](Docs/CONTROLS.md) | Keyboard, gamepad, touch and tilt |
+| [Docs/BUILDING.md](Docs/BUILDING.md) | Rebuilding generated content and both APKs |
+| [Docs/TESTING.md](Docs/TESTING.md) | Test suites, validators, playtests and results |
+| [Docs/Architecture.md](Docs/Architecture.md) | Assemblies, scenes, flow, campaign layer |
+| [Docs/ThirdParty.md](Docs/ThirdParty.md) | Every third-party asset, its licence and status |
+| [Docs/NEON_RIFT_BOOK](Docs/NEON_RIFT_BOOK/00_INDEX.md) | The full technical book (Night Run systems in depth) |
+| [CHANGELOG.md](CHANGELOG.md) · [CONTRIBUTING.md](CONTRIBUTING.md) · [SECURITY.md](SECURITY.md) | |
+
+## Project layout
 
 ```
 Assets/
-  _NeonRift/            all first-party content
-    Art/                materials, textures, generated meshes (first-party only)
-    Data/               ScriptableObject data: Config, Vehicles, Missions, World (road network), Racing (AI profiles)
-    Scenes/             Bootstrap, Frontend, CarSelect, NightRun (generated), Dev/TestTrack
-    Scripts/<Module>/   one assembly per module (see Docs/Architecture.md)
-    Settings/           URP assets, input actions
-    UI/                 UXML, USS, panel settings
-  ThirdParty/           vendor models at their own import root, untouched, each with ATTRIBUTION.txt
-Docs/                   architecture, decisions, conventions, city, mission, physics, audio
+  _NeonRift/
+    Scripts/<Module>/      first-party code, one assembly per module (Game, Gameplay, Frontend, Intro, Vehicles, ...)
+    Scenes/                Bootstrap (standalone entry), Frontend, CarSelect, NightRun, Dev/TestTrack
+    Levels/Campaign/       campaign bootstrap, campaign data, voice/portal assets, build + playtest tools, tests
+    Levels/HarborRain/     Level 2: scene, runtime scripts, editor builders, generated content, imported assets
+    Data/ Art/ UI/ Settings/
+  ThirdParty/              vendor models and music at their own import root, each with ATTRIBUTION.txt
+Docs/                      documentation and screenshots
 ```
 
-Night look and before/after shots: [Docs/Environment.md](Docs/Environment.md). See [Docs/Architecture.md](Docs/Architecture.md), [Docs/Decisions.md](Docs/Decisions.md) and [Docs/Conventions.md](Docs/Conventions.md).
+## Licensing and third-party assets
 
-## Credits and licences
+- **First-party content** (code, scenes, generated meshes, textures and audio, shaders, UI) is © 2026 Soyeb
+  Mohammad, **all rights reserved**. The repository is public to view; no open-source licence is granted. See
+  [LICENSE.md](LICENSE.md).
+- **Third-party models** keep their own licences (CC BY 4.0, CC BY-NC 4.0, CC BY-NC-SA 4.0, CC0). Two vehicle models
+  are non-commercial, so **the project must not be used commercially**. Brand names and liveries are trademarks of
+  their owners.
+- **Not in this repository:** the two Harbor Rain cars (a Ferrari F40 Liberty Walk and a Ferrari 296 Speciale A)
+  and one work-boat model. Their redistribution rights are unverified or contradicted by their own source pages.
+  The project runs without them: the selection shows the cars that are present.
+- **Voice recordings are not in this repository either.** The spoken lines were generated with macOS System Voices,
+  whose licence permits personal, non-commercial use only and forbids publishing them. A public checkout shows the
+  same lines as subtitles; on a Mac, the build tools regenerate the audio locally.
+- Some owner-supplied items (the passenger-car pack used for traffic and two music tracks) still have no recorded
+  source or licence; see [Docs/ThirdParty.md](Docs/ThirdParty.md).
 
-See [LICENSE.md](LICENSE.md) for ownership: first-party content is all rights reserved; third-party models keep their own licences.
+## Known limitations
 
-Code, generated art (district textures, signage font, meshes) and the procedural audio (engines, effects, score) are first-party.
-
-Supplied by the project owner (provenance and licence to be recorded in `Docs/ThirdParty.md`): the generic passenger car pack (`Assets/ThirdParty/Sketchfab/Vehicles/generic-passenger-car-pack`, used for city traffic) and the two music tracks in `Assets/ThirdParty/SoundAudio` (`machine-speed-sport-aggressive-electronic`, gameplay; `danger-chaos-cinematic-trailer-hybrid`, opening cinematic).
-
-Third-party 3D models (Sketchfab), used under their Creative Commons licences. Full details are in [Docs/ThirdParty.md](Docs/ThirdParty.md) and each folder's `ATTRIBUTION.txt`:
-
-| Model | Author | Licence |
-|---|---|---|
-| 2010 Mercedes SLS AMG | Dave Love SketchFab | CC BY 4.0 |
-| Mercedes SLS GT3 | Dave Love SketchFab | CC BY 4.0 |
-| ( FREE ) Lamborghini Terzo Millennio | SDC PERFORMANCE | CC BY-NC 4.0 (non-commercial) |
-| Mercedes-AMG GT3 Red Bull Racing (not in the catalog) | VTX | CC BY-NC-SA 4.0 (non-commercial) |
-| [FREE] London Skyscraper, Singapore Office Skyscraper [FREE], Asian Themed Low Poly Night City Buildings, Low Poly Night City Building Skyline | 99.Miles | CC BY 4.0 |
-
-Vehicle brands and liveries are trademarks of their owners. This is a non-commercial project; a commercial release would need de-branded models and fictional names.
+- The Android build has **not been run on a physical device**: performance, touch layout and memory on phones are
+  unverified. The Harbor Rain level is heavy (several million triangles in some views).
+- Wide night views of the port remain dark, since only the nearest lights are real-time.
+- The generated speech and sound mix have not been reviewed by ear.
+- Night Run has no spoken dialogue (text messages only), and no crew cars accompany yours through the portal.
+- Unity tests run in the editor, not in CI (no Unity licence is configured for GitHub Actions).

@@ -49,7 +49,16 @@ Sources: the GLB licences come from each file's embedded glTF `asset.extras`. Th
 
 ## Audio
 
-All game audio is generated in-house by `VehicleAudioGenerator` and `MissionAudioGenerator` (procedural synthesis, deterministic: engines, tyres, sirens, klaxon, barrier motor/slam, city ambience, hack loop, HUD cues). No third-party sound files are used and none were downloaded. See [Audio.md](Audio.md) for free, clearly licensed sources if recorded sounds are wanted later.
+Sound effects, engines, tyres, ambience and the fallback adaptive score are generated in-house by
+`VehicleAudioGenerator`, `MissionAudioGenerator`, `HarborRainAudio` and `CampaignBuilder` (deterministic procedural
+synthesis). Exceptions:
+
+- **Music:** the two owner-supplied tracks in `Assets/ThirdParty/SoundAudio` (source and licence not recorded, see
+  *Supplied by the project owner* below).
+- **Speech:** Harbor Rain radio and campaign narration were generated with macOS System Voices and are kept out of
+  the public repository (see *Harbor Rain and the campaign* below).
+
+See [Audio.md](Audio.md) for free, clearly licensed sources if recorded sounds are wanted later.
 
 ## District art (Night Run)
 
@@ -104,6 +113,47 @@ Notes:
 | Generic passenger car pack (10 cars: compact, coupe, hatchback, minivan, off-roader, pickup, sedan, sport, SUV, wagon) | `Assets/ThirdParty/Sketchfab/Vehicles/generic-passenger-car-pack` | City traffic (`TrafficCarBuilder` → `Prefabs/Traffic`) | One FBX (`source/fab.fbx`) and textures; no licence or author file is included in the folder. Record the source and licence here before any distribution. |
 | `machine-speed-sport-aggressive-electronic.mp3` (111 s) | `Assets/ThirdParty/SoundAudio` | Gameplay background music (`MissionAudioSet.musicTrack`, volume 0.30, streamed) | No licence file included; record the source and licence. |
 | `danger-chaos-cinematic-trailer-hybrid.mp3` (102 s) | `Assets/ThirdParty/SoundAudio` | Opening cinematic soundtrack (Timeline track "Soundtrack", 0–84 s, 2.5 s fade-out) | No licence file included; record the source and licence. |
+
+## Harbor Rain and the campaign (October 2026)
+
+Provenance re-checked on 2026-10-18 against the Sketchfab API (`api.sketchfab.com/v3/models/<uid>`: licence label,
+author, description). Per-folder records: `Assets/_NeonRift/Levels/HarborRain/Imported/ATTRIBUTION.txt` and
+`Assets/ThirdParty/Sketchfab/Ships/ATTRIBUTION.txt`.
+
+### Published
+
+| Asset | Author | Licence | Use |
+|---|---|---|---|
+| [Container Ship](https://sketchfab.com/3d-models/container-ship-aaa41cca946b4a08bc08cf692b7757be) | RM02 | CC BY 4.0 | ship at the berth (textures downscaled to 2048 px) |
+| [Liberty ship](https://sketchfab.com/3d-models/liberty-ship-a1db8e8414464c5d8b11383e202fcf26) | AlanTinka | CC BY 4.0 | ship at anchor (textures downscaled) |
+| [Cruise Ship](https://sketchfab.com/3d-models/cruise-ship-bb782326932e4c179e34f3d6c8e36b86) | farhad.Guli | CC BY 4.0 (embedded in the GLB) | outer roads, unmodified |
+| 19 props and 6 texture sets from [Poly Haven](https://polyhaven.com) | various (listed in the attribution file) | CC0 1.0 | port props and surfaces |
+
+Everything else in Harbor Rain is first-party and generated in code: the port, roads, buildings, cranes, the port
+truck and container trailer, containers and their markings (fictional owner codes), forklifts, pallets, water, waves,
+rain, materials, generated textures and all sound effects (procedural synthesis). The campaign portal, teaser frames
+(captured from the Harbor Rain level) and portal sounds are first-party as well. The Harbor Rain police car is built
+from the owner-supplied passenger-car pack (above), whose licence is still unrecorded.
+
+### Kept out of the public repository (local-only, listed in `.gitignore`)
+
+| Asset | Finding | Decision |
+|---|---|---|
+| Ferrari 296 Speciale A (`2026-ferrari-296-speciale-a.zip`) | The matching Sketchfab page (*outpiston*) is labelled CC BY-NC-SA 4.0, but its description says **"MODEL AND TEXTURE FROM CSR2"**, a commercial mobile game. An uploader cannot licence another studio's game asset, so the label does not establish a right to redistribute it. | Not published; not in any public build. |
+| Ferrari F40 Liberty Walk (`ferrari-f40-liberty-walk.zip`) | The closest Sketchfab page (*bohmerang*) is labelled CC BY-NC-SA 4.0, but the file's own metadata names a different author ("VTX"), its node names follow Assetto Corsa conventions and its texture names a game-asset scheme. The file is not shown to come from that page. | Not published; not in any public build. |
+| Work boat (`ship.zip` / `divingboat.7z`) | No author or licence; game-style texture names. | Not published. |
+| Voice recordings (`HR_VO_*`, `Campaign_VO_*`, 66 lines) | Generated with macOS System Voices (`say`). The macOS licence (section F, "Voices") allows them only "to create your own original content and projects for your personal, non-commercial use" and prohibits "recording, publishing or redistribution … in a profit, non-profit, public sharing or commercial context". | Not published. Lines show as subtitles in public checkouts; on a Mac the build tools regenerate them locally for personal use. |
+| Unused ship archives (sailing frigate, CC BY 4.0; a science-fiction spacecraft) | Not used in the game. | Not published. |
+
+The campaign and Harbor Rain run without these: the car selections list the cars that are present, the bay has no
+work boat, and every spoken line still appears as a subtitle.
+
+### Distribution status
+
+The locally built campaign APK contains the local-only items above and is for the owner's personal use only. A
+public release would need them removed (or replaced with properly licensed equivalents), the passenger-car pack and
+music sources recorded, and it would remain **non-commercial** because of the Terzo Millennio (CC BY-NC) and AMG GT3
+(CC BY-NC-SA) models. See [BUILDING.md § Distribution](BUILDING.md#distribution).
 
 ## Known issues carried forward
 

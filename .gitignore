@@ -62,3 +62,27 @@ Thumbs.db
 /My project/
 # Original downloaded archives; extracted, usable content lives under Assets/ThirdParty
 /SourceArchives/
+
+# Third-party models whose redistribution rights are unverified or incompatible with a public repository.
+# They stay on the owner's machine only; the project runs without them (see Docs/ThirdParty.md).
+/Assets/ThirdParty/Sketchfab/Vehicles/ferrari-f40-liberty-walk.zip*
+/Assets/ThirdParty/Sketchfab/Vehicles/2026-ferrari-296-speciale-a.zip*
+/Assets/_NeonRift/Levels/HarborRain/Imported/Vehicles/
+/Assets/_NeonRift/Levels/HarborRain/Imported/Vehicles.meta
+/Assets/_NeonRift/Levels/HarborRain/Generated/Vehicles/PF_HR_Ferrari*
+/Assets/_NeonRift/Levels/HarborRain/Imported/Ships/DivingBoat/
+/Assets/_NeonRift/Levels/HarborRain/Imported/Ships/DivingBoat.meta
+# Ship source archives: only the cruise ship is used in place; the container and Liberty ships are used from
+# their extracted copies under Levels/HarborRain/Imported/Ships; the rest are unused or of unknown origin.
+/Assets/ThirdParty/Sketchfab/Ships/*
+!/Assets/ThirdParty/Sketchfab/Ships/cruise_ship.glb
+!/Assets/ThirdParty/Sketchfab/Ships/cruise_ship.glb.meta
+!/Assets/ThirdParty/Sketchfab/Ships/ATTRIBUTION.txt
+!/Assets/ThirdParty/Sketchfab/Ships/ATTRIBUTION.txt.meta
+# Local tooling scratch
+/.utmp/
+# Spoken lines are generated locally with macOS System Voices. Apple's macOS licence allows those voices only for
+# personal, non-commercial use and not for publishing or redistribution, so the recordings stay local; a public
+# checkout plays the same lines as subtitle-only text (Docs/ThirdParty.md).
+/Assets/_NeonRift/Levels/HarborRain/Generated/Audio/HR_VO_*
+/Assets/_NeonRift/Levels/Campaign/Generated/Audio/Campaign_VO_*
