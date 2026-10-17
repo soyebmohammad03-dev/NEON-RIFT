@@ -1,0 +1,1162 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b49216e0887814b6294ff5edf1798bfd, type: 3}
+  m_Name: HR_RoadNetwork
+  m_EditorClassIdentifier: NeonRift.World::NeonRift.World.RoadNetwork
+  cityName: Kowloon Bay Port
+  nodes:
+  - position: {x: 0, y: 0, z: -640}
+  - position: {x: 0, y: 0, z: -337}
+  - position: {x: 0, y: 0, z: -330}
+  - position: {x: -641, y: 0, z: -305}
+  - position: {x: -380, y: 0, z: -305}
+  - position: {x: 0, y: 0, z: -305}
+  - position: {x: 380, y: 0, z: -305}
+  - position: {x: 641, y: 0, z: -305}
+  - position: {x: 0, y: 0, z: -323}
+  - position: {x: 0, y: 0, z: -180}
+  - position: {x: 0, y: 0, z: -50}
+  - position: {x: 0, y: 0, z: 80}
+  - position: {x: 0, y: 0, z: 230}
+  - position: {x: -641, y: 0, z: -180}
+  - position: {x: -641, y: 0, z: -120}
+  - position: {x: -641, y: 0, z: -50}
+  - position: {x: -641, y: 0, z: 80}
+  - position: {x: -641, y: 0, z: 230}
+  - position: {x: 641, y: 0, z: -240}
+  - position: {x: 641, y: 0, z: -180}
+  - position: {x: 641, y: 0, z: -50}
+  - position: {x: 641, y: 0, z: 80}
+  - position: {x: 641, y: 0, z: 230}
+  - position: {x: -380, y: 0, z: -180}
+  - position: {x: -250, y: 0, z: -180}
+  - position: {x: 380, y: 0, z: -180}
+  - position: {x: 450, y: 0, z: -180}
+  - position: {x: -450, y: 0, z: -50}
+  - position: {x: -250, y: 0, z: -50}
+  - position: {x: -150, y: 0, z: -50}
+  - position: {x: 90, y: 0, z: -50}
+  - position: {x: 450, y: 0, z: -50}
+  - position: {x: 593, y: 0, z: -50}
+  - position: {x: 607, y: 0, z: -50}
+  - position: {x: -450, y: 0, z: 80}
+  - position: {x: -150, y: 0, z: 80}
+  - position: {x: 90, y: 0, z: 80}
+  - position: {x: 450, y: 0, z: 80}
+  - position: {x: 513, y: 0, z: 80}
+  - position: {x: 527, y: 0, z: 80}
+  - position: {x: 593, y: 0, z: 80}
+  - position: {x: 607, y: 0, z: 80}
+  - position: {x: -450, y: 0, z: 230}
+  - position: {x: -150, y: 0, z: 230}
+  - position: {x: 90, y: 0, z: 230}
+  - position: {x: 225, y: 0, z: 230}
+  - position: {x: 329, y: 0, z: 230}
+  - position: {x: 450, y: 0, z: 230}
+  - position: {x: 471, y: 0, z: 230}
+  - position: {x: 509, y: 0, z: 230}
+  - position: {x: 611, y: 0, z: 230}
+  - position: {x: 615, y: 0, z: 230}
+  - position: {x: 629, y: 0, z: 230}
+  - position: {x: 653, y: 0, z: 230}
+  - position: {x: 667, y: 0, z: 230}
+  - position: {x: 892, y: 0, z: 230}
+  - position: {x: -450, y: 0, z: -43}
+  - position: {x: -450, y: 0, z: 222}
+  - position: {x: -150, y: 0, z: -43}
+  - position: {x: -150, y: 0, z: 222}
+  - position: {x: 90, y: 0, z: -43}
+  - position: {x: 90, y: 0, z: 222}
+  - position: {x: 450, y: 0, z: -43}
+  - position: {x: 450, y: 0, z: 222}
+  - position: {x: 380, y: 0, z: -298}
+  - position: {x: 380, y: 0, z: -240}
+  - position: {x: 380, y: 0, z: -187}
+  - position: {x: -380, y: 0, z: -298}
+  - position: {x: -380, y: 0, z: -187}
+  - position: {x: 450, y: 0, z: -173}
+  - position: {x: 450, y: 0, z: -57}
+  - position: {x: 150, y: 0, z: -240}
+  - position: {x: 634, y: 0, z: -240}
+  - position: {x: -634, y: 0, z: -120}
+  - position: {x: -250, y: 0, z: -120}
+  - position: {x: -60, y: 0, z: -120}
+  - position: {x: 225, y: 0, z: 103}
+  - position: {x: 225, y: 0, z: 209}
+  - position: {x: 225, y: 0, z: 222}
+  - position: {x: -250, y: 0, z: -173}
+  - position: {x: -250, y: 0, z: -57}
+  - position: {x: 892, y: 0, z: 156}
+  - position: {x: 892, y: 0, z: 276}
+  - position: {x: 995, y: 0, z: 276}
+  - position: {x: 1065, y: 0, z: 276}
+  - position: {x: 1200, y: 0, z: 276}
+  - position: {x: 1270, y: 0, z: 276}
+  - position: {x: 1405, y: 0, z: 276}
+  - position: {x: 1475, y: 0, z: 276}
+  - position: {x: 1592, y: 0, z: 276}
+  - position: {x: 1908, y: 0, z: 276}
+  - position: {x: 1592, y: 0, z: 156}
+  - position: {x: 1908, y: 0, z: 552}
+  - position: {x: 2280, y: 0, z: 552}
+  edges:
+  - a: 0
+    b: 1
+    halfWidth: 9
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 0
+    street: ENTRY ROAD
+    speedLimit: 27
+    blockerId: 
+  - a: 1
+    b: 2
+    halfWidth: 9
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 0
+    street: ENTRY ROAD
+    speedLimit: 27
+    blockerId: SOUTH GATE
+  - a: 3
+    b: 4
+    halfWidth: 7
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 0
+    street: SOUTH PERIMETER ROAD
+    speedLimit: 27
+    blockerId: 
+  - a: 4
+    b: 5
+    halfWidth: 7
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 0
+    street: SOUTH PERIMETER ROAD
+    speedLimit: 27
+    blockerId: 
+  - a: 5
+    b: 6
+    halfWidth: 7
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 0
+    street: SOUTH PERIMETER ROAD
+    speedLimit: 27
+    blockerId: 
+  - a: 6
+    b: 7
+    halfWidth: 7
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 0
+    street: SOUTH PERIMETER ROAD
+    speedLimit: 27
+    blockerId: 
+  - a: 2
+    b: 8
+    halfWidth: 8
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 0
+    street: THE SPINE
+    speedLimit: 27
+    blockerId: SOUTH GATE
+  - a: 8
+    b: 5
+    halfWidth: 8
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 0
+    street: THE SPINE
+    speedLimit: 27
+    blockerId: 
+  - a: 5
+    b: 9
+    halfWidth: 8
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 0
+    street: THE SPINE
+    speedLimit: 27
+    blockerId: 
+  - a: 9
+    b: 10
+    halfWidth: 8
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 0
+    street: THE SPINE
+    speedLimit: 27
+    blockerId: 
+  - a: 10
+    b: 11
+    halfWidth: 8
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 0
+    street: THE SPINE
+    speedLimit: 27
+    blockerId: 
+  - a: 11
+    b: 12
+    halfWidth: 8
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 0
+    street: THE SPINE
+    speedLimit: 27
+    blockerId: 
+  - a: 3
+    b: 13
+    halfWidth: 7
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 0
+    street: WEST ROAD
+    speedLimit: 27
+    blockerId: 
+  - a: 13
+    b: 14
+    halfWidth: 7
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 0
+    street: WEST ROAD
+    speedLimit: 27
+    blockerId: 
+  - a: 14
+    b: 15
+    halfWidth: 7
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 0
+    street: WEST ROAD
+    speedLimit: 27
+    blockerId: 
+  - a: 15
+    b: 16
+    halfWidth: 7
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 0
+    street: WEST ROAD
+    speedLimit: 27
+    blockerId: 
+  - a: 16
+    b: 17
+    halfWidth: 7
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 0
+    street: WEST ROAD
+    speedLimit: 27
+    blockerId: 
+  - a: 7
+    b: 18
+    halfWidth: 7
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 0
+    street: EAST ROAD
+    speedLimit: 27
+    blockerId: 
+  - a: 18
+    b: 19
+    halfWidth: 7
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 0
+    street: EAST ROAD
+    speedLimit: 27
+    blockerId: 
+  - a: 19
+    b: 20
+    halfWidth: 7
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 0
+    street: EAST ROAD
+    speedLimit: 27
+    blockerId: 
+  - a: 20
+    b: 21
+    halfWidth: 7
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 0
+    street: EAST ROAD
+    speedLimit: 27
+    blockerId: 
+  - a: 21
+    b: 22
+    halfWidth: 7
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 0
+    street: EAST ROAD
+    speedLimit: 27
+    blockerId: 
+  - a: 13
+    b: 23
+    halfWidth: 7
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 0
+    street: CROSS ROAD
+    speedLimit: 27
+    blockerId: 
+  - a: 23
+    b: 24
+    halfWidth: 7
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 0
+    street: CROSS ROAD
+    speedLimit: 27
+    blockerId: 
+  - a: 24
+    b: 9
+    halfWidth: 7
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 0
+    street: CROSS ROAD
+    speedLimit: 27
+    blockerId: 
+  - a: 9
+    b: 25
+    halfWidth: 7
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 0
+    street: CROSS ROAD
+    speedLimit: 27
+    blockerId: 
+  - a: 25
+    b: 26
+    halfWidth: 7
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 0
+    street: CROSS ROAD
+    speedLimit: 27
+    blockerId: 
+  - a: 26
+    b: 19
+    halfWidth: 7
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 0
+    street: CROSS ROAD
+    speedLimit: 27
+    blockerId: 
+  - a: 15
+    b: 27
+    halfWidth: 7
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 0
+    street: TERMINAL ROAD
+    speedLimit: 27
+    blockerId: 
+  - a: 27
+    b: 28
+    halfWidth: 7
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 0
+    street: TERMINAL ROAD
+    speedLimit: 27
+    blockerId: 
+  - a: 28
+    b: 29
+    halfWidth: 7
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 0
+    street: TERMINAL ROAD
+    speedLimit: 27
+    blockerId: 
+  - a: 29
+    b: 10
+    halfWidth: 7
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 0
+    street: TERMINAL ROAD
+    speedLimit: 27
+    blockerId: 
+  - a: 10
+    b: 30
+    halfWidth: 7
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 0
+    street: TERMINAL ROAD
+    speedLimit: 27
+    blockerId: 
+  - a: 30
+    b: 31
+    halfWidth: 7
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 0
+    street: TERMINAL ROAD
+    speedLimit: 27
+    blockerId: 
+  - a: 31
+    b: 32
+    halfWidth: 7
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 0
+    street: TERMINAL ROAD
+    speedLimit: 27
+    blockerId: 
+  - a: 32
+    b: 33
+    halfWidth: 7
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 0
+    street: TERMINAL ROAD
+    speedLimit: 27
+    blockerId: THE TERMINAL ROAD
+  - a: 33
+    b: 20
+    halfWidth: 7
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 0
+    street: TERMINAL ROAD
+    speedLimit: 27
+    blockerId: 
+  - a: 16
+    b: 34
+    halfWidth: 6
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 1
+    street: LANE 80
+    speedLimit: 19
+    blockerId: 
+  - a: 34
+    b: 35
+    halfWidth: 6
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 1
+    street: LANE 80
+    speedLimit: 19
+    blockerId: 
+  - a: 35
+    b: 11
+    halfWidth: 6
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 1
+    street: LANE 80
+    speedLimit: 19
+    blockerId: 
+  - a: 11
+    b: 36
+    halfWidth: 6
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 1
+    street: LANE 80
+    speedLimit: 19
+    blockerId: 
+  - a: 36
+    b: 37
+    halfWidth: 6
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 1
+    street: LANE 80
+    speedLimit: 19
+    blockerId: 
+  - a: 37
+    b: 38
+    halfWidth: 6
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 1
+    street: LANE 80
+    speedLimit: 19
+    blockerId: 
+  - a: 38
+    b: 39
+    halfWidth: 6
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 1
+    street: LANE 80
+    speedLimit: 19
+    blockerId: LANE 80 CHECKPOINT
+  - a: 39
+    b: 40
+    halfWidth: 6
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 1
+    street: LANE 80
+    speedLimit: 19
+    blockerId: 
+  - a: 40
+    b: 41
+    halfWidth: 6
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 1
+    street: LANE 80
+    speedLimit: 19
+    blockerId: LANE 80
+  - a: 41
+    b: 21
+    halfWidth: 6
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 1
+    street: LANE 80
+    speedLimit: 19
+    blockerId: 
+  - a: 17
+    b: 42
+    halfWidth: 8
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 0
+    street: QUAY ROAD
+    speedLimit: 27
+    blockerId: 
+  - a: 42
+    b: 43
+    halfWidth: 8
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 0
+    street: QUAY ROAD
+    speedLimit: 27
+    blockerId: 
+  - a: 43
+    b: 12
+    halfWidth: 8
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 0
+    street: QUAY ROAD
+    speedLimit: 27
+    blockerId: 
+  - a: 12
+    b: 44
+    halfWidth: 8
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 0
+    street: QUAY ROAD
+    speedLimit: 27
+    blockerId: 
+  - a: 44
+    b: 45
+    halfWidth: 8
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 0
+    street: QUAY ROAD
+    speedLimit: 27
+    blockerId: 
+  - a: 45
+    b: 46
+    halfWidth: 8
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 0
+    street: QUAY ROAD
+    speedLimit: 27
+    blockerId: 
+  - a: 46
+    b: 47
+    halfWidth: 8
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 0
+    street: QUAY ROAD
+    speedLimit: 27
+    blockerId: QUAYSIDE WEST
+  - a: 47
+    b: 48
+    halfWidth: 8
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 0
+    street: QUAY ROAD
+    speedLimit: 27
+    blockerId: QUAYSIDE WEST
+  - a: 48
+    b: 49
+    halfWidth: 8
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 0
+    street: QUAY ROAD
+    speedLimit: 27
+    blockerId: 
+  - a: 49
+    b: 50
+    halfWidth: 8
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 0
+    street: QUAY ROAD
+    speedLimit: 27
+    blockerId: QUAYSIDE EAST
+  - a: 50
+    b: 51
+    halfWidth: 8
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 0
+    street: QUAY ROAD
+    speedLimit: 27
+    blockerId: 
+  - a: 51
+    b: 52
+    halfWidth: 8
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 0
+    street: QUAY ROAD
+    speedLimit: 27
+    blockerId: THE QUAY ROAD
+  - a: 52
+    b: 22
+    halfWidth: 8
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 0
+    street: QUAY ROAD
+    speedLimit: 27
+    blockerId: 
+  - a: 22
+    b: 53
+    halfWidth: 8
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 0
+    street: QUAY ROAD
+    speedLimit: 27
+    blockerId: 
+  - a: 53
+    b: 54
+    halfWidth: 8
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 0
+    street: QUAY ROAD
+    speedLimit: 27
+    blockerId: EAST GATE
+  - a: 54
+    b: 55
+    halfWidth: 8
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 0
+    street: QUAY ROAD
+    speedLimit: 27
+    blockerId: 
+  - a: 27
+    b: 56
+    halfWidth: 6
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 1
+    street: LANE W450
+    speedLimit: 19
+    blockerId: 
+  - a: 56
+    b: 34
+    halfWidth: 6
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 1
+    street: LANE W450
+    speedLimit: 19
+    blockerId: 
+  - a: 34
+    b: 57
+    halfWidth: 6
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 1
+    street: LANE W450
+    speedLimit: 19
+    blockerId: 
+  - a: 57
+    b: 42
+    halfWidth: 6
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 1
+    street: LANE W450
+    speedLimit: 19
+    blockerId: 
+  - a: 29
+    b: 58
+    halfWidth: 6
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 1
+    street: LANE W150
+    speedLimit: 19
+    blockerId: 
+  - a: 58
+    b: 35
+    halfWidth: 6
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 1
+    street: LANE W150
+    speedLimit: 19
+    blockerId: 
+  - a: 35
+    b: 59
+    halfWidth: 6
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 1
+    street: LANE W150
+    speedLimit: 19
+    blockerId: 
+  - a: 59
+    b: 43
+    halfWidth: 6
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 1
+    street: LANE W150
+    speedLimit: 19
+    blockerId: 
+  - a: 30
+    b: 60
+    halfWidth: 6
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 1
+    street: LANE E90
+    speedLimit: 19
+    blockerId: 
+  - a: 60
+    b: 36
+    halfWidth: 6
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 1
+    street: LANE E90
+    speedLimit: 19
+    blockerId: 
+  - a: 36
+    b: 61
+    halfWidth: 6
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 1
+    street: LANE E90
+    speedLimit: 19
+    blockerId: 
+  - a: 61
+    b: 44
+    halfWidth: 6
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 1
+    street: LANE E90
+    speedLimit: 19
+    blockerId: 
+  - a: 31
+    b: 62
+    halfWidth: 6
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 1
+    street: LANE E450
+    speedLimit: 19
+    blockerId: 
+  - a: 62
+    b: 37
+    halfWidth: 6
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 1
+    street: LANE E450
+    speedLimit: 19
+    blockerId: 
+  - a: 37
+    b: 63
+    halfWidth: 6
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 1
+    street: LANE E450
+    speedLimit: 19
+    blockerId: 
+  - a: 63
+    b: 47
+    halfWidth: 6
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 1
+    street: LANE E450
+    speedLimit: 19
+    blockerId: QUAYSIDE WEST
+  - a: 6
+    b: 64
+    halfWidth: 6
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 1
+    street: FREIGHT CONNECTOR
+    speedLimit: 19
+    blockerId: 
+  - a: 64
+    b: 65
+    halfWidth: 6
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 1
+    street: FREIGHT CONNECTOR
+    speedLimit: 19
+    blockerId: 
+  - a: 65
+    b: 66
+    halfWidth: 6
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 1
+    street: FREIGHT CONNECTOR
+    speedLimit: 19
+    blockerId: 
+  - a: 66
+    b: 25
+    halfWidth: 6
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 1
+    street: FREIGHT CONNECTOR
+    speedLimit: 19
+    blockerId: 
+  - a: 4
+    b: 67
+    halfWidth: 6
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 1
+    street: INDUSTRIAL CONNECTOR
+    speedLimit: 19
+    blockerId: 
+  - a: 67
+    b: 68
+    halfWidth: 6
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 1
+    street: INDUSTRIAL CONNECTOR
+    speedLimit: 19
+    blockerId: 
+  - a: 68
+    b: 23
+    halfWidth: 6
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 1
+    street: INDUSTRIAL CONNECTOR
+    speedLimit: 19
+    blockerId: 
+  - a: 26
+    b: 69
+    halfWidth: 6
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 1
+    street: FREIGHT NORTH EXIT
+    speedLimit: 19
+    blockerId: 
+  - a: 69
+    b: 70
+    halfWidth: 6
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 1
+    street: FREIGHT NORTH EXIT
+    speedLimit: 19
+    blockerId: 
+  - a: 70
+    b: 31
+    halfWidth: 6
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 1
+    street: FREIGHT NORTH EXIT
+    speedLimit: 19
+    blockerId: 
+  - a: 71
+    b: 65
+    halfWidth: 6
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 1
+    street: FREIGHT SERVICE ROAD
+    speedLimit: 19
+    blockerId: 
+  - a: 65
+    b: 72
+    halfWidth: 6
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 1
+    street: FREIGHT SERVICE ROAD
+    speedLimit: 19
+    blockerId: 
+  - a: 72
+    b: 18
+    halfWidth: 6
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 1
+    street: FREIGHT SERVICE ROAD
+    speedLimit: 19
+    blockerId: 
+  - a: 14
+    b: 73
+    halfWidth: 6
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 1
+    street: INDUSTRIAL SERVICE ROAD
+    speedLimit: 19
+    blockerId: 
+  - a: 73
+    b: 74
+    halfWidth: 6
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 1
+    street: INDUSTRIAL SERVICE ROAD
+    speedLimit: 19
+    blockerId: 
+  - a: 74
+    b: 75
+    halfWidth: 6
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 1
+    street: INDUSTRIAL SERVICE ROAD
+    speedLimit: 19
+    blockerId: 
+  - a: 76
+    b: 77
+    halfWidth: 12
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 0
+    street: RESTRICTED LANE
+    speedLimit: 27
+    blockerId: 
+  - a: 77
+    b: 78
+    halfWidth: 12
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 0
+    street: RESTRICTED LANE
+    speedLimit: 27
+    blockerId: NORTH GATE
+  - a: 78
+    b: 45
+    halfWidth: 12
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 0
+    street: RESTRICTED LANE
+    speedLimit: 27
+    blockerId: 
+  - a: 24
+    b: 79
+    halfWidth: 6
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 1
+    street: INDUSTRIAL NORTH EXIT
+    speedLimit: 19
+    blockerId: 
+  - a: 79
+    b: 74
+    halfWidth: 6
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 1
+    street: INDUSTRIAL NORTH EXIT
+    speedLimit: 19
+    blockerId: 
+  - a: 74
+    b: 80
+    halfWidth: 6
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 1
+    street: INDUSTRIAL NORTH EXIT
+    speedLimit: 19
+    blockerId: 
+  - a: 80
+    b: 28
+    halfWidth: 6
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 1
+    street: INDUSTRIAL NORTH EXIT
+    speedLimit: 19
+    blockerId: 
+  - a: 81
+    b: 55
+    halfWidth: 8
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 0
+    street: COAST JUNCTION
+    speedLimit: 31
+    blockerId: 
+  - a: 55
+    b: 82
+    halfWidth: 8
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 0
+    street: COAST JUNCTION
+    speedLimit: 31
+    blockerId: 
+  - a: 82
+    b: 83
+    halfWidth: 8
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 0
+    street: COAST ROAD
+    speedLimit: 31
+    blockerId: 
+  - a: 83
+    b: 84
+    halfWidth: 8
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 0
+    street: COAST ROAD
+    speedLimit: 31
+    blockerId: WAVE:SEAWALL WEST
+  - a: 84
+    b: 85
+    halfWidth: 8
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 0
+    street: COAST ROAD
+    speedLimit: 31
+    blockerId: 
+  - a: 85
+    b: 86
+    halfWidth: 8
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 0
+    street: COAST ROAD
+    speedLimit: 31
+    blockerId: WAVE:SEAWALL MID
+  - a: 86
+    b: 87
+    halfWidth: 8
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 0
+    street: COAST ROAD
+    speedLimit: 31
+    blockerId: 
+  - a: 87
+    b: 88
+    halfWidth: 8
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 0
+    street: COAST ROAD
+    speedLimit: 31
+    blockerId: WAVE:SEAWALL EAST
+  - a: 88
+    b: 89
+    halfWidth: 8
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 0
+    street: COAST ROAD
+    speedLimit: 31
+    blockerId: 
+  - a: 89
+    b: 90
+    halfWidth: 8
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 0
+    street: COAST ROAD
+    speedLimit: 31
+    blockerId: 
+  - a: 81
+    b: 91
+    halfWidth: 6
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 1
+    street: SERVICE ROAD
+    speedLimit: 31
+    blockerId: 
+  - a: 91
+    b: 89
+    halfWidth: 8
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 0
+    street: EAST LINK
+    speedLimit: 31
+    blockerId: 
+  - a: 90
+    b: 92
+    halfWidth: 8
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 0
+    street: HEADLAND ROAD
+    speedLimit: 31
+    blockerId: 
+  - a: 92
+    b: 93
+    halfWidth: 8
+    lanesPerDirection: 1
+    median: 0
+    roadClass: 0
+    street: PIER ROAD
+    speedLimit: 31
+    blockerId: 
+  districts: []
+  bounds:
+    serializedVersion: 2
+    x: -720
+    y: -660
+    width: 3100
+    height: 1300

@@ -1,0 +1,12 @@
+Ships (Harbor Rain)
+
+Cruise Ship
+  Author:  farhad.Guli
+  Source:  https://sketchfab.com/3d-models/cruise-ship-bb782326932e4c179e34f3d6c8e36b86
+  Licence: CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) - embedded in the GLB's asset metadata
+  Use:     placed unmodified in the Harbor Rain outer roads (cruise_ship.glb is used in place).
+
+Container Ship and Liberty Ship are used from extracted copies under
+Assets/_NeonRift/Levels/HarborRain/Imported/Ships (see the ATTRIBUTION.txt there). The other ship archives that were
+downloaded (a sailing frigate, a science-fiction spacecraft, and a work boat of unknown origin) are not used and are not
+in the public repository.

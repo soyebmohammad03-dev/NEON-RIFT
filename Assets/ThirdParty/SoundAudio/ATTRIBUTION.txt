@@ -1,0 +1,7 @@
+Music supplied by the project owner (October 2026)
+
+machine-speed-sport-aggressive-electronic.mp3   gameplay background music (MissionAudioSet.musicTrack)
+danger-chaos-cinematic-trailer-hybrid.mp3        opening cinematic soundtrack (Timeline track "Soundtrack")
+
+No author, source URL or licence file was included, and none has been recorded yet.
+Status: SOURCE AND LICENCE NOT RECORDED. Record them in Docs/ThirdParty.md before any distribution of a build.

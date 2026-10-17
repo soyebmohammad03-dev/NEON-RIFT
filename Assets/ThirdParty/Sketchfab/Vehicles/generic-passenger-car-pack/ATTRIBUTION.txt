@@ -1,0 +1,7 @@
+Generic passenger car pack (10 cars: compact, coupe, hatchback, minivan, off-roader, pickup, sedan, sport, SUV, wagon)
+
+Supplied by the project owner in October 2026 as source/fab.fbx with textures. No author, source URL or licence file
+was included, and none has been recorded yet.
+Status: SOURCE AND LICENCE NOT RECORDED. Used for Night Run city traffic (TrafficCarBuilder -> Prefabs/Traffic) and as
+the base of the Harbor Rain port police car (HarborRainPolice). Record the source and licence in Docs/ThirdParty.md
+before any distribution of a build.

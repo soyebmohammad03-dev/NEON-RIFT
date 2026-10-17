@@ -1,0 +1,23 @@
+{
+    "name": "NeonRift.HarborRain",
+    "rootNamespace": "NeonRift.HarborRain",
+    "references": [
+        "Unity.InputSystem",
+        "NeonRift.Game",
+        "NeonRift.Gameplay",
+        "NeonRift.World",
+        "NeonRift.Vehicles",
+        "NeonRift.Input",
+        "NeonRift.Audio",
+        "Unity.Cinemachine"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
